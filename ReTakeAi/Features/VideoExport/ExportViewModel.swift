@@ -69,6 +69,22 @@ class ExportViewModel {
             exportedURL = mergedURL
             exportProgress = 1.0
             
+            // Save export metadata to project
+            let totalDuration = selectedTakes.reduce(0) { $0 + $1.duration }
+            let fileSize = fileManager.fileSize(at: mergedURL)
+            
+            let exportedVideo = ExportedVideo(
+                fileURL: mergedURL,
+                aspect: latestProject.videoAspect,
+                duration: totalDuration,
+                fileSize: fileSize
+            )
+            
+            var updatedProject = latestProject
+            updatedProject.exports.append(exportedVideo)
+            updatedProject.status = .exported
+            try projectStore.updateProject(updatedProject)
+            
             AppLogger.processing.info("Video exported successfully: \(fileName)")
         } catch {
             errorMessage = "Export failed: \(error.localizedDescription)"

@@ -14,6 +14,7 @@ struct Project: Identifiable, Codable, Hashable {
     var sceneIDs: [UUID]
     var status: ProjectStatus
     var videoAspect: VideoAspect
+    var exports: [ExportedVideo]
     
     init(
         id: UUID = UUID(),
@@ -23,7 +24,8 @@ struct Project: Identifiable, Codable, Hashable {
         script: String? = nil,
         sceneIDs: [UUID] = [],
         status: ProjectStatus = .draft,
-        videoAspect: VideoAspect = .portrait9x16
+        videoAspect: VideoAspect = .portrait9x16,
+        exports: [ExportedVideo] = []
     ) {
         self.id = id
         self.title = title
@@ -33,6 +35,7 @@ struct Project: Identifiable, Codable, Hashable {
         self.sceneIDs = sceneIDs
         self.status = status
         self.videoAspect = videoAspect
+        self.exports = exports
     }
     
     var projectFolderPath: URL {
@@ -41,7 +44,7 @@ struct Project: Identifiable, Codable, Hashable {
 
     // Backwards-compatible decoding with defaults for older on-disk projects.
     enum CodingKeys: String, CodingKey {
-        case id, title, createdAt, updatedAt, script, sceneIDs, status, videoAspect
+        case id, title, createdAt, updatedAt, script, sceneIDs, status, videoAspect, exports
     }
 
     init(from decoder: Decoder) throws {
@@ -54,6 +57,7 @@ struct Project: Identifiable, Codable, Hashable {
         sceneIDs = try c.decodeIfPresent([UUID].self, forKey: .sceneIDs) ?? []
         status = try c.decodeIfPresent(ProjectStatus.self, forKey: .status) ?? .draft
         videoAspect = try c.decodeIfPresent(VideoAspect.self, forKey: .videoAspect) ?? .portrait9x16
+        exports = try c.decodeIfPresent([ExportedVideo].self, forKey: .exports) ?? []
     }
 
     func encode(to encoder: Encoder) throws {
@@ -66,6 +70,7 @@ struct Project: Identifiable, Codable, Hashable {
         try c.encode(sceneIDs, forKey: .sceneIDs)
         try c.encode(status, forKey: .status)
         try c.encode(videoAspect, forKey: .videoAspect)
+        try c.encode(exports, forKey: .exports)
     }
 }
 
