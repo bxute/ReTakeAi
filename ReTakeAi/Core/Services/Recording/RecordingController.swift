@@ -51,6 +51,11 @@ class RecordingController: NSObject, ObservableObject {
               let movieOutput = session.outputs.first(where: { $0 is AVCaptureMovieFileOutput }) as? AVCaptureMovieFileOutput else {
             throw RecordingError.outputNotConfigured
         }
+
+        // Match recording orientation to current interface orientation (portrait/landscape).
+        if let connection = movieOutput.connection(with: .video), connection.isVideoOrientationSupported {
+            connection.videoOrientation = currentCaptureOrientation()
+        }
         
         let tempURL = FileManager.default.temporaryDirectory
             .appendingPathComponent(UUID().uuidString)
@@ -69,6 +74,22 @@ class RecordingController: NSObject, ObservableObject {
         AppLogger.recording.info("Recording started: \(tempURL.lastPathComponent)")
         
         return tempURL
+    }
+
+    private func currentCaptureOrientation() -> AVCaptureVideoOrientation {
+        let interfaceOrientation = (UIApplication.shared.connectedScenes.first as? UIWindowScene)?.interfaceOrientation ?? .portrait
+        switch interfaceOrientation {
+        case .portrait:
+            return .portrait
+        case .portraitUpsideDown:
+            return .portraitUpsideDown
+        case .landscapeLeft:
+            return .landscapeLeft
+        case .landscapeRight:
+            return .landscapeRight
+        default:
+            return .portrait
+        }
     }
     
     func stopRecording() async throws -> URL {
@@ -122,16 +143,19 @@ class RecordingController: NSObject, ObservableObject {
     }
     
     func cleanup() {
+        // Keep the capture session reusable (per project) and avoid tearing down the pipeline
+        // immediately after stopping a recording; full teardown can trigger noisy Fig asserts.
         if isRecording {
             Task {
                 try? await stopRecording()
             }
         }
+
         stopTimer()
         audioService.deactivateAudioSession()
-        cameraService.cleanup()
-        
-        AppLogger.recording.info("Recording controller cleaned up")
+        cameraService.stopSession()
+
+        AppLogger.recording.info("Recording controller cleaned up (session retained)")
     }
 }
 

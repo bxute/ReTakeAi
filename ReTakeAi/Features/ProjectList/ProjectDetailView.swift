@@ -7,11 +7,17 @@ import SwiftUI
 
 struct ProjectDetailView: View {
     let project: Project
+    @State private var currentProject: Project
     @State private var scenes: [VideoScene] = []
-    @State private var showRecording = false
     @State private var selectedSceneForRecording: VideoScene?
     
     private let sceneStore = SceneStore.shared
+    private let projectStore = ProjectStore.shared
+
+    init(project: Project) {
+        self.project = project
+        _currentProject = State(initialValue: project)
+    }
     
     var body: some View {
         List {
@@ -34,7 +40,6 @@ struct ProjectDetailView: View {
                         if let nextScene = nextIncompleteScene {
                             Button {
                                 selectedSceneForRecording = nextScene
-                                showRecording = true
                             } label: {
                                 Label("Record Scene \(nextScene.orderIndex + 1)", systemImage: "video.fill")
                                     .font(.headline)
@@ -52,7 +57,7 @@ struct ProjectDetailView: View {
             Section("Scenes") {
                 if scenes.isEmpty {
                     NavigationLink {
-                        ScriptInputView(project: project)
+                        ScriptInputView(project: currentProject)
                     } label: {
                         Label("Add Script & Generate Scenes", systemImage: "text.badge.plus")
                     }
@@ -67,7 +72,6 @@ struct ProjectDetailView: View {
                             if !scene.isComplete {
                                 Button {
                                     selectedSceneForRecording = scene
-                                    showRecording = true
                                 } label: {
                                     Image(systemName: "video.circle.fill")
                                         .font(.title2)
@@ -83,7 +87,7 @@ struct ProjectDetailView: View {
             if !scenes.isEmpty && scenes.allSatisfy({ $0.isComplete }) {
                 Section {
                     NavigationLink {
-                        ExportView(project: project)
+                        ExportView(project: currentProject)
                     } label: {
                         Label("Export Final Video", systemImage: "square.and.arrow.up")
                             .foregroundColor(.green)
@@ -94,32 +98,36 @@ struct ProjectDetailView: View {
             }
             
             Section("Project Info") {
-                LabeledContent("Status", value: project.status.rawValue.capitalized)
-                LabeledContent("Created", value: project.createdAt.formatted(style: .medium))
+                LabeledContent("Status", value: currentProject.status.rawValue.capitalized)
+                LabeledContent("Created", value: currentProject.createdAt.formatted(style: .medium))
             }
         }
-        .navigationTitle(project.title)
+        .navigationTitle(currentProject.title)
         .navigationBarTitleDisplayMode(.large)
         .navigationDestination(for: VideoScene.self) { scene in
-            SceneReviewView(project: project, scene: scene)
+            SceneReviewView(project: currentProject, scene: scene)
         }
-        .fullScreenCover(isPresented: $showRecording) {
-            if let scene = selectedSceneForRecording {
-                NavigationStack {
-                    RecordingView(project: project, scene: scene)
-                }
+        .fullScreenCover(item: $selectedSceneForRecording, onDismiss: {
+            // After recording is dismissed, refresh project + scenes so takes appear immediately.
+            loadProjectAndScenes()
+        }) { scene in
+            NavigationStack {
+                RecordingView(project: currentProject, scene: scene)
             }
         }
         .onAppear {
-            loadScenes()
+            loadProjectAndScenes()
         }
         .refreshable {
-            loadScenes()
+            loadProjectAndScenes()
         }
     }
     
-    private func loadScenes() {
-        scenes = sceneStore.getScenes(for: project)
+    private func loadProjectAndScenes() {
+        if let latest = projectStore.getProject(by: project.id) {
+            currentProject = latest
+        }
+        scenes = sceneStore.getScenes(for: currentProject)
     }
     
     private var completedScenesCount: Int {

@@ -18,6 +18,9 @@ class CameraService: NSObject, ObservableObject {
     private var videoInput: AVCaptureDeviceInput?
     private var audioInput: AVCaptureDeviceInput?
     private var movieOutput: AVCaptureMovieFileOutput?
+
+    // AVCaptureSession start/stop should not run on the main thread.
+    private let sessionQueue = DispatchQueue(label: "com.retakeai.camera.session", qos: .userInitiated)
     
     private override init() {
         super.init()
@@ -118,8 +121,8 @@ class CameraService: NSObject, ObservableObject {
     
     func startSession() {
         guard let session = captureSession, !session.isRunning else { return }
-        
-        Task {
+
+        sessionQueue.async {
             session.startRunning()
             AppLogger.recording.info("Camera session started")
         }
@@ -127,8 +130,8 @@ class CameraService: NSObject, ObservableObject {
     
     func stopSession() {
         guard let session = captureSession, session.isRunning else { return }
-        
-        Task {
+
+        sessionQueue.async {
             session.stopRunning()
             AppLogger.recording.info("Camera session stopped")
         }

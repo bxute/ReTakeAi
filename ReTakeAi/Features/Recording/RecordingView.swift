@@ -5,6 +5,7 @@
 
 import SwiftUI
 import AVFoundation
+import UIKit
 
 struct RecordingView: View {
     let project: Project
@@ -12,6 +13,15 @@ struct RecordingView: View {
     
     @State private var viewModel = RecordingViewModel()
     @Environment(\.dismiss) private var dismiss
+
+    private var isShowingError: Binding<Bool> {
+        Binding(
+            get: { viewModel.errorMessage != nil },
+            set: { newValue in
+                if !newValue { viewModel.errorMessage = nil }
+            }
+        )
+    }
     
     var body: some View {
         ZStack {
@@ -21,6 +31,7 @@ struct RecordingView: View {
                 cameraPreview(session: session)
             } else {
                 LoadingView(message: "Setting up camera...")
+                    .foregroundStyle(.white)
             }
             
             VStack {
@@ -44,14 +55,20 @@ struct RecordingView: View {
         .onDisappear {
             viewModel.cleanup()
         }
-        .alert("Error", isPresented: .constant(viewModel.errorMessage != nil)) {
-            Button("OK") {
+        .alert("Recording Error", isPresented: isShowingError) {
+            if let msg = viewModel.errorMessage, msg.localizedCaseInsensitiveContains("not authorized") {
+                Button("Open Settings") {
+                    UIApplication.shared.open(URL(string: UIApplication.openSettingsURLString)!)
+                }
+            }
+            Button("Retry") {
+                Task { await viewModel.retrySetup() }
+            }
+            Button("OK", role: .cancel) {
                 viewModel.errorMessage = nil
             }
         } message: {
-            if let error = viewModel.errorMessage {
-                Text(error)
-            }
+            Text(viewModel.errorMessage ?? "Unknown error")
         }
     }
     
@@ -161,6 +178,8 @@ struct RecordingView: View {
                                 .padding(4)
                         )
                 }
+                .disabled(!viewModel.isSetupComplete || viewModel.captureSession == nil)
+                .opacity((!viewModel.isSetupComplete || viewModel.captureSession == nil) ? 0.4 : 1.0)
                 
                 if viewModel.isRecording {
                     Color.clear

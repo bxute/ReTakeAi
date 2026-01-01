@@ -31,6 +31,7 @@ class RecordingViewModel {
     func setup(project: Project, scene: VideoScene) async {
         currentProject = project
         currentScene = scene
+        errorMessage = nil
         
         do {
             try await recordingController.setup()
@@ -40,10 +41,21 @@ class RecordingViewModel {
         } catch {
             errorMessage = "Failed to setup recording: \(error.localizedDescription)"
             AppLogger.ui.error("Recording setup failed: \(error.localizedDescription)")
+            isSetupComplete = false
+            captureSession = nil
         }
+    }
+
+    func retrySetup() async {
+        guard let project = currentProject, let scene = currentScene else { return }
+        await setup(project: project, scene: scene)
     }
     
     func startRecording() async {
+        guard isSetupComplete, captureSession != nil else {
+            errorMessage = "Camera is not ready yet. Please wait for setup to complete."
+            return
+        }
         guard let scene = currentScene else { return }
         
         do {
@@ -152,5 +164,6 @@ class RecordingViewModel {
     func cleanup() {
         recordingController.cleanup()
         isSetupComplete = false
+        // Keep captureSession reference; controller retains a reusable session configuration.
     }
 }

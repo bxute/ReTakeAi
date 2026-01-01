@@ -12,8 +12,6 @@ class ScriptInputViewModel {
     var isGeneratingScenes = false
     var errorMessage: String?
     var generatedScenes: [SceneScript] = []
-    var scenesConfirmed = false
-    var createdScenes: [VideoScene] = []  // Store created scenes
     
     let project: Project
     
@@ -66,7 +64,6 @@ class ScriptInputViewModel {
             
             // Track current project state
             var currentProject = project
-            createdScenes = []
             
             for sceneScript in generatedScenes {
                 let scene = try sceneStore.createScene(
@@ -77,14 +74,12 @@ class ScriptInputViewModel {
                 
                 // Update local project reference
                 currentProject.sceneIDs.append(scene.id)
-                createdScenes.append(scene)
             }
             
             // Save the project with all scene IDs at once
             currentProject.status = .recording
             try projectStore.updateProject(currentProject)
             
-            scenesConfirmed = true
             AppLogger.ui.info("Confirmed and saved \(self.generatedScenes.count) scenes")
             return true
         } catch {
@@ -101,7 +96,4 @@ class ScriptInputViewModel {
         !generatedScenes.isEmpty
     }
     
-    var firstCreatedScene: VideoScene? {
-        createdScenes.first
-    }
 }

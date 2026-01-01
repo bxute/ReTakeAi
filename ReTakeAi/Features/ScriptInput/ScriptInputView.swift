@@ -8,7 +8,6 @@ import SwiftUI
 struct ScriptInputView: View {
     let project: Project
     @State private var viewModel: ScriptInputViewModel
-    @State private var showRecordingFlow = false
     @Environment(\.dismiss) private var dismiss
     
     init(project: Project) {
@@ -18,9 +17,7 @@ struct ScriptInputView: View {
     
     var body: some View {
         VStack(spacing: 0) {
-            if viewModel.scenesConfirmed {
-                readyToRecordView
-            } else if viewModel.hasGeneratedScenes {
+            if viewModel.hasGeneratedScenes {
                 scenesPreview
             } else {
                 scriptEditor
@@ -30,17 +27,20 @@ struct ScriptInputView: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
-                if viewModel.scenesConfirmed {
-                    EmptyView()
-                } else if viewModel.hasGeneratedScenes {
+                if viewModel.hasGeneratedScenes {
                     Button("Confirm") {
                         Task {
-                            await viewModel.confirmScenes()
+                            let ok = await viewModel.confirmScenes()
+                            if ok {
+                                // Return to Project Detail so the user can see scenes/takes and start recording per scene.
+                                dismiss()
+                            }
                         }
                     }
                 } else {
                     Button("Generate Scenes") {
                         Task {
+                            viewModel.saveScript()
                             await viewModel.generateScenes()
                         }
                     }
@@ -48,12 +48,9 @@ struct ScriptInputView: View {
                 }
             }
         }
-        .fullScreenCover(isPresented: $showRecordingFlow) {
-            if let firstScene = viewModel.firstCreatedScene {
-                NavigationStack {
-                    RecordingView(project: project, scene: firstScene)
-                }
-            }
+        .onDisappear {
+            // Persist whatever the user typed even if they leave without confirming.
+            viewModel.saveScript()
         }
         .alert("Error", isPresented: .constant(viewModel.errorMessage != nil)) {
             Button("OK") {
@@ -105,51 +102,6 @@ struct ScriptInputView: View {
                 }
                 .padding(.vertical, 4)
             }
-        }
-    }
-    
-    private var readyToRecordView: some View {
-        VStack(spacing: 32) {
-            Spacer()
-            
-            Image(systemName: "checkmark.circle.fill")
-                .font(.system(size: 80))
-                .foregroundColor(.green)
-            
-            VStack(spacing: 12) {
-                Text("Scenes Created!")
-                    .font(.title)
-                    .fontWeight(.bold)
-                
-                Text("\(viewModel.createdScenes.count) scenes ready for recording")
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
-            }
-            
-            VStack(spacing: 16) {
-                Button {
-                    showRecordingFlow = true
-                } label: {
-                    Label("Start Recording", systemImage: "video.fill")
-                        .font(.headline)
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(Color.red)
-                        .foregroundColor(.white)
-                        .cornerRadius(12)
-                }
-                
-                Button {
-                    dismiss()
-                } label: {
-                    Text("Record Later")
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
-                }
-            }
-            .padding(.horizontal, 32)
-            
-            Spacer()
         }
     }
 }
