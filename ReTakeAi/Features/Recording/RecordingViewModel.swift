@@ -5,6 +5,7 @@
 
 import Foundation
 import AVFoundation
+import UIKit
 
 @MainActor
 @Observable
@@ -57,6 +58,7 @@ class RecordingViewModel {
             return
         }
         guard let scene = currentScene else { return }
+        await updateProjectAspectFromCurrentOrientationIfNeeded()
         
         do {
             currentRecordingURL = try await recordingController.startRecording()
@@ -68,6 +70,24 @@ class RecordingViewModel {
         } catch {
             errorMessage = "Failed to start recording: \(error.localizedDescription)"
             AppLogger.ui.error("Start recording failed: \(error.localizedDescription)")
+        }
+    }
+
+    private func updateProjectAspectFromCurrentOrientationIfNeeded() async {
+        guard let project = currentProject else { return }
+        guard var latest = projectStore.getProject(by: project.id) else { return }
+
+        let io = (UIApplication.shared.connectedScenes.first as? UIWindowScene)?.interfaceOrientation ?? .portrait
+        let desired: VideoAspect = io.isLandscape ? .landscape16x9 : .portrait9x16
+
+        if latest.videoAspect != desired {
+            latest.videoAspect = desired
+            do {
+                try projectStore.updateProject(latest)
+                currentProject = latest
+            } catch {
+                AppLogger.ui.error("Failed to update project video aspect: \(error.localizedDescription)")
+            }
         }
     }
     

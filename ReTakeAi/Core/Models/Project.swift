@@ -13,6 +13,7 @@ struct Project: Identifiable, Codable, Hashable {
     var script: String?
     var sceneIDs: [UUID]
     var status: ProjectStatus
+    var videoAspect: VideoAspect
     
     init(
         id: UUID = UUID(),
@@ -21,7 +22,8 @@ struct Project: Identifiable, Codable, Hashable {
         updatedAt: Date = Date(),
         script: String? = nil,
         sceneIDs: [UUID] = [],
-        status: ProjectStatus = .draft
+        status: ProjectStatus = .draft,
+        videoAspect: VideoAspect = .portrait9x16
     ) {
         self.id = id
         self.title = title
@@ -30,10 +32,40 @@ struct Project: Identifiable, Codable, Hashable {
         self.script = script
         self.sceneIDs = sceneIDs
         self.status = status
+        self.videoAspect = videoAspect
     }
     
     var projectFolderPath: URL {
         FileStorageManager.shared.projectDirectory(for: id)
+    }
+
+    // Backwards-compatible decoding with defaults for older on-disk projects.
+    enum CodingKeys: String, CodingKey {
+        case id, title, createdAt, updatedAt, script, sceneIDs, status, videoAspect
+    }
+
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        id = try c.decode(UUID.self, forKey: .id)
+        title = try c.decode(String.self, forKey: .title)
+        createdAt = try c.decode(Date.self, forKey: .createdAt)
+        updatedAt = try c.decode(Date.self, forKey: .updatedAt)
+        script = try c.decodeIfPresent(String.self, forKey: .script)
+        sceneIDs = try c.decodeIfPresent([UUID].self, forKey: .sceneIDs) ?? []
+        status = try c.decodeIfPresent(ProjectStatus.self, forKey: .status) ?? .draft
+        videoAspect = try c.decodeIfPresent(VideoAspect.self, forKey: .videoAspect) ?? .portrait9x16
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var c = encoder.container(keyedBy: CodingKeys.self)
+        try c.encode(id, forKey: .id)
+        try c.encode(title, forKey: .title)
+        try c.encode(createdAt, forKey: .createdAt)
+        try c.encode(updatedAt, forKey: .updatedAt)
+        try c.encodeIfPresent(script, forKey: .script)
+        try c.encode(sceneIDs, forKey: .sceneIDs)
+        try c.encode(status, forKey: .status)
+        try c.encode(videoAspect, forKey: .videoAspect)
     }
 }
 

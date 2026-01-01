@@ -21,6 +21,7 @@ class ExportViewModel {
     private let videoMerger = VideoMerger.shared
     private let videoExporter = VideoExporter.shared
     private let fileManager = FileStorageManager.shared
+    private let projectStore = ProjectStore.shared
     
     init(project: Project) {
         self.project = project
@@ -32,7 +33,8 @@ class ExportViewModel {
         errorMessage = nil
         
         do {
-            let scenes = sceneStore.getScenes(for: project)
+            let latestProject = projectStore.getProject(by: project.id) ?? project
+            let scenes = sceneStore.getScenes(for: latestProject)
             
             guard !scenes.isEmpty else {
                 throw ExportError.cannotCreateSession
@@ -56,7 +58,8 @@ class ExportViewModel {
             
             let mergedURL = try await videoMerger.mergeScenes(
                 selectedTakes,
-                outputURL: outputURL
+                outputURL: outputURL,
+                targetRenderSize: latestProject.videoAspect.exportRenderSize
             ) { progress in
                 Task { @MainActor in
                     self.exportProgress = progress

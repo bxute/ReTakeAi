@@ -13,6 +13,7 @@ struct RecordingView: View {
     
     @State private var viewModel = RecordingViewModel()
     @Environment(\.dismiss) private var dismiss
+    @State private var effectiveAspect: VideoAspect = .portrait9x16
 
     private var isShowingError: Binding<Bool> {
         Binding(
@@ -52,7 +53,15 @@ struct RecordingView: View {
         .task {
             await viewModel.setup(project: project, scene: scene)
         }
+        .onAppear {
+            updateEffectiveAspect()
+            UIDevice.current.beginGeneratingDeviceOrientationNotifications()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: UIDevice.orientationDidChangeNotification)) { _ in
+            updateEffectiveAspect()
+        }
         .onDisappear {
+            UIDevice.current.endGeneratingDeviceOrientationNotifications()
             viewModel.cleanup()
         }
         .alert("Recording Error", isPresented: isShowingError) {
@@ -75,6 +84,14 @@ struct RecordingView: View {
     private func cameraPreview(session: AVCaptureSession) -> some View {
         CameraPreviewView(session: session)
             .ignoresSafeArea()
+            .overlay {
+                AspectCropOverlay(aspect: effectiveAspect)
+            }
+    }
+
+    private func updateEffectiveAspect() {
+        let io = (UIApplication.shared.connectedScenes.first as? UIWindowScene)?.interfaceOrientation ?? .portrait
+        effectiveAspect = io.isLandscape ? .landscape16x9 : .portrait9x16
     }
     
     private var topBar: some View {
