@@ -9,7 +9,6 @@ struct ScriptInputView: View {
     let project: Project
     @State private var viewModel: ScriptInputViewModel
     @State private var showRecordingFlow = false
-    @State private var confirmedProject: Project?
     @Environment(\.dismiss) private var dismiss
     
     init(project: Project) {
@@ -36,10 +35,7 @@ struct ScriptInputView: View {
                 } else if viewModel.hasGeneratedScenes {
                     Button("Confirm") {
                         Task {
-                            let success = await viewModel.confirmScenes()
-                            if success {
-                                confirmedProject = ProjectStore.shared.getProject(by: project.id)
-                            }
+                            await viewModel.confirmScenes()
                         }
                     }
                 } else {
@@ -52,10 +48,11 @@ struct ScriptInputView: View {
                 }
             }
         }
-        .navigationDestination(isPresented: $showRecordingFlow) {
-            if let proj = confirmedProject,
-               let firstScene = SceneStore.shared.getScenes(for: proj).first {
-                RecordingView(project: proj, scene: firstScene)
+        .fullScreenCover(isPresented: $showRecordingFlow) {
+            if let firstScene = viewModel.firstCreatedScene {
+                NavigationStack {
+                    RecordingView(project: project, scene: firstScene)
+                }
             }
         }
         .alert("Error", isPresented: .constant(viewModel.errorMessage != nil)) {
@@ -124,7 +121,7 @@ struct ScriptInputView: View {
                     .font(.title)
                     .fontWeight(.bold)
                 
-                Text("\(viewModel.generatedScenes.count) scenes ready for recording")
+                Text("\(viewModel.createdScenes.count) scenes ready for recording")
                     .font(.subheadline)
                     .foregroundColor(.secondary)
             }
