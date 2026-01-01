@@ -42,6 +42,10 @@ struct ProjectListView: View {
                 }
             }
         }
+        .onAppear {
+            // Ensure we never navigate with a stale Project value (draft/empty scenes).
+            viewModel.refresh()
+        }
     }
     
     private var projectsList: some View {

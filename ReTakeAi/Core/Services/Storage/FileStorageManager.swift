@@ -130,6 +130,16 @@ class FileStorageManager {
             UUID(uuidString: url.lastPathComponent)
         }
     }
+
+    func listSceneIDs(projectID: UUID) -> [UUID] {
+        let dir = scenesDirectory(for: projectID)
+        guard let contents = try? fileManager.contentsOfDirectory(at: dir, includingPropertiesForKeys: nil) else {
+            return []
+        }
+        return contents.compactMap { url in
+            UUID(uuidString: url.lastPathComponent)
+        }
+    }
     
     func totalStorageUsed() -> Int64 {
         var totalSize: Int64 = 0

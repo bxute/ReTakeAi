@@ -38,4 +38,8 @@ struct VideoScene: Identifiable, Codable, Hashable {
     var isComplete: Bool {
         selectedTakeID != nil
     }
+
+    var isRecorded: Bool {
+        !takeIDs.isEmpty
+    }
 }

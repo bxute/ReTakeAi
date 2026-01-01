@@ -91,6 +91,19 @@ class RecordingViewModel {
             )
             
             try sceneStore.addTake(take, to: scene)
+
+            // Auto-select the first take as "best" so the scene is considered complete.
+            if scene.selectedTakeID == nil {
+                try sceneStore.selectTake(take, for: scene)
+            }
+
+            // Ensure the project is no longer shown as draft once any recording happens.
+            if project.status == .draft {
+                if var latest = projectStore.getProject(by: project.id) {
+                    latest.status = .recording
+                    try projectStore.updateProject(latest)
+                }
+            }
             
             await generateThumbnail(for: take)
             

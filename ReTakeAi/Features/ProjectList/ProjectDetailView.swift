@@ -29,13 +29,13 @@ struct ProjectDetailView: View {
                             Text("Recording Progress")
                                 .font(.headline)
                             Spacer()
-                            Text("\(completedScenesCount)/\(scenes.count)")
+                            Text("\(recordedScenesCount)/\(scenes.count)")
                                 .font(.subheadline)
                                 .foregroundColor(.secondary)
                         }
                         
-                        ProgressView(value: Double(completedScenesCount), total: Double(scenes.count))
-                            .tint(completedScenesCount == scenes.count ? .green : .blue)
+                        ProgressView(value: Double(recordedScenesCount), total: Double(scenes.count))
+                            .tint(recordedScenesCount == scenes.count ? .green : .blue)
                         
                         if let nextScene = nextIncompleteScene {
                             Button {
@@ -133,9 +133,14 @@ struct ProjectDetailView: View {
     private var completedScenesCount: Int {
         scenes.filter { $0.isComplete }.count
     }
+
+    private var recordedScenesCount: Int {
+        scenes.filter { $0.isRecorded }.count
+    }
     
     private var nextIncompleteScene: VideoScene? {
-        scenes.first { !$0.isComplete }
+        // "Next to record" = first scene with no takes yet.
+        scenes.first { !$0.isRecorded }
     }
 }
 
@@ -153,7 +158,11 @@ struct VideoSceneRowView: View {
                 if scene.isComplete {
                     Image(systemName: "checkmark.circle.fill")
                         .foregroundColor(.green)
-                } else if scene.takeIDs.isEmpty {
+                } else if scene.isRecorded {
+                    Text("Recorded")
+                        .font(.caption)
+                        .foregroundColor(.blue)
+                } else {
                     Text("Not recorded")
                         .font(.caption)
                         .foregroundColor(.orange)
@@ -165,7 +174,7 @@ struct VideoSceneRowView: View {
                 .foregroundColor(.secondary)
                 .lineLimit(2)
             
-            if !scene.takeIDs.isEmpty {
+            if scene.isRecorded {
                 Text("\(scene.takeIDs.count) take\(scene.takeIDs.count == 1 ? "" : "s")")
                     .font(.caption)
                     .foregroundColor(.secondary)

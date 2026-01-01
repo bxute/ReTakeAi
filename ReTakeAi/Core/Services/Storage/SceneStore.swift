@@ -42,7 +42,9 @@ class SceneStore: ObservableObject {
     }
     
     func getScenes(for project: Project) -> [VideoScene] {
-        project.sceneIDs.compactMap { sceneID in
+        // Primary source of truth: project.sceneIDs
+        let sceneIDs = project.sceneIDs.isEmpty ? fileManager.listSceneIDs(projectID: project.id) : project.sceneIDs
+        return sceneIDs.compactMap { sceneID in
             loadScene(sceneID: sceneID, projectID: project.id)
         }.sorted { $0.orderIndex < $1.orderIndex }
     }
