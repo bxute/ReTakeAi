@@ -1,6 +1,6 @@
 //
 //  ScriptInputViewModel.swift
-//  SceneFlow
+//  ReTakeAi
 //
 
 import Foundation
@@ -12,6 +12,7 @@ class ScriptInputViewModel {
     var isGeneratingScenes = false
     var errorMessage: String?
     var generatedScenes: [SceneScript] = []
+    var scenesConfirmed = false
     
     let project: Project
     
@@ -76,6 +77,7 @@ class ScriptInputViewModel {
             updatedProject.status = .recording
             try projectStore.updateProject(updatedProject)
             
+            scenesConfirmed = true
             AppLogger.ui.info("Confirmed and saved \(self.generatedScenes.count) scenes")
             return true
         } catch {
