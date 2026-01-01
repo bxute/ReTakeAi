@@ -112,6 +112,23 @@ class FileStorageManager {
         try fileManager.removeItem(at: url)
         AppLogger.storage.info("Deleted take video: \(url.lastPathComponent)")
     }
+
+    func listTakeNumbers(sceneID: UUID, projectID: UUID) -> [Int] {
+        let takesDir = takesDirectory(for: sceneID, projectID: projectID)
+        guard let files = try? fileManager.contentsOfDirectory(at: takesDir, includingPropertiesForKeys: nil) else {
+            return []
+        }
+
+        let numbers = files.compactMap { url -> Int? in
+            guard url.pathExtension == Constants.Recording.videoExtension else { return nil }
+            let base = url.deletingPathExtension().lastPathComponent // take_002
+            guard base.hasPrefix(Constants.Storage.takeFilePrefix) else { return nil }
+            let numString = base.replacingOccurrences(of: Constants.Storage.takeFilePrefix, with: "")
+            return Int(numString)
+        }
+
+        return numbers.sorted()
+    }
     
     func fileSize(at url: URL) -> Int64 {
         guard let attributes = try? fileManager.attributesOfItem(atPath: url.path),

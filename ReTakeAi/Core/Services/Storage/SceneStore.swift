@@ -74,11 +74,39 @@ class SceneStore: ObservableObject {
         let fileURL = sceneDir.appendingPathComponent(Constants.Storage.sceneFileName)
         
         guard let data = try? Data(contentsOf: fileURL),
-              let scene = try? decoder.decode(VideoScene.self, from: data) else {
+              var scene = try? decoder.decode(VideoScene.self, from: data) else {
             AppLogger.storage.error("Failed to load scene: \(sceneID.uuidString)")
             return nil
         }
-        
+
+        // Migration: make takeIDs + selectedTakeID deterministic based on files on disk.
+        // This fixes export selection when takes are reconstructed from filenames.
+        let takeNumbers = fileManager.listTakeNumbers(sceneID: sceneID, projectID: projectID)
+        if !takeNumbers.isEmpty {
+            let stableTakeIDs = takeNumbers.map { StableID.takeID(sceneID: sceneID, takeNumber: $0) }
+
+            var didChange = false
+
+            if scene.takeIDs != stableTakeIDs {
+                scene.takeIDs = stableTakeIDs
+                didChange = true
+            }
+
+            if let selected = scene.selectedTakeID {
+                if !stableTakeIDs.contains(selected) {
+                    scene.selectedTakeID = stableTakeIDs.first
+                    didChange = true
+                }
+            } else {
+                scene.selectedTakeID = stableTakeIDs.first
+                didChange = true
+            }
+
+            if didChange {
+                try? saveScene(scene)
+            }
+        }
+
         return scene
     }
 }

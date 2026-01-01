@@ -21,8 +21,13 @@ actor VideoMerger {
         }
         
         let composition = AVMutableComposition()
-        let videoTrack = composition.addMutableTrack(withMediaType: .video, preferredTrackID: kCMPersistentTrackID_Invalid)
-        let audioTrack = composition.addMutableTrack(withMediaType: .audio, preferredTrackID: kCMPersistentTrackID_Invalid)
+        let compositionVideoTrack = composition.addMutableTrack(withMediaType: .video, preferredTrackID: kCMPersistentTrackID_Invalid)
+        let compositionAudioTrack = composition.addMutableTrack(withMediaType: .audio, preferredTrackID: kCMPersistentTrackID_Invalid)
+
+        // Build a videoComposition so orientation (preferredTransform) is preserved per clip.
+        var layerInstructions: [AVMutableVideoCompositionLayerInstruction] = []
+        var instructions: [AVMutableVideoCompositionInstruction] = []
+        var renderSize = CGSize(width: 1920, height: 1080)
         
         var currentTime = CMTime.zero
         let totalTakes = takes.count
@@ -32,15 +37,41 @@ actor VideoMerger {
             let duration = try await asset.load(.duration)
             
             if let assetVideoTrack = try await asset.loadTracks(withMediaType: .video).first {
-                try videoTrack?.insertTimeRange(
+                try compositionVideoTrack?.insertTimeRange(
                     CMTimeRange(start: .zero, duration: duration),
                     of: assetVideoTrack,
                     at: currentTime
                 )
+
+                let preferredTransform = try await assetVideoTrack.load(.preferredTransform)
+                let naturalSize = try await assetVideoTrack.load(.naturalSize)
+                let transformedSize = naturalSize.applying(preferredTransform)
+                let absSize = CGSize(width: abs(transformedSize.width), height: abs(transformedSize.height))
+
+                // Pick a renderSize that can contain all clips; keep max dimensions.
+                renderSize = CGSize(width: max(renderSize.width, absSize.width), height: max(renderSize.height, absSize.height))
+
+                if let compositionVideoTrack {
+                    let layerInstruction = AVMutableVideoCompositionLayerInstruction(assetTrack: compositionVideoTrack)
+
+                    // Fix translation so the transformed frame is in positive coordinate space.
+                    var transform = preferredTransform
+                    if transformedSize.width < 0 { transform = transform.translatedBy(x: -transformedSize.width, y: 0) }
+                    if transformedSize.height < 0 { transform = transform.translatedBy(x: 0, y: -transformedSize.height) }
+
+                    layerInstruction.setTransform(transform, at: currentTime)
+
+                    let instruction = AVMutableVideoCompositionInstruction()
+                    instruction.timeRange = CMTimeRange(start: currentTime, duration: duration)
+                    instruction.layerInstructions = [layerInstruction]
+
+                    instructions.append(instruction)
+                    layerInstructions.append(layerInstruction)
+                }
             }
             
             if let assetAudioTrack = try await asset.loadTracks(withMediaType: .audio).first {
-                try audioTrack?.insertTimeRange(
+                try compositionAudioTrack?.insertTimeRange(
                     CMTimeRange(start: .zero, duration: duration),
                     of: assetAudioTrack,
                     at: currentTime
@@ -55,6 +86,14 @@ actor VideoMerger {
         
         guard let exportSession = AVAssetExportSession(asset: composition, presetName: AVAssetExportPresetHighestQuality) else {
             throw VideoMergerError.cannotCreateExportSession
+        }
+
+        if !instructions.isEmpty {
+            let videoComposition = AVMutableVideoComposition()
+            videoComposition.instructions = instructions
+            videoComposition.frameDuration = CMTime(value: 1, timescale: 30)
+            videoComposition.renderSize = renderSize
+            exportSession.videoComposition = videoComposition
         }
         
         exportSession.outputURL = outputURL

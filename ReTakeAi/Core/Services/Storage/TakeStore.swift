@@ -32,8 +32,11 @@ class TakeStore: ObservableObject {
         
         let fileSize = fileManager.fileSize(at: destinationURL)
         let resolution = try getVideoResolution(from: asset)
+
+        let stableID = StableID.takeID(sceneID: sceneID, takeNumber: takeNumber)
         
         let take = Take(
+            id: stableID,
             sceneID: sceneID,
             takeNumber: takeNumber,
             duration: duration,
@@ -104,10 +107,13 @@ class TakeStore: ObservableObject {
             let fileName = url.deletingPathExtension().lastPathComponent
             let takeNumberString = fileName.replacingOccurrences(of: Constants.Storage.takeFilePrefix, with: "")
             let takeNumber = Int(takeNumberString) ?? 1
+
+            let stableID = StableID.takeID(sceneID: scene.id, takeNumber: takeNumber)
             
             let resolution = (try? getVideoResolution(from: asset)) ?? VideoResolution(width: 1920, height: 1080)
             
             return Take(
+                id: stableID,
                 sceneID: scene.id,
                 takeNumber: takeNumber,
                 duration: duration,
