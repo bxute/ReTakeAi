@@ -1,0 +1,41 @@
+//
+//  VideoScene.swift
+//  ReTakeAi
+//
+
+import Foundation
+
+struct VideoScene: Identifiable, Codable, Hashable {
+    let id: UUID
+    let projectID: UUID
+    var orderIndex: Int
+    var scriptText: String
+    var duration: TimeInterval?
+    var takeIDs: [UUID]
+    var selectedTakeID: UUID?
+    var aiGeneratedNotes: String?
+    
+    init(
+        id: UUID = UUID(),
+        projectID: UUID,
+        orderIndex: Int,
+        scriptText: String,
+        duration: TimeInterval? = nil,
+        takeIDs: [UUID] = [],
+        selectedTakeID: UUID? = nil,
+        aiGeneratedNotes: String? = nil
+    ) {
+        self.id = id
+        self.projectID = projectID
+        self.orderIndex = orderIndex
+        self.scriptText = scriptText
+        self.duration = duration
+        self.takeIDs = takeIDs
+        self.selectedTakeID = selectedTakeID
+        self.aiGeneratedNotes = aiGeneratedNotes
+    }
+    
+    var isComplete: Bool {
+        selectedTakeID != nil
+    }
+}
