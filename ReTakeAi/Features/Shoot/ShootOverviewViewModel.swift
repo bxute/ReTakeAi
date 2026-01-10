@@ -46,6 +46,19 @@ final class ShootOverviewViewModel {
         takes[scene.id] ?? []
     }
 
+    func bestTake(for scene: VideoScene) -> Take? {
+        let all = getTakes(for: scene)
+        guard !all.isEmpty else { return nil }
+
+        if let preferredID = scene.selectedTakeID,
+           let preferred = all.first(where: { $0.id == preferredID }) {
+            return preferred
+        }
+
+        // Fallback best = latest take (highest takeNumber).
+        return all.max(by: { $0.takeNumber < $1.takeNumber })
+    }
+
     var recordedScenesCount: Int {
         scenes.filter { $0.isRecorded }.count
     }

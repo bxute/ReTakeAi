@@ -94,11 +94,11 @@ class SceneStore: ObservableObject {
 
             if let selected = scene.selectedTakeID {
                 if !stableTakeIDs.contains(selected) {
-                    scene.selectedTakeID = stableTakeIDs.first
+                    scene.selectedTakeID = stableTakeIDs.last
                     didChange = true
                 }
             } else {
-                scene.selectedTakeID = stableTakeIDs.first
+                scene.selectedTakeID = stableTakeIDs.last
                 didChange = true
             }
 

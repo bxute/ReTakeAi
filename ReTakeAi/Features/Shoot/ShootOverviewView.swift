@@ -18,17 +18,11 @@ struct ShootOverviewView: View {
 
     var body: some View {
         ScrollView {
-            LazyVStack(alignment: .leading, spacing: 20) {
+            LazyVStack(alignment: .leading, spacing: 28) {
                 if let project = viewModel.project {
                     progressSection(project: project)
 
                     scenesSection
-
-                    exportSection(project: project)
-
-                    if !project.exports.isEmpty {
-                        previousExportsSection(project: project)
-                    }
                 }
             }
             .padding(.horizontal)
@@ -94,8 +88,13 @@ struct ShootOverviewView: View {
 
     private var scenesSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Scenes")
-                .font(.headline)
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Scenes to Shoot")
+                    .font(.title3.weight(.semibold))
+                Text("Review takes, mark a preferred take, and jump back into recording.")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+            }
 
             if viewModel.scenes.isEmpty {
                 Text("Generate scenes to start shooting.")
@@ -110,11 +109,7 @@ struct ShootOverviewView: View {
                                     Text("Scene \(scene.orderIndex + 1)")
                                         .font(.subheadline.weight(.semibold))
                                     Spacer()
-                                    if scene.isComplete {
-                                        Text("Complete")
-                                            .font(.caption.weight(.semibold))
-                                            .foregroundStyle(.green)
-                                    } else if scene.isRecorded {
+                                    if scene.isRecorded {
                                         Text("Recorded")
                                             .font(.caption.weight(.semibold))
                                             .foregroundStyle(.blue)
@@ -129,9 +124,37 @@ struct ShootOverviewView: View {
                                     .font(.footnote)
                                     .foregroundStyle(.secondary)
                                     .lineLimit(2)
+
+                                let takes = viewModel.getTakes(for: scene)
+                                HStack(spacing: 10) {
+                                    Text("\(takes.count) take\(takes.count == 1 ? "" : "s")")
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+
+                                    if let best = viewModel.bestTake(for: scene) {
+                                        HStack(spacing: 6) {
+                                            Image(systemName: scene.selectedTakeID == best.id ? "checkmark.circle.fill" : "sparkles")
+                                                .font(.caption)
+                                                .foregroundStyle(scene.selectedTakeID == best.id ? .green : .secondary)
+                                            Text("Best: Take \(best.takeNumber)")
+                                                .font(.caption)
+                                                .foregroundStyle(.secondary)
+                                        }
+                                    }
+                                }
                             }
 
                             Spacer(minLength: 0)
+
+                            NavigationLink {
+                                ShootSceneDetailView(projectID: projectID, sceneID: scene.id)
+                            } label: {
+                                Image(systemName: "chevron.right")
+                                    .font(.footnote.weight(.semibold))
+                                    .foregroundStyle(.tertiary)
+                                    .frame(width: 28, height: 28)
+                            }
+                            .buttonStyle(.plain)
 
                             Button {
                                 selectedSceneForRecording = scene
@@ -164,108 +187,15 @@ struct ShootOverviewView: View {
                     )
                 }
             }
-        }
-    }
 
-    private func exportSection(project: Project) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("Export")
-                .font(.headline)
-
-            if viewModel.isReadyToExport {
-                NavigationLink {
-                    ExportView(project: project)
-                } label: {
-                    Label(project.exports.isEmpty ? "Export Final Video" : "Re-Export Video", systemImage: "square.and.arrow.up")
-                        .frame(maxWidth: .infinity)
-                }
-                .buttonStyle(.borderedProminent)
-                .tint(.green)
-
-                Text(project.exports.isEmpty ? "All scenes recorded! Ready to export." : "Create a new export from the latest takes.")
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
-            } else {
-                Text("Finish recording and selecting best takes to export.")
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
+            NavigationLink {
+                ShootExportsView(projectID: projectID)
+            } label: {
+                Label("Go to Exports", systemImage: "square.and.arrow.up")
+                    .frame(maxWidth: .infinity)
             }
-        }
-    }
-
-    private func previousExportsSection(project: Project) -> some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("Previous Exports")
-                .font(.headline)
-
-            ForEach(project.exports.sorted(by: { $0.exportedAt > $1.exportedAt })) { export in
-                ShootExportRowView(export: export, onDelete: { viewModel.deleteExport(export) })
-                Divider()
-            }
-        }
-    }
-}
-
-private struct ShootExportRowView: View {
-    let export: ExportedVideo
-    let onDelete: () -> Void
-
-    @State private var showingShareSheet = false
-    @State private var showingPlayer = false
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            HStack {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(export.formattedDate)
-                        .font(.headline)
-                    Text("\(export.aspect.title) • \(export.formattedDuration)")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                }
-
-                Spacer()
-
-                Button { showingPlayer = true } label: {
-                    Image(systemName: "play.circle.fill")
-                        .font(.title2)
-                        .foregroundColor(.blue)
-                }
-                .buttonStyle(.plain)
-
-                Button { showingShareSheet = true } label: {
-                    Image(systemName: "square.and.arrow.up")
-                        .font(.title3)
-                        .foregroundColor(.green)
-                }
-                .buttonStyle(.plain)
-
-                Button(role: .destructive) { onDelete() } label: {
-                    Image(systemName: "trash")
-                        .font(.title3)
-                        .foregroundColor(.red)
-                }
-                .buttonStyle(.plain)
-            }
-
-            Text(export.formattedSize)
-                .font(.caption2)
-                .foregroundColor(.secondary)
-        }
-        .sheet(isPresented: $showingPlayer) {
-            NavigationStack {
-                VideoPlayerView(videoURL: export.fileURL)
-                    .navigationTitle("Exported Video")
-                    .navigationBarTitleDisplayMode(.inline)
-                    .toolbar {
-                        ToolbarItem(placement: .cancellationAction) {
-                            Button("Done") { showingPlayer = false }
-                        }
-                    }
-            }
-        }
-        .sheet(isPresented: $showingShareSheet) {
-            ShareSheet(items: [export.fileURL])
+            .buttonStyle(.bordered)
+            .controlSize(.large)
         }
     }
 }
