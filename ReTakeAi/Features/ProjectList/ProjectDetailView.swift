@@ -10,6 +10,8 @@ struct ProjectDetailView: View {
     @State private var currentProject: Project
     @State private var scenes: [VideoScene] = []
     @State private var selectedSceneForRecording: VideoScene?
+    @State private var showingScriptEditor = false
+    @State private var showingAIGeneratedNotice = false
     
     private let sceneStore = SceneStore.shared
     private let projectStore = ProjectStore.shared
@@ -20,10 +22,165 @@ struct ProjectDetailView: View {
     }
     
     var body: some View {
-        List {
-            if !scenes.isEmpty {
-                // Progress Section
-                Section {
+        ScrollView {
+            LazyVStack(alignment: .leading, spacing: 28) {
+                // Script
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("Script")
+                        .font(.headline)
+                    
+                    if let script = currentProject.script, !script.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                        Text(scriptPreview(script))
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    } else {
+                        Text("No script yet. Add one to generate scenes and record take-by-take.")
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
+                    }
+
+                    Button {
+                        showingScriptEditor = true
+                    } label: {
+                        HStack(spacing: 12) {
+                            Image(systemName: "doc.text")
+                                .font(.title3)
+                                .foregroundStyle(.secondary)
+                                .frame(width: 28)
+                            
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("Add script draft")
+                                    .font(.subheadline)
+                                    .fontWeight(.semibold)
+                                
+                                Text("Open editor to write or paste your script.")
+                                    .font(.footnote)
+                                    .foregroundStyle(.secondary)
+                            }
+                            
+                            Spacer(minLength: 0)
+                            
+                            Image(systemName: "chevron.right")
+                                .font(.footnote.weight(.semibold))
+                                .foregroundStyle(.tertiary)
+                        }
+                        .padding(.vertical, 12)
+                        .padding(.horizontal, 12)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                .stroke(Color.secondary.opacity(0.25), lineWidth: 1)
+                        )
+                    }
+                    .buttonStyle(.plain)
+                }
+                .padding(.top, 4)
+                
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("Intent")
+                        .font(.headline)
+                    
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 10) {
+                            ForEach(ScriptIntent.allCases) { intent in
+                                Button {
+                                    setScriptIntent(intent)
+                                } label: {
+                                    Text(intent.displayTitle)
+                                        .font(.subheadline)
+                                        .foregroundStyle(.primary)
+                                        .padding(.vertical, 8)
+                                        .padding(.horizontal, 12)
+                                        .background(
+                                            Capsule().fill((currentProject.scriptIntent ?? .explain) == intent ? Color.primary.opacity(0.12) : Color.clear)
+                                        )
+                                        .overlay(
+                                            Capsule().stroke(Color.secondary.opacity(0.25), lineWidth: 1)
+                                        )
+                                }
+                                .buttonStyle(.plain)
+                            }
+                        }
+                    }
+                }
+                
+                VStack(alignment: .leading, spacing: 10) {
+                    Text("Expected Duration")
+                        .font(.headline)
+                    
+                    Picker("Duration", selection: Binding(
+                        get: { durationSelection(for: currentProject.expectedDurationSeconds) },
+                        set: { setDurationSelection($0) }
+                    )) {
+                        Text("15s").tag(DurationSelection.s15)
+                        Text("30s").tag(DurationSelection.s30)
+                        Text("60s").tag(DurationSelection.s60)
+                        Text("90s").tag(DurationSelection.s90)
+                        Text("Custom").tag(DurationSelection.custom)
+                    }
+                    .pickerStyle(.segmented)
+                    
+                    if durationSelection(for: currentProject.expectedDurationSeconds) == .custom {
+                        HStack {
+                            Text("Seconds")
+                                .foregroundStyle(.secondary)
+                            Spacer()
+                            TextField("45", text: Binding(
+                                get: { customDurationText(for: currentProject.expectedDurationSeconds) },
+                                set: { setCustomDurationText($0) }
+                            ))
+                            .keyboardType(.numberPad)
+                            .multilineTextAlignment(.trailing)
+                            .textFieldStyle(.roundedBorder)
+                            .frame(width: 110)
+                        }
+                    }
+                }
+                
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("Tone / Mood")
+                        .font(.headline)
+                    
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 10) {
+                            ForEach(ScriptToneMood.allCases) { tone in
+                                Button {
+                                    setToneMood(tone)
+                                } label: {
+                                    Text(tone.displayTitle)
+                                        .font(.subheadline)
+                                        .foregroundStyle(.primary)
+                                        .padding(.vertical, 8)
+                                        .padding(.horizontal, 12)
+                                        .background(
+                                            Capsule().fill((currentProject.toneMood ?? .professional) == tone ? Color.primary.opacity(0.12) : Color.clear)
+                                        )
+                                        .overlay(
+                                            Capsule().stroke(Color.secondary.opacity(0.25), lineWidth: 1)
+                                        )
+                                }
+                                .buttonStyle(.plain)
+                            }
+                        }
+                    }
+                }
+                
+                VStack(alignment: .leading, spacing: 8) {
+                    Button {
+                        generateScriptDraft()
+                    } label: {
+                        Label("Generate Script using AI", systemImage: "sparkles")
+                            .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.borderedProminent)
+                    
+                    Text("This generates a draft you can edit before generating scenes.")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                }
+                .padding(.top, 4)
+                
+                if !scenes.isEmpty {
                     VStack(alignment: .leading, spacing: 12) {
                         HStack {
                             Text("Recording Progress")
@@ -31,7 +188,7 @@ struct ProjectDetailView: View {
                             Spacer()
                             Text("\(recordedScenesCount)/\(scenes.count)")
                                 .font(.subheadline)
-                                .foregroundColor(.secondary)
+                                .foregroundStyle(.secondary)
                         }
                         
                         ProgressView(value: Double(recordedScenesCount), total: Double(scenes.count))
@@ -44,76 +201,53 @@ struct ProjectDetailView: View {
                                 Label("Record Scene \(nextScene.orderIndex + 1)", systemImage: "video.fill")
                                     .font(.headline)
                                     .frame(maxWidth: .infinity)
-                                    .padding(.vertical, 12)
+                                    .padding(.vertical, 10)
                             }
                             .buttonStyle(.borderedProminent)
                             .tint(.red)
                         }
                     }
-                    .padding(.vertical, 8)
                 }
-            }
-            
-            Section("Scenes") {
-                if scenes.isEmpty {
-                    NavigationLink {
-                        ScriptInputView(project: currentProject)
-                    } label: {
-                        Label("Add Script & Generate Scenes", systemImage: "text.badge.plus")
+                
+                if !scenes.isEmpty && scenes.allSatisfy({ $0.isComplete }) {
+                    VStack(alignment: .leading, spacing: 8) {
+                        NavigationLink {
+                            ExportView(project: currentProject)
+                        } label: {
+                            Label(currentProject.exports.isEmpty ? "Export Final Video" : "Re-Export Video", systemImage: "square.and.arrow.up")
+                                .frame(maxWidth: .infinity)
+                        }
+                        .buttonStyle(.bordered)
+                        .tint(.green)
+                        
+                        Text(currentProject.exports.isEmpty ? "All scenes recorded! Ready to export." : "Create a new export from the latest takes.")
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
                     }
-                } else {
-                    ForEach(scenes) { scene in
-                        HStack {
-                            NavigationLink(value: scene) {
-                                VideoSceneRowView(scene: scene)
-                            }
-                            
-                            // Quick record button for incomplete scenes
-                            if !scene.isComplete {
-                                Button {
-                                    selectedSceneForRecording = scene
-                                } label: {
-                                    Image(systemName: "video.circle.fill")
-                                        .font(.title2)
-                                        .foregroundColor(.red)
-                                }
-                                .buttonStyle(.plain)
-                            }
+                }
+                
+                if !currentProject.exports.isEmpty {
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text("Previous Exports")
+                            .font(.headline)
+                        
+                        ForEach(currentProject.exports.sorted(by: { $0.exportedAt > $1.exportedAt })) { export in
+                            ExportRowView(export: export, project: currentProject, onDelete: {
+                                deleteExport(export)
+                            })
+                            Divider()
                         }
                     }
                 }
             }
-            
-            if !scenes.isEmpty && scenes.allSatisfy({ $0.isComplete }) {
-                Section {
-                    NavigationLink {
-                        ExportView(project: currentProject)
-                    } label: {
-                        Label(currentProject.exports.isEmpty ? "Export Final Video" : "Re-Export Video", systemImage: "square.and.arrow.up")
-                            .foregroundColor(.green)
-                    }
-                } footer: {
-                    Text(currentProject.exports.isEmpty ? "All scenes recorded! Ready to export." : "Create a new export from the latest takes.")
-                }
-            }
-            
-            if !currentProject.exports.isEmpty {
-                Section("Previous Exports") {
-                    ForEach(currentProject.exports.sorted(by: { $0.exportedAt > $1.exportedAt })) { export in
-                        ExportRowView(export: export, project: currentProject, onDelete: {
-                            deleteExport(export)
-                        })
-                    }
-                }
-            }
-            
-            Section("Project Info") {
-                LabeledContent("Status", value: currentProject.status.rawValue.capitalized)
-                LabeledContent("Created", value: currentProject.createdAt.formatted(style: .medium))
-            }
+            .padding(.horizontal)
+            .padding(.vertical, 16)
         }
         .navigationTitle(currentProject.title)
         .navigationBarTitleDisplayMode(.large)
+        .navigationDestination(isPresented: $showingScriptEditor) {
+            ScriptInputView(project: currentProject)
+        }
         .navigationDestination(for: VideoScene.self) { scene in
             SceneReviewView(project: currentProject, scene: scene)
         }
@@ -130,6 +264,12 @@ struct ProjectDetailView: View {
         }
         .refreshable {
             loadProjectAndScenes()
+        }
+        .alert("Draft ready", isPresented: $showingAIGeneratedNotice) {
+            Button("Edit Script") { showingScriptEditor = true }
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text("A draft script was generated based on your intent, duration, and tone. Review and edit it before generating scenes.")
         }
     }
     
@@ -188,6 +328,103 @@ struct ProjectDetailView: View {
         } catch {
             AppLogger.ui.error("Failed to delete export: \(error.localizedDescription)")
         }
+    }
+    
+    private enum DurationSelection: String {
+        case s15
+        case s30
+        case s60
+        case s90
+        case custom
+    }
+    
+    private func durationSelection(for seconds: Int?) -> DurationSelection {
+        switch seconds {
+        case 15: return .s15
+        case 30, nil: return .s30
+        case 60: return .s60
+        case 90: return .s90
+        default: return .custom
+        }
+    }
+    
+    private func setDurationSelection(_ selection: DurationSelection) {
+        switch selection {
+        case .s15: setExpectedDurationSeconds(15)
+        case .s30: setExpectedDurationSeconds(30)
+        case .s60: setExpectedDurationSeconds(60)
+        case .s90: setExpectedDurationSeconds(90)
+        case .custom:
+            if let seconds = currentProject.expectedDurationSeconds, seconds > 0, ![15, 30, 60, 90].contains(seconds) {
+                return
+            }
+            setExpectedDurationSeconds(45)
+        }
+    }
+    
+    private func customDurationText(for seconds: Int?) -> String {
+        let value = seconds ?? 45
+        return "\(max(10, min(value, 300)))"
+    }
+    
+    private func setCustomDurationText(_ text: String) {
+        let digits = text.filter(\.isNumber)
+        guard let value = Int(digits) else { return }
+        setExpectedDurationSeconds(max(10, min(value, 300)))
+    }
+    
+    private func setScriptIntent(_ intent: ScriptIntent) {
+        var updated = currentProject
+        updated.scriptIntent = intent
+        persistProject(updated)
+    }
+    
+    private func setToneMood(_ mood: ScriptToneMood) {
+        var updated = currentProject
+        updated.toneMood = mood
+        persistProject(updated)
+    }
+    
+    private func setExpectedDurationSeconds(_ seconds: Int) {
+        var updated = currentProject
+        updated.expectedDurationSeconds = seconds
+        persistProject(updated)
+    }
+    
+    private func persistProject(_ updated: Project) {
+        do {
+            try projectStore.updateProject(updated)
+            currentProject = updated
+        } catch {
+            AppLogger.ui.error("Failed to update project: \(error.localizedDescription)")
+        }
+    }
+    
+    private func generateScriptDraft() {
+        let intent = currentProject.scriptIntent ?? .explain
+        let tone = currentProject.toneMood ?? .professional
+        let seconds = currentProject.expectedDurationSeconds ?? 30
+        
+        let draft = ScriptDraftGenerator.generateDraft(
+            inputs: .init(
+                projectTitle: currentProject.title,
+                intent: intent,
+                toneMood: tone,
+                expectedDurationSeconds: seconds
+            )
+        )
+        
+        var updated = currentProject
+        updated.script = draft
+        persistProject(updated)
+        showingAIGeneratedNotice = true
+    }
+    
+    private func scriptPreview(_ script: String) -> String {
+        let trimmed = script.trimmingCharacters(in: .whitespacesAndNewlines)
+        if trimmed.count <= 160 { return trimmed }
+        let idx = trimmed.index(trimmed.startIndex, offsetBy: 160)
+        return String(trimmed[..<idx]) + "…"
     }
 }
 

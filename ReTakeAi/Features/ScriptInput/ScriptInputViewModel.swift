@@ -13,23 +13,27 @@ class ScriptInputViewModel {
     var errorMessage: String?
     var generatedScenes: [SceneScript] = []
     
-    let project: Project
+    let projectID: UUID
     
     private let projectStore = ProjectStore.shared
     private let sceneStore = SceneStore.shared
     private let aiService: AIServiceProtocol = MockAIService()
     
     init(project: Project) {
-        self.project = project
+        self.projectID = project.id
         self.scriptText = project.script ?? ""
     }
     
     func saveScript() {
-        var updatedProject = project
-        updatedProject.script = scriptText
+        guard var latestProject = projectStore.getProject(by: projectID) else {
+            errorMessage = "Project not found"
+            return
+        }
+        
+        latestProject.script = scriptText
         
         do {
-            try projectStore.updateProject(updatedProject)
+            try projectStore.updateProject(latestProject)
             AppLogger.ui.info("Script saved")
         } catch {
             errorMessage = "Failed to save script: \(error.localizedDescription)"
@@ -62,12 +66,14 @@ class ScriptInputViewModel {
         do {
             saveScript()
             
-            // Track current project state
-            var currentProject = project
+            guard var currentProject = projectStore.getProject(by: projectID) else {
+                errorMessage = "Project not found"
+                return false
+            }
             
             for sceneScript in generatedScenes {
                 let scene = try sceneStore.createScene(
-                    projectID: project.id,
+                    projectID: projectID,
                     orderIndex: sceneScript.orderIndex,
                     scriptText: sceneScript.scriptText
                 )
