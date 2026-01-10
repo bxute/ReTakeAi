@@ -19,7 +19,7 @@ class ScriptInputViewModel {
     private let sceneStore = SceneStore.shared
     private let aiService: AIServiceProtocol = MockAIService()
     
-    @ObservationIgnored private var autosaveTask: Task<Void, Never>?
+    @ObservationIgnored private var autosaveDebounceTask: Task<Void, Never>?
     @ObservationIgnored private var lastAutosavedText: String = ""
     
     init(project: Project) {
@@ -48,26 +48,35 @@ class ScriptInputViewModel {
         }
     }
     
-    func startAutoSave(every seconds: TimeInterval = 2.0) {
-        stopAutoSave()
-        
-        autosaveTask = Task { [weak self] in
+    func scheduleAutoSave(after seconds: TimeInterval = 2.0) {
+        autosaveDebounceTask?.cancel()
+        autosaveDebounceTask = Task { [weak self] in
             guard let self else { return }
+            try? await Task.sleep(for: .seconds(seconds))
+            guard !Task.isCancelled else { return }
             
-            while !Task.isCancelled {
-                try? await Task.sleep(for: .seconds(seconds))
-                guard !Task.isCancelled else { return }
-                
-                if self.scriptText != self.lastAutosavedText {
-                    _ = self.saveScript()
+            let trimmed = self.scriptText.trimmingCharacters(in: .whitespacesAndNewlines)
+            let lastTrimmed = self.lastAutosavedText.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard trimmed != lastTrimmed else { return }
+            
+            do {
+                guard var latestProject = self.projectStore.getProject(by: self.projectID) else {
+                    self.errorMessage = "Project not found"
+                    return
                 }
+                latestProject.script = self.scriptText
+                try await self.projectStore.updateProjectAsync(latestProject)
+                self.lastAutosavedText = self.scriptText
+                AppLogger.ui.info("Script autosaved")
+            } catch {
+                self.errorMessage = "Failed to autosave script: \(error.localizedDescription)"
             }
         }
     }
     
-    func stopAutoSave() {
-        autosaveTask?.cancel()
-        autosaveTask = nil
+    func cancelAutoSave() {
+        autosaveDebounceTask?.cancel()
+        autosaveDebounceTask = nil
     }
     
     func generateScenes() async {

@@ -11,11 +11,10 @@ class ProjectStore: ObservableObject {
     @Published private(set) var projects: [Project] = []
     
     private let fileManager = FileStorageManager.shared
-    private let encoder = JSONEncoder()
     private let decoder = JSONDecoder()
+    private let ioQueue = DispatchQueue(label: "com.retakeai.projectstore.io", qos: .utility)
     
     private init() {
-        encoder.dateEncodingStrategy = .iso8601
         decoder.dateDecodingStrategy = .iso8601
         loadProjects()
     }
@@ -45,6 +44,32 @@ class ProjectStore: ObservableObject {
         AppLogger.storage.info("Updated project: \(project.title)")
     }
     
+    func updateProjectAsync(_ project: Project) async throws {
+        let updated: Project = {
+            var p = project
+            p.updatedAt = Date()
+            return p
+        }()
+        
+        try await withCheckedThrowingContinuation { continuation in
+            ioQueue.async {
+                do {
+                    try self.saveProjectIO(updated)
+                    
+                    DispatchQueue.main.async {
+                        if let index = self.projects.firstIndex(where: { $0.id == updated.id }) {
+                            self.projects[index] = updated
+                        }
+                        AppLogger.storage.info("Updated project: \(updated.title)")
+                        continuation.resume()
+                    }
+                } catch {
+                    continuation.resume(throwing: error)
+                }
+            }
+        }
+    }
+    
     func deleteProject(_ project: Project) throws {
         try fileManager.deleteProject(projectID: project.id)
         projects.removeAll { $0.id == project.id }
@@ -56,9 +81,15 @@ class ProjectStore: ObservableObject {
     }
     
     private func saveProject(_ project: Project) throws {
+        try saveProjectIO(project)
+    }
+    
+    private func saveProjectIO(_ project: Project) throws {
         let projectDir = fileManager.projectDirectory(for: project.id)
         let fileURL = projectDir.appendingPathComponent(Constants.Storage.projectFileName)
         
+        let encoder = JSONEncoder()
+        encoder.dateEncodingStrategy = .iso8601
         let data = try encoder.encode(project)
         try data.write(to: fileURL)
     }

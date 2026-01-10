@@ -29,8 +29,10 @@ struct ScriptInputView: View {
                 }
             }
         }
-        .onAppear { viewModel.startAutoSave(every: 2.0) }
-        .onDisappear { viewModel.stopAutoSave(); viewModel.saveScript() }
+        .onChange(of: viewModel.scriptText) { _, _ in
+            viewModel.scheduleAutoSave(after: 2.0)
+        }
+        .onDisappear { viewModel.cancelAutoSave(); viewModel.saveScript() }
         .alert("Error", isPresented: .constant(viewModel.errorMessage != nil)) {
             Button("OK") {
                 viewModel.errorMessage = nil
