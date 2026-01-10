@@ -29,12 +29,10 @@ struct ProjectDetailView: View {
                     Text("Script")
                         .font(.headline)
                     
-                    if let script = currentProject.script, !script.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                        Text(scriptPreview(script))
-                            .font(.footnote)
-                            .foregroundStyle(.secondary)
-                            .fixedSize(horizontal: false, vertical: true)
-                    } else {
+                    let trimmedScript = (currentProject.script ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+                    let hasScript = !trimmedScript.isEmpty
+                    
+                    if !hasScript {
                         Text("No script yet. Add one to generate scenes and record take-by-take.")
                             .font(.footnote)
                             .foregroundStyle(.secondary)
@@ -50,13 +48,20 @@ struct ProjectDetailView: View {
                                 .frame(width: 28)
                             
                             VStack(alignment: .leading, spacing: 2) {
-                                Text("Add script draft")
+                                Text(hasScript ? "Edit your draft" : "Add script draft")
                                     .font(.subheadline)
                                     .fontWeight(.semibold)
                                 
-                                Text("Open editor to write or paste your script.")
-                                    .font(.footnote)
-                                    .foregroundStyle(.secondary)
+                                if hasScript {
+                                    Text(scriptPreview(trimmedScript))
+                                        .font(.footnote)
+                                        .foregroundStyle(.secondary)
+                                        .lineLimit(2)
+                                } else {
+                                    Text("Paste or type your script to get started.")
+                                        .font(.footnote)
+                                        .foregroundStyle(.secondary)
+                                }
                             }
                             
                             Spacer(minLength: 0)

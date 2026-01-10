@@ -16,42 +16,21 @@ struct ScriptInputView: View {
     }
     
     var body: some View {
-        VStack(spacing: 0) {
-            if viewModel.hasGeneratedScenes {
-                scenesPreview
-            } else {
-                scriptEditor
-            }
-        }
+        scriptEditor
         .navigationTitle("Script")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
-                if viewModel.hasGeneratedScenes {
-                    Button("Confirm") {
-                        Task {
-                            let ok = await viewModel.confirmScenes()
-                            if ok {
-                                // Return to Project Detail so the user can see scenes/takes and start recording per scene.
-                                dismiss()
-                            }
-                        }
+                Button("Save") {
+                    let ok = viewModel.saveScript()
+                    if ok {
+                        dismiss()
                     }
-                } else {
-                    Button("Generate Scenes") {
-                        Task {
-                            viewModel.saveScript()
-                            await viewModel.generateScenes()
-                        }
-                    }
-                    .disabled(!viewModel.canGenerateScenes || viewModel.isGeneratingScenes)
                 }
             }
         }
-        .onDisappear {
-            // Persist whatever the user typed even if they leave without confirming.
-            viewModel.saveScript()
-        }
+        .onAppear { viewModel.startAutoSave(every: 2.0) }
+        .onDisappear { viewModel.stopAutoSave(); viewModel.saveScript() }
         .alert("Error", isPresented: .constant(viewModel.errorMessage != nil)) {
             Button("OK") {
                 viewModel.errorMessage = nil
@@ -64,43 +43,23 @@ struct ScriptInputView: View {
     }
     
     private var scriptEditor: some View {
-        VStack(spacing: 16) {
+        ZStack(alignment: .topLeading) {
+            Color(.systemBackground)
+                .ignoresSafeArea()
+            
             TextEditor(text: $viewModel.scriptText)
                 .font(.body)
-                .padding(8)
-                .background(Color(.systemGray6))
-                .cornerRadius(12)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 12)
-                        .stroke(Color.gray.opacity(0.3), lineWidth: 1)
-                )
+                .scrollContentBackground(.hidden)
+                .padding(.horizontal, 16)
+                .padding(.vertical, 12)
             
-            if viewModel.isGeneratingScenes {
-                LoadingView(message: "Generating scenes...")
-            }
-            
-            Spacer()
-        }
-        .padding()
-    }
-    
-    private var scenesPreview: some View {
-        List {
-            Section {
-                Text("Review the generated scenes. Tap Confirm to proceed to recording.")
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
-            }
-            
-            ForEach(Array(viewModel.generatedScenes.enumerated()), id: \.element.id) { index, scene in
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Scene \(index + 1)")
-                        .font(.headline)
-                    
-                    Text(scene.scriptText)
-                        .font(.body)
-                }
-                .padding(.vertical, 4)
+            if viewModel.scriptText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                Text("Paste or type your script here…")
+                    .font(.body)
+                    .foregroundStyle(.secondary)
+                    .padding(.horizontal, 20)
+                    .padding(.vertical, 20)
+                    .allowsHitTesting(false)
             }
         }
     }

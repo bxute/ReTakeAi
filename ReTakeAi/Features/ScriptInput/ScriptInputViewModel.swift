@@ -19,15 +19,20 @@ class ScriptInputViewModel {
     private let sceneStore = SceneStore.shared
     private let aiService: AIServiceProtocol = MockAIService()
     
+    @ObservationIgnored private var autosaveTask: Task<Void, Never>?
+    @ObservationIgnored private var lastAutosavedText: String = ""
+    
     init(project: Project) {
         self.projectID = project.id
         self.scriptText = project.script ?? ""
+        self.lastAutosavedText = self.scriptText
     }
     
-    func saveScript() {
+    @discardableResult
+    func saveScript() -> Bool {
         guard var latestProject = projectStore.getProject(by: projectID) else {
             errorMessage = "Project not found"
-            return
+            return false
         }
         
         latestProject.script = scriptText
@@ -35,9 +40,34 @@ class ScriptInputViewModel {
         do {
             try projectStore.updateProject(latestProject)
             AppLogger.ui.info("Script saved")
+            lastAutosavedText = scriptText
+            return true
         } catch {
             errorMessage = "Failed to save script: \(error.localizedDescription)"
+            return false
         }
+    }
+    
+    func startAutoSave(every seconds: TimeInterval = 2.0) {
+        stopAutoSave()
+        
+        autosaveTask = Task { [weak self] in
+            guard let self else { return }
+            
+            while !Task.isCancelled {
+                try? await Task.sleep(for: .seconds(seconds))
+                guard !Task.isCancelled else { return }
+                
+                if self.scriptText != self.lastAutosavedText {
+                    _ = self.saveScript()
+                }
+            }
+        }
+    }
+    
+    func stopAutoSave() {
+        autosaveTask?.cancel()
+        autosaveTask = nil
     }
     
     func generateScenes() async {
@@ -64,7 +94,7 @@ class ScriptInputViewModel {
         guard !generatedScenes.isEmpty else { return false }
         
         do {
-            saveScript()
+            _ = saveScript()
             
             guard var currentProject = projectStore.getProject(by: projectID) else {
                 errorMessage = "Project not found"
