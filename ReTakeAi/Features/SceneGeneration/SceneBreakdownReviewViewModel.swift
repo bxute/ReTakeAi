@@ -19,6 +19,7 @@ final class SceneBreakdownReviewViewModel {
     var errorMessage: String?
     var drafts: [GeneratedSceneDraft] = []
     var promptUsed: String?
+    var projectDirection: AIDirection?
 
     let projectID: UUID
     let mode: Mode
@@ -39,6 +40,8 @@ final class SceneBreakdownReviewViewModel {
             errorMessage = "Project not found"
             return
         }
+        
+        projectDirection = project.aiDirection
 
         switch mode {
         case .reviewExisting:
@@ -52,6 +55,7 @@ final class SceneBreakdownReviewViewModel {
         let scenes = sceneStore.getScenes(for: project)
         drafts = scenes.sorted(by: { $0.orderIndex < $1.orderIndex }).map { scene in
             GeneratedSceneDraft(
+                sourceSceneID: scene.id,
                 orderIndex: scene.orderIndex,
                 scriptText: scene.scriptText,
                 expectedDurationSeconds: Int((scene.duration ?? 0).rounded()).clamped(to: 1...600),
@@ -128,6 +132,8 @@ final class SceneBreakdownReviewViewModel {
                     latest.aiNarrationDurationSeconds = combined.response.durationSeconds
                     try? await projectStore.updateProjectAsync(latest)
                 }
+                
+                projectDirection = combined.response.direction
 
                 drafts = combined.response.scenes
                     .sorted(by: { $0.orderIndex < $1.orderIndex })
@@ -140,6 +146,12 @@ final class SceneBreakdownReviewViewModel {
                             direction: s.direction
                         )
                     }
+
+                // Auto-persist AI generated scenes immediately.
+                let saved = await saveReplacingScenes()
+                if saved, let latest = projectStore.getProject(by: projectID) {
+                    loadExisting(project: latest)
+                }
 #if DEBUG
                 let count = self.drafts.count
                 AppLogger.ai.info("Scene breakdown: OpenAI success (scenes=\(count))")
@@ -187,12 +199,8 @@ final class SceneBreakdownReviewViewModel {
         defer { isLoading = false }
 
         do {
-            // Delete existing scene directories.
-            let existingScenes = sceneStore.getScenes(for: project)
-            for scene in existingScenes {
-                try sceneStore.deleteScene(scene)
-            }
-
+            // IMPORTANT: Do not delete old scene directories (they may contain takes).
+            // We only detach them from the project by rewriting `sceneIDs`.
             project.sceneIDs.removeAll()
 
             // Create new scenes.
@@ -219,6 +227,42 @@ final class SceneBreakdownReviewViewModel {
             errorMessage = "Failed to save scenes: \(error.localizedDescription)"
             return false
         }
+    }
+
+    func saveEditedDraft(_ draft: GeneratedSceneDraft) async -> Bool {
+        errorMessage = nil
+
+        guard let project = projectStore.getProject(by: projectID) else {
+            errorMessage = "Project not found"
+            return false
+        }
+
+        let trimmed = draft.scriptText.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty, draft.expectedDurationSeconds > 0 else {
+            errorMessage = "Please enter narration and duration."
+            return false
+        }
+
+        // If this draft maps to an existing scene, update it in place (preserves takes).
+        if let sceneID = draft.sourceSceneID, var scene = sceneStore.getScene(sceneID: sceneID, projectID: project.id) {
+            scene.scriptText = trimmed
+            scene.duration = TimeInterval(draft.expectedDurationSeconds)
+            scene.aiDirection = draft.direction
+            do {
+                try sceneStore.updateScene(scene)
+                // Refresh draft list from storage to keep IDs consistent.
+                let latestProject = projectStore.getProject(by: projectID) ?? project
+                loadExisting(project: latestProject)
+                return true
+            } catch {
+                errorMessage = "Failed to save scene: \(error.localizedDescription)"
+                return false
+            }
+        }
+
+        // Otherwise, it's an unsaved draft list (shouldn't happen after auto-save).
+        // Fall back to replacing scenes without deleting old ones.
+        return await saveReplacingScenes()
     }
 }
 

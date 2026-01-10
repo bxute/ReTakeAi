@@ -9,12 +9,12 @@ struct ProjectDetailView: View {
     let project: Project
     @State private var currentProject: Project
     @State private var scenes: [VideoScene] = []
-    @State private var selectedSceneForRecording: VideoScene?
     @State private var showingScriptEditor = false
     @State private var showingAIGeneratedNotice = false
     @State private var showingSceneBreakdown = false
     @State private var sceneBreakdownMode: SceneBreakdownReviewViewModel.Mode = .reviewExisting
     @State private var showingRegenerateConfirm = false
+    @State private var showingShoot = false
     
     private let sceneStore = SceneStore.shared
     private let projectStore = ProjectStore.shared
@@ -172,67 +172,6 @@ struct ProjectDetailView: View {
                         }
                     }
                 }
-                
-            if !scenes.isEmpty {
-                    VStack(alignment: .leading, spacing: 12) {
-                        HStack {
-                            Text("Recording Progress")
-                                .font(.headline)
-                            Spacer()
-                            Text("\(recordedScenesCount)/\(scenes.count)")
-                                .font(.subheadline)
-                                .foregroundStyle(.secondary)
-                        }
-                        
-                        ProgressView(value: Double(recordedScenesCount), total: Double(scenes.count))
-                            .tint(recordedScenesCount == scenes.count ? .green : .blue)
-                        
-                        if let nextScene = nextIncompleteScene {
-                            Button {
-                                selectedSceneForRecording = nextScene
-                            } label: {
-                                Label("Record Scene \(nextScene.orderIndex + 1)", systemImage: "video.fill")
-                                    .font(.headline)
-                                    .frame(maxWidth: .infinity)
-                                    .padding(.vertical, 10)
-                            }
-                            .buttonStyle(.borderedProminent)
-                            .tint(.red)
-                    }
-                }
-            }
-            
-            if !scenes.isEmpty && scenes.allSatisfy({ $0.isComplete }) {
-                    VStack(alignment: .leading, spacing: 8) {
-                    NavigationLink {
-                        ExportView(project: currentProject)
-                    } label: {
-                        Label(currentProject.exports.isEmpty ? "Export Final Video" : "Re-Export Video", systemImage: "square.and.arrow.up")
-                                .frame(maxWidth: .infinity)
-                    }
-                        .buttonStyle(.bordered)
-                        .tint(.green)
-                        
-                    Text(currentProject.exports.isEmpty ? "All scenes recorded! Ready to export." : "Create a new export from the latest takes.")
-                            .font(.footnote)
-                            .foregroundStyle(.secondary)
-                }
-            }
-            
-            if !currentProject.exports.isEmpty {
-                    VStack(alignment: .leading, spacing: 12) {
-                        Text("Previous Exports")
-                            .font(.headline)
-                        
-                    ForEach(currentProject.exports.sorted(by: { $0.exportedAt > $1.exportedAt })) { export in
-                        ExportRowView(export: export, project: currentProject, onDelete: {
-                            deleteExport(export)
-                        })
-                            Divider()
-                        }
-                    }
-                }
-            }
 
             // Bottom CTAs (A/B/C)
             VStack(alignment: .leading, spacing: 12) {
@@ -286,6 +225,18 @@ struct ProjectDetailView: View {
                 }
             }
             .padding(.top, 8)
+
+            Button {
+                showingShoot = true
+            } label: {
+                Label("Go to Shoot", systemImage: "video.fill")
+                    .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(.borderedProminent)
+            .controlSize(.large)
+            .tint(.red)
+            .disabled(scenes.isEmpty)
+            .padding(.top, 6)
         }
         .padding(.horizontal)
         .padding(.vertical, 16)
@@ -297,16 +248,11 @@ struct ProjectDetailView: View {
         .navigationDestination(isPresented: $showingSceneBreakdown) {
             SceneBreakdownReviewView(projectID: currentProject.id, mode: sceneBreakdownMode)
         }
+        .navigationDestination(isPresented: $showingShoot) {
+            ShootOverviewView(projectID: currentProject.id)
+        }
         .navigationDestination(for: VideoScene.self) { scene in
             SceneReviewView(project: currentProject, scene: scene)
-        }
-        .fullScreenCover(item: $selectedSceneForRecording, onDismiss: {
-            // After recording is dismissed, refresh project + scenes so takes appear immediately.
-            loadProjectAndScenes()
-        }) { scene in
-            NavigationStack {
-                RecordingView(project: currentProject, scene: scene)
-            }
         }
         .onAppear {
             loadProjectAndScenes()
@@ -360,26 +306,6 @@ struct ProjectDetailView: View {
 
     private var recordedScenesCount: Int {
         scenes.filter { $0.isRecorded }.count
-    }
-    
-    private var nextIncompleteScene: VideoScene? {
-        // "Next to record" = first scene with no takes yet.
-        scenes.first { !$0.isRecorded }
-    }
-    
-    private func deleteExport(_ export: ExportedVideo) {
-        var updatedProject = currentProject
-        updatedProject.exports.removeAll { $0.id == export.id }
-        
-        // Delete the file
-        do {
-            try FileManager.default.removeItem(at: export.fileURL)
-            try projectStore.updateProject(updatedProject)
-            currentProject = updatedProject
-            AppLogger.ui.info("Deleted export: \(export.fileURL.lastPathComponent)")
-        } catch {
-            AppLogger.ui.error("Failed to delete export: \(error.localizedDescription)")
-        }
     }
     
     private enum DurationSelection: String {

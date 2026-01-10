@@ -20,6 +20,10 @@ struct SceneBreakdownReviewView: View {
         ZStack {
             ScrollView {
                 LazyVStack(alignment: .leading, spacing: 16) {
+                    if let projectDirection = viewModel.projectDirection {
+                        ProjectDirectionHeader(direction: projectDirection)
+                    }
+
                     if let prompt = viewModel.promptUsed {
                         DisclosureGroup(isExpanded: $showingPrompt) {
                             Text(prompt)
@@ -71,17 +75,6 @@ struct SceneBreakdownReviewView: View {
         }
         .navigationTitle("Scenes")
         .navigationBarTitleDisplayMode(.inline)
-        .toolbar {
-            ToolbarItem(placement: .primaryAction) {
-                Button("Save scenes") {
-                    Task {
-                        let ok = await viewModel.saveReplacingScenes()
-                        if ok { dismiss() }
-                    }
-                }
-                .disabled(!viewModel.canSave || viewModel.isLoading)
-            }
-        }
         .task {
             await viewModel.load()
         }
@@ -89,8 +82,8 @@ struct SceneBreakdownReviewView: View {
             SceneDraftEditorSheet(
                 draft: draft,
                 onSave: { updated in
-                    if let index = viewModel.drafts.firstIndex(where: { $0.id == updated.id }) {
-                        viewModel.drafts[index] = updated
+                    Task {
+                        _ = await viewModel.saveEditedDraft(updated)
                     }
                 }
             )
@@ -103,30 +96,78 @@ struct SceneBreakdownReviewView: View {
     }
 }
 
+private struct ProjectDirectionHeader: View {
+    let direction: AIDirection
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(alignment: .firstTextBaseline) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Project direction")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(.secondary)
+                    Text(direction.delivery)
+                        .font(.headline)
+                        .foregroundStyle(.primary)
+                        .lineLimit(2)
+                }
+                Spacer()
+                Text(direction.tone.rawValue)
+                    .font(.caption.weight(.semibold))
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 6)
+                    .background(Color.primary.opacity(0.10), in: Capsule())
+            }
+
+            Text(direction.actorInstructions)
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 14)
+        .background(Color(.systemGray6), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .overlay(
+            VStack(spacing: 0) {
+                Spacer(minLength: 0)
+                Divider().opacity(0.0)
+            }
+        )
+    }
+}
+
 private struct SceneDraftCard: View {
     let draft: GeneratedSceneDraft
     let onTap: () -> Void
 
     var body: some View {
         Button(action: onTap) {
-            VStack(alignment: .leading, spacing: 10) {
+            VStack(alignment: .leading, spacing: 12) {
                 HStack {
                     Text("Scene \(draft.orderIndex + 1)")
                         .font(.headline)
                     Spacer()
                     Text("\(draft.expectedDurationSeconds)s")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
+                        .font(.subheadline.weight(.semibold))
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 6)
+                        .background(Color.primary.opacity(0.10), in: Capsule())
                 }
 
-                Text(draft.scriptText.trimmingCharacters(in: .whitespacesAndNewlines))
-                    .font(.body)
-                    .foregroundStyle(.primary)
-                    .lineLimit(6)
-                    .frame(maxWidth: .infinity, alignment: .leading)
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("Narration")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(.secondary)
+
+                    Text(draft.scriptText.trimmingCharacters(in: .whitespacesAndNewlines))
+                        .font(.body)
+                        .foregroundStyle(.primary)
+                        .lineLimit(8)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
 
                 if let direction = draft.direction {
-                    VStack(alignment: .leading, spacing: 4) {
+                    VStack(alignment: .leading, spacing: 6) {
                         Text("Direction")
                             .font(.caption.weight(.semibold))
                             .foregroundStyle(.secondary)
@@ -138,13 +179,19 @@ private struct SceneDraftCard: View {
                         Text(direction.actorInstructions)
                             .font(.footnote)
                             .foregroundStyle(.secondary)
-                            .lineLimit(2)
+                            .lineLimit(3)
                     }
                 }
 
-                Text("Tap to edit")
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
+                HStack {
+                    Text("Tap to edit")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                    Spacer()
+                    Image(systemName: "pencil")
+                        .font(.footnote.weight(.semibold))
+                        .foregroundStyle(.tertiary)
+                }
             }
             .padding(14)
             .overlay(

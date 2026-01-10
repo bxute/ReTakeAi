@@ -7,6 +7,8 @@ import Foundation
 
 struct GeneratedSceneDraft: Identifiable, Hashable {
     let id: UUID
+    /// If this draft represents an existing stored scene, this links back to that `VideoScene.id`.
+    var sourceSceneID: UUID?
     var orderIndex: Int
     var scriptText: String
     /// Expected duration (seconds) for this scene.
@@ -16,12 +18,14 @@ struct GeneratedSceneDraft: Identifiable, Hashable {
 
     init(
         id: UUID = UUID(),
+        sourceSceneID: UUID? = nil,
         orderIndex: Int,
         scriptText: String,
         expectedDurationSeconds: Int,
         direction: AIDirection? = nil
     ) {
         self.id = id
+        self.sourceSceneID = sourceSceneID
         self.orderIndex = orderIndex
         self.scriptText = scriptText
         self.expectedDurationSeconds = expectedDurationSeconds
