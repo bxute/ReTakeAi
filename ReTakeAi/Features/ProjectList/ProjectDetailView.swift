@@ -286,9 +286,9 @@ struct ProjectDetailView: View {
                 }
             }
             .padding(.top, 8)
-            .padding(.horizontal)
-            .padding(.vertical, 16)
         }
+        .padding(.horizontal)
+        .padding(.vertical, 16)
         .navigationTitle(currentProject.title)
         .navigationBarTitleDisplayMode(.large)
         .navigationDestination(isPresented: $showingScriptEditor) {

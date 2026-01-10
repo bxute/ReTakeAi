@@ -99,10 +99,10 @@ struct OpenAINarrationAndScenesService {
                                 "orderIndex": .integer(minimum: 0),
                                 "scriptText": .string(minLength: 1),
                                 "expectedDurationSeconds": .integer(minimum: 1),
-                                // Per-scene direction is optional (still validated if present).
+                                // With strict schemas, all properties must be required.
                                 "direction": directionSchema(requireToneEnum: true)
                             ],
-                            required: ["orderIndex", "scriptText", "expectedDurationSeconds"],
+                            required: ["orderIndex", "scriptText", "expectedDurationSeconds", "direction"],
                             additionalProperties: false
                         ),
                         minItems: 1
