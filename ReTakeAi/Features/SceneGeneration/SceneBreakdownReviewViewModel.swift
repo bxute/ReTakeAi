@@ -71,6 +71,11 @@ final class SceneBreakdownReviewViewModel {
         isLoading = true
         defer { isLoading = false }
 
+#if DEBUG
+        let hasExistingScenes = !self.sceneStore.getScenes(for: project).isEmpty
+        AppLogger.ai.info("Scene breakdown: start (replaceExisting=\(replaceExisting), hasExisting=\(hasExistingScenes))")
+#endif
+
         if !replaceExisting {
             let existing = sceneStore.getScenes(for: project)
             if !existing.isEmpty {
@@ -93,7 +98,15 @@ final class SceneBreakdownReviewViewModel {
 
         let prompt = SceneBreakdownGenerator.buildPrompt(inputs: inputs)
 
+#if DEBUG
+        let presence = OpenAIKeyProvider.debugKeyPresence()
+        AppLogger.ai.info("Scene breakdown: key presence (bundle=\(presence.bundleHasKey), env=\(presence.environmentHasKey))")
+#endif
+
         if let apiKey = OpenAIKeyProvider.apiKeyFromBundle() {
+#if DEBUG
+            AppLogger.ai.info("Scene breakdown: apiKey found, calling OpenAI")
+#endif
             do {
                 let response = try await openAIService.generateSceneBreakdown(
                     apiKey: apiKey,
@@ -102,15 +115,30 @@ final class SceneBreakdownReviewViewModel {
                 )
                 promptUsed = response.promptUsed
                 drafts = response.drafts
+#if DEBUG
+                let count = self.drafts.count
+                AppLogger.ai.info("Scene breakdown: OpenAI success (scenes=\(count))")
+#endif
                 return
             } catch {
                 // Fallback: deterministic splitter
+#if DEBUG
+                AppLogger.ai.error("Scene breakdown: OpenAI failed, falling back. \(error.localizedDescription)")
+#endif
             }
+        } else {
+#if DEBUG
+            AppLogger.ai.error("Scene breakdown: OPENAI_API_KEY missing from Bundle, falling back")
+#endif
         }
 
         let fallback = SceneBreakdownGenerator.generateDeterministic(inputs: inputs)
         promptUsed = fallback.promptUsed
         drafts = fallback.scenes
+#if DEBUG
+        let count = self.drafts.count
+        AppLogger.ai.info("Scene breakdown: fallback used (scenes=\(count))")
+#endif
     }
 
     var canSave: Bool {

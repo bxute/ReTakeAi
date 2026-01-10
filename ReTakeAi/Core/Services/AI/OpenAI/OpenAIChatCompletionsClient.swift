@@ -21,6 +21,14 @@ struct OpenAIChatCompletionsClient {
         self.baseURL = baseURL
     }
 
+    private var shouldLogPayloadsInDebug: Bool {
+#if DEBUG
+        return ProcessInfo.processInfo.environment["OPENAI_DEBUG_LOG_PAYLOADS"] == "1"
+#else
+        return false
+#endif
+    }
+
     func sendJSON<T: Decodable>(
         apiKey: String,
         requestBody: OpenAIChatCompletionsRequest,
@@ -36,10 +44,34 @@ struct OpenAIChatCompletionsClient {
         encoder.outputFormatting = [.withoutEscapingSlashes]
         request.httpBody = try encoder.encode(requestBody)
 
+#if DEBUG
+        if let body = request.httpBody,
+           let bodyString = String(data: body, encoding: .utf8) {
+            if shouldLogPayloadsInDebug {
+                AppLogger.ai.info("OpenAI request body: \(bodyString, privacy: .public)")
+            } else {
+                AppLogger.ai.info("OpenAI request body (set OPENAI_DEBUG_LOG_PAYLOADS=1 to print): \(bodyString, privacy: .private(mask: .hash))")
+            }
+        } else {
+            AppLogger.ai.info("OpenAI request body: <empty>")
+        }
+#endif
+
         let (data, response) = try await session.data(for: request)
         guard let http = response as? HTTPURLResponse else {
             throw Error.invalidHTTPResponse
         }
+
+#if DEBUG
+        let responseString = String(data: data, encoding: .utf8) ?? ""
+        AppLogger.ai.info("OpenAI response status: \(http.statusCode)")
+        if shouldLogPayloadsInDebug {
+            AppLogger.ai.info("OpenAI response body: \(responseString, privacy: .public)")
+        } else {
+            AppLogger.ai.info("OpenAI response body (set OPENAI_DEBUG_LOG_PAYLOADS=1 to print): \(responseString, privacy: .private(mask: .hash))")
+        }
+#endif
+
         guard (200...299).contains(http.statusCode) else {
             let body = String(data: data, encoding: .utf8) ?? ""
             throw Error.httpError(statusCode: http.statusCode, body: body)
