@@ -26,7 +26,7 @@ struct OpenAISceneBreakdownService {
         promptUsed: String,
         inputs: SceneBreakdownGenerator.Inputs,
         seed: Int? = 42,
-        maxTokens: Int? = 1200
+        maxCompletionTokens: Int? = 1200
     ) async throws -> (promptUsed: String, drafts: [GeneratedSceneDraft]) {
         let system = """
         You must output JSON only. No markdown. No extra text.
@@ -71,10 +71,12 @@ struct OpenAISceneBreakdownService {
                 .init(role: "system", content: system),
                 .init(role: "user", content: user)
             ],
-            temperature: 0.0,
-            topP: 1.0,
+            // gpt-5-mini rejects non-default temperature/top_p in some accounts.
+            // Omit these to let the model use defaults.
+            temperature: nil,
+            topP: nil,
             seed: seed,
-            maxTokens: maxTokens,
+            maxCompletionTokens: maxCompletionTokens,
             responseFormat: .jsonSchema(schema)
         )
 
