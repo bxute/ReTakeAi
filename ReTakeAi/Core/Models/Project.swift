@@ -15,6 +15,12 @@ struct Project: Identifiable, Codable, Hashable {
     /// Expected total video duration (seconds). Used for generation guidance and pacing.
     var expectedDurationSeconds: Int?
     var toneMood: ScriptToneMood?
+    /// Latest AI direction metadata for the project's narration (if generated).
+    var aiDirection: AIDirection?
+    /// Schema version of the last AI generation response (if provided).
+    var aiSchemaVersion: String?
+    /// Duration suggested by AI for the narration (seconds).
+    var aiNarrationDurationSeconds: Double?
     var sceneIDs: [UUID]
     var status: ProjectStatus
     var videoAspect: VideoAspect
@@ -29,6 +35,9 @@ struct Project: Identifiable, Codable, Hashable {
         scriptIntent: ScriptIntent? = nil,
         expectedDurationSeconds: Int? = nil,
         toneMood: ScriptToneMood? = nil,
+        aiDirection: AIDirection? = nil,
+        aiSchemaVersion: String? = nil,
+        aiNarrationDurationSeconds: Double? = nil,
         sceneIDs: [UUID] = [],
         status: ProjectStatus = .draft,
         videoAspect: VideoAspect = .portrait9x16,
@@ -42,6 +51,9 @@ struct Project: Identifiable, Codable, Hashable {
         self.scriptIntent = scriptIntent
         self.expectedDurationSeconds = expectedDurationSeconds
         self.toneMood = toneMood
+        self.aiDirection = aiDirection
+        self.aiSchemaVersion = aiSchemaVersion
+        self.aiNarrationDurationSeconds = aiNarrationDurationSeconds
         self.sceneIDs = sceneIDs
         self.status = status
         self.videoAspect = videoAspect
@@ -54,7 +66,7 @@ struct Project: Identifiable, Codable, Hashable {
 
     // Backwards-compatible decoding with defaults for older on-disk projects.
     enum CodingKeys: String, CodingKey {
-        case id, title, createdAt, updatedAt, script, scriptIntent, expectedDurationSeconds, toneMood, sceneIDs, status, videoAspect, exports
+        case id, title, createdAt, updatedAt, script, scriptIntent, expectedDurationSeconds, toneMood, aiDirection, aiSchemaVersion, aiNarrationDurationSeconds, sceneIDs, status, videoAspect, exports
     }
 
     init(from decoder: Decoder) throws {
@@ -67,6 +79,9 @@ struct Project: Identifiable, Codable, Hashable {
         scriptIntent = try c.decodeIfPresent(ScriptIntent.self, forKey: .scriptIntent)
         expectedDurationSeconds = try c.decodeIfPresent(Int.self, forKey: .expectedDurationSeconds)
         toneMood = try c.decodeIfPresent(ScriptToneMood.self, forKey: .toneMood)
+        aiDirection = try c.decodeIfPresent(AIDirection.self, forKey: .aiDirection)
+        aiSchemaVersion = try c.decodeIfPresent(String.self, forKey: .aiSchemaVersion)
+        aiNarrationDurationSeconds = try c.decodeIfPresent(Double.self, forKey: .aiNarrationDurationSeconds)
         sceneIDs = try c.decodeIfPresent([UUID].self, forKey: .sceneIDs) ?? []
         status = try c.decodeIfPresent(ProjectStatus.self, forKey: .status) ?? .draft
         videoAspect = try c.decodeIfPresent(VideoAspect.self, forKey: .videoAspect) ?? .portrait9x16
@@ -83,6 +98,9 @@ struct Project: Identifiable, Codable, Hashable {
         try c.encodeIfPresent(scriptIntent, forKey: .scriptIntent)
         try c.encodeIfPresent(expectedDurationSeconds, forKey: .expectedDurationSeconds)
         try c.encodeIfPresent(toneMood, forKey: .toneMood)
+        try c.encodeIfPresent(aiDirection, forKey: .aiDirection)
+        try c.encodeIfPresent(aiSchemaVersion, forKey: .aiSchemaVersion)
+        try c.encodeIfPresent(aiNarrationDurationSeconds, forKey: .aiNarrationDurationSeconds)
         try c.encode(sceneIDs, forKey: .sceneIDs)
         try c.encode(status, forKey: .status)
         try c.encode(videoAspect, forKey: .videoAspect)

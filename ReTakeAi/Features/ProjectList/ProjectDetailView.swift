@@ -83,58 +83,6 @@ struct ProjectDetailView: View {
                     .buttonStyle(.plain)
                 }
                 .padding(.top, 4)
-                
-                // Primary CTAs (A/B/C)
-                VStack(alignment: .leading, spacing: 12) {
-                    if !hasScript {
-                        Button {
-                            showingScriptEditor = true
-                        } label: {
-                            Label("Write script", systemImage: "pencil.line")
-                                .frame(maxWidth: .infinity)
-                        }
-                        .buttonStyle(.borderedProminent)
-                        .controlSize(.large)
-                    } else if scenes.isEmpty {
-                        Button {
-                            sceneBreakdownMode = .generateFromScript(replaceExisting: true)
-                            showingSceneBreakdown = true
-                        } label: {
-                            Label("Generate scenes", systemImage: "sparkles")
-                                .frame(maxWidth: .infinity)
-                        }
-                        .buttonStyle(.borderedProminent)
-                        .controlSize(.large)
-
-                        Button {
-                            showingScriptEditor = true
-                        } label: {
-                            Text("Edit draft")
-                                .frame(maxWidth: .infinity)
-                        }
-                        .buttonStyle(.bordered)
-                        .controlSize(.large)
-                    } else {
-                        Button {
-                            sceneBreakdownMode = .reviewExisting
-                            showingSceneBreakdown = true
-                        } label: {
-                            Label("Review scenes", systemImage: "list.bullet.rectangle")
-                                .frame(maxWidth: .infinity)
-                        }
-                        .buttonStyle(.borderedProminent)
-                        .controlSize(.large)
-
-                        Button(role: .destructive) {
-                            showingRegenerateConfirm = true
-                        } label: {
-                            Text("Regenerate scenes")
-                                .frame(maxWidth: .infinity)
-                        }
-                        .buttonStyle(.bordered)
-                        .controlSize(.large)
-                    }
-                }
 
                 VStack(alignment: .leading, spacing: 12) {
                     Text("Intent")
@@ -225,22 +173,6 @@ struct ProjectDetailView: View {
                     }
                 }
                 
-                VStack(alignment: .leading, spacing: 8) {
-                    Button {
-                        generateScriptDraft()
-                    } label: {
-                        Label("Generate script draft", systemImage: "sparkles")
-                            .frame(maxWidth: .infinity)
-                    }
-                    .buttonStyle(.bordered)
-                    .controlSize(.large)
-
-                    Text("Generates a draft you can edit before generating scenes.")
-                        .font(.footnote)
-                        .foregroundStyle(.secondary)
-                }
-                .padding(.top, 4)
-                
             if !scenes.isEmpty {
                     VStack(alignment: .leading, spacing: 12) {
                         HStack {
@@ -277,11 +209,11 @@ struct ProjectDetailView: View {
                     } label: {
                         Label(currentProject.exports.isEmpty ? "Export Final Video" : "Re-Export Video", systemImage: "square.and.arrow.up")
                                 .frame(maxWidth: .infinity)
-                        }
+                    }
                         .buttonStyle(.bordered)
                         .tint(.green)
                         
-                        Text(currentProject.exports.isEmpty ? "All scenes recorded! Ready to export." : "Create a new export from the latest takes.")
+                    Text(currentProject.exports.isEmpty ? "All scenes recorded! Ready to export." : "Create a new export from the latest takes.")
                             .font(.footnote)
                             .foregroundStyle(.secondary)
                 }
@@ -301,6 +233,59 @@ struct ProjectDetailView: View {
                     }
                 }
             }
+
+            // Bottom CTAs (A/B/C)
+            VStack(alignment: .leading, spacing: 12) {
+                if !hasScript {
+                    Button {
+                        showingScriptEditor = true
+                    } label: {
+                        Label("Write script", systemImage: "pencil.line")
+                            .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .controlSize(.large)
+                } else if scenes.isEmpty {
+                    Button {
+                        sceneBreakdownMode = .generateFromScript(replaceExisting: true)
+                        showingSceneBreakdown = true
+                    } label: {
+                        Label("Generate scenes", systemImage: "sparkles")
+                            .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .controlSize(.large)
+
+                    Button {
+                        showingScriptEditor = true
+                    } label: {
+                        Text("Edit draft")
+                            .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.bordered)
+                    .controlSize(.large)
+                } else {
+                    Button {
+                        sceneBreakdownMode = .reviewExisting
+                        showingSceneBreakdown = true
+                    } label: {
+                        Label("Review scenes", systemImage: "list.bullet.rectangle")
+                            .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .controlSize(.large)
+
+                    Button(role: .destructive) {
+                        showingRegenerateConfirm = true
+                    } label: {
+                        Text("Regenerate scenes")
+                            .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.bordered)
+                    .controlSize(.large)
+                }
+            }
+            .padding(.top, 8)
             .padding(.horizontal)
             .padding(.vertical, 16)
         }
@@ -328,12 +313,6 @@ struct ProjectDetailView: View {
         }
         .refreshable {
             loadProjectAndScenes()
-        }
-        .alert("Draft ready", isPresented: $showingAIGeneratedNotice) {
-            Button("Edit Script") { showingScriptEditor = true }
-            Button("OK", role: .cancel) {}
-        } message: {
-            Text("A draft script was generated based on your intent, duration, and tone. Review and edit it before generating scenes.")
         }
         .alert("Replace existing scenes?", isPresented: $showingRegenerateConfirm) {
             Button("Cancel", role: .cancel) {}
@@ -471,26 +450,6 @@ struct ProjectDetailView: View {
         } catch {
             AppLogger.ui.error("Failed to update project: \(error.localizedDescription)")
         }
-    }
-    
-    private func generateScriptDraft() {
-        let intent = currentProject.scriptIntent ?? .explain
-        let tone = currentProject.toneMood ?? .professional
-        let seconds = currentProject.expectedDurationSeconds ?? 30
-        
-        let draft = ScriptDraftGenerator.generateDraft(
-            inputs: .init(
-                projectTitle: currentProject.title,
-                intent: intent,
-                toneMood: tone,
-                expectedDurationSeconds: seconds
-            )
-        )
-        
-        var updated = currentProject
-        updated.script = draft
-        persistProject(updated)
-        showingAIGeneratedNotice = true
     }
     
     private func scriptPreview(_ script: String) -> String {

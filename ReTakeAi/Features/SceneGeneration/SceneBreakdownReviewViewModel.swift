@@ -25,7 +25,7 @@ final class SceneBreakdownReviewViewModel {
 
     private let projectStore = ProjectStore.shared
     private let sceneStore = SceneStore.shared
-    private let openAIService = OpenAISceneBreakdownService()
+    private let openAIService = OpenAINarrationAndScenesService()
 
     init(projectID: UUID, mode: Mode) {
         self.projectID = projectID
@@ -108,13 +108,37 @@ final class SceneBreakdownReviewViewModel {
             AppLogger.ai.info("Scene breakdown: apiKey found, calling OpenAI")
 #endif
             do {
-                let response = try await openAIService.generateSceneBreakdown(
+                let combined = try await openAIService.generateNarrationAndScenes(
                     apiKey: apiKey,
-                    promptUsed: prompt,
-                    inputs: inputs
+                    projectTitle: inputs.projectTitle,
+                    scriptOrDraft: inputs.script,
+                    intent: inputs.intent,
+                    toneMood: inputs.toneMood,
+                    expectedDurationSeconds: inputs.expectedDurationSeconds
                 )
-                promptUsed = response.promptUsed
-                drafts = response.drafts
+
+                promptUsed = combined.promptUsed
+
+                // Persist narration + direction metadata back to the project so it stays coherent.
+                if var latest = projectStore.getProject(by: projectID) {
+                    latest.script = combined.response.narration
+                    latest.aiDirection = combined.response.direction
+                    latest.aiSchemaVersion = combined.response.schemaVersion
+                    latest.aiNarrationDurationSeconds = combined.response.durationSeconds
+                    try? await projectStore.updateProjectAsync(latest)
+                }
+
+                drafts = combined.response.scenes
+                    .sorted(by: { $0.orderIndex < $1.orderIndex })
+                    .enumerated()
+                    .map { idx, s in
+                        GeneratedSceneDraft(
+                            orderIndex: idx,
+                            scriptText: s.scriptText,
+                            expectedDurationSeconds: Swift.max(1, s.expectedDurationSeconds),
+                            direction: s.direction
+                        )
+                    }
 #if DEBUG
                 let count = self.drafts.count
                 AppLogger.ai.info("Scene breakdown: OpenAI success (scenes=\(count))")
@@ -178,6 +202,7 @@ final class SceneBreakdownReviewViewModel {
             for (idx, draft) in sortedDrafts.enumerated() {
                 var created = try sceneStore.createScene(projectID: project.id, orderIndex: idx, scriptText: draft.scriptText)
                 created.duration = TimeInterval(draft.expectedDurationSeconds)
+                created.aiDirection = draft.direction
                 try sceneStore.updateScene(created)
                 newSceneIDs.append(created.id)
             }
