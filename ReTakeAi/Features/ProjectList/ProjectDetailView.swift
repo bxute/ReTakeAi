@@ -25,15 +25,15 @@ struct ProjectDetailView: View {
     }
     
     var body: some View {
-        ScrollView {
+        let trimmedScript = (currentProject.script ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+        let hasScript = !trimmedScript.isEmpty
+        
+        return ScrollView {
             LazyVStack(alignment: .leading, spacing: 28) {
                 // Script
                 VStack(alignment: .leading, spacing: 6) {
                     Text("Script")
                         .font(.headline)
-                    
-                    let trimmedScript = (currentProject.script ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
-                    let hasScript = !trimmedScript.isEmpty
                     
                     if !hasScript {
                         Text("No script yet. Add one to generate scenes and record take-by-take.")
@@ -237,6 +237,7 @@ struct ProjectDetailView: View {
             .tint(.red)
             .disabled(scenes.isEmpty)
             .padding(.top, 6)
+            }
         }
         .padding(.horizontal)
         .padding(.vertical, 16)
