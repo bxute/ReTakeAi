@@ -103,43 +103,59 @@ struct ShootOverviewView: View {
                     .foregroundStyle(.secondary)
             } else {
                 ForEach(viewModel.scenes.sorted(by: { $0.orderIndex < $1.orderIndex })) { scene in
-                    HStack(spacing: 12) {
-                        VStack(alignment: .leading, spacing: 4) {
-                            HStack {
-                                Text("Scene \(scene.orderIndex + 1)")
-                                    .font(.subheadline.weight(.semibold))
-                                Spacer()
-                                if scene.isComplete {
-                                    Text("Complete")
-                                        .font(.caption.weight(.semibold))
-                                        .foregroundStyle(.green)
-                                } else if scene.isRecorded {
-                                    Text("Recorded")
-                                        .font(.caption.weight(.semibold))
-                                        .foregroundStyle(.blue)
-                                } else {
-                                    Text("Not recorded")
-                                        .font(.caption.weight(.semibold))
-                                        .foregroundStyle(.secondary)
+                    VStack(alignment: .leading, spacing: 10) {
+                        HStack(spacing: 12) {
+                            VStack(alignment: .leading, spacing: 4) {
+                                HStack {
+                                    Text("Scene \(scene.orderIndex + 1)")
+                                        .font(.subheadline.weight(.semibold))
+                                    Spacer()
+                                    if scene.isComplete {
+                                        Text("Complete")
+                                            .font(.caption.weight(.semibold))
+                                            .foregroundStyle(.green)
+                                    } else if scene.isRecorded {
+                                        Text("Recorded")
+                                            .font(.caption.weight(.semibold))
+                                            .foregroundStyle(.blue)
+                                    } else {
+                                        Text("Not recorded")
+                                            .font(.caption.weight(.semibold))
+                                            .foregroundStyle(.secondary)
+                                    }
                                 }
+
+                                Text(scene.scriptText)
+                                    .font(.footnote)
+                                    .foregroundStyle(.secondary)
+                                    .lineLimit(2)
                             }
 
-                            Text(scene.scriptText)
-                                .font(.footnote)
-                                .foregroundStyle(.secondary)
-                                .lineLimit(2)
+                            Spacer(minLength: 0)
+
+                            Button {
+                                selectedSceneForRecording = scene
+                            } label: {
+                                Image(systemName: "video.circle.fill")
+                                    .font(.title2)
+                                    .foregroundColor(.red)
+                            }
+                            .buttonStyle(.plain)
                         }
 
-                        Spacer(minLength: 0)
+                        let takes = viewModel.getTakes(for: scene)
+                        if !takes.isEmpty {
+                            Divider().opacity(0.4)
 
-                        Button {
-                            selectedSceneForRecording = scene
-                        } label: {
-                            Image(systemName: "video.circle.fill")
-                                .font(.title2)
-                                .foregroundColor(.red)
+                            VStack(alignment: .leading, spacing: 6) {
+                                ForEach(takes.sorted(by: { $0.takeNumber < $1.takeNumber })) { take in
+                                    ShootTakeRowView(
+                                        take: take,
+                                        isSelected: scene.selectedTakeID == take.id
+                                    )
+                                }
+                            }
                         }
-                        .buttonStyle(.plain)
                     }
                     .padding(12)
                     .overlay(
@@ -250,6 +266,36 @@ private struct ShootExportRowView: View {
         }
         .sheet(isPresented: $showingShareSheet) {
             ShareSheet(items: [export.fileURL])
+        }
+    }
+}
+
+private struct ShootTakeRowView: View {
+    let take: Take
+    let isSelected: Bool
+
+    var body: some View {
+        HStack(alignment: .firstTextBaseline, spacing: 10) {
+            HStack(spacing: 6) {
+                Text("Take \(take.takeNumber)")
+                    .font(.footnote.weight(.semibold))
+
+                if isSelected {
+                    Image(systemName: "star.fill")
+                        .font(.caption2)
+                        .foregroundStyle(.yellow)
+                }
+            }
+
+            Spacer(minLength: 0)
+
+            Text(take.duration.shortDuration)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+
+            Text(take.recordedAt.timeAgo)
+                .font(.caption2)
+                .foregroundStyle(.tertiary)
         }
     }
 }

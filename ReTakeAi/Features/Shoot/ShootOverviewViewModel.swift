@@ -10,6 +10,7 @@ import Foundation
 final class ShootOverviewViewModel {
     var project: Project?
     var scenes: [VideoScene] = []
+    var takes: [UUID: [Take]] = [:]
     var errorMessage: String?
     var isLoading = false
 
@@ -17,6 +18,7 @@ final class ShootOverviewViewModel {
 
     private let projectStore = ProjectStore.shared
     private let sceneStore = SceneStore.shared
+    private let takeStore = TakeStore.shared
 
     init(projectID: UUID) {
         self.projectID = projectID
@@ -28,11 +30,20 @@ final class ShootOverviewViewModel {
             errorMessage = "Project not found"
             project = nil
             scenes = []
+            takes = [:]
             return
         }
 
         project = latest
         scenes = sceneStore.getScenes(for: latest)
+        takes = [:]
+        for scene in scenes {
+            takes[scene.id] = takeStore.getTakes(for: scene)
+        }
+    }
+
+    func getTakes(for scene: VideoScene) -> [Take] {
+        takes[scene.id] ?? []
     }
 
     var recordedScenesCount: Int {
