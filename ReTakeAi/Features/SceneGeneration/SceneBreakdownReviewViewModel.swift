@@ -134,7 +134,7 @@ final class SceneBreakdownReviewViewModel {
                     .map { idx, s in
                         GeneratedSceneDraft(
                             orderIndex: idx,
-                            scriptText: s.scriptText,
+                            scriptText: s.narration,
                             expectedDurationSeconds: Swift.max(1, s.expectedDurationSeconds),
                             direction: s.direction
                         )

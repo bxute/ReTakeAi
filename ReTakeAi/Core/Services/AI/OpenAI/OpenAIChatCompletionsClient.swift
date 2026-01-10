@@ -6,11 +6,27 @@
 import Foundation
 
 struct OpenAIChatCompletionsClient {
-    enum Error: Swift.Error, Sendable {
+    enum Error: Swift.Error, LocalizedError, Sendable {
         case invalidHTTPResponse
         case httpError(statusCode: Int, body: String)
         case missingContent
         case decodingFailed(rawContent: String, underlying: Swift.Error)
+
+        var errorDescription: String? {
+            switch self {
+            case .invalidHTTPResponse:
+                return "OpenAI: Invalid (non-HTTP) response."
+            case .httpError(let statusCode, let body):
+                if body.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                    return "OpenAI: HTTP \(statusCode) (empty body)."
+                }
+                return "OpenAI: HTTP \(statusCode): \(body)"
+            case .missingContent:
+                return "OpenAI: Missing message content (empty content)."
+            case .decodingFailed(let rawContent, let underlying):
+                return "OpenAI: Failed to decode structured JSON. Underlying: \(underlying.localizedDescription). Raw: \(rawContent)"
+            }
+        }
     }
 
     let session: URLSession
@@ -84,22 +100,32 @@ struct OpenAIChatCompletionsClient {
             throw Error.missingContent
         }
 
+        // Some models return the JSON as a JSON-escaped string:
+        // "{\"key\":\"value\"}". Unwrap that before decoding.
+        let normalizedRaw: String = {
+            if let rawData = raw.data(using: .utf8),
+               let unwrapped = try? decoder.decode(String.self, from: rawData) {
+                return unwrapped
+            }
+            return raw
+        }()
+
         do {
             // Expect JSON-only output. Still try a safe extraction if something leaked.
-            if let direct = raw.data(using: .utf8), let decoded = try? decoder.decode(T.self, from: direct) {
+            if let direct = normalizedRaw.data(using: .utf8), let decoded = try? decoder.decode(T.self, from: direct) {
                 return decoded
             }
-            if let extracted = Self.extractJSONObject(from: raw),
+            if let extracted = Self.extractJSONObject(from: normalizedRaw),
                let data = extracted.data(using: .utf8) {
                 return try decoder.decode(T.self, from: data)
             }
-            if let extracted = Self.extractJSONArray(from: raw),
+            if let extracted = Self.extractJSONArray(from: normalizedRaw),
                let data = extracted.data(using: .utf8) {
                 return try decoder.decode(T.self, from: data)
             }
-            throw Error.decodingFailed(rawContent: raw, underlying: DecodingError.dataCorrupted(.init(codingPath: [], debugDescription: "Not valid JSON")))
+            throw Error.decodingFailed(rawContent: normalizedRaw, underlying: DecodingError.dataCorrupted(.init(codingPath: [], debugDescription: "Not valid JSON")))
         } catch {
-            throw Error.decodingFailed(rawContent: raw, underlying: error)
+            throw Error.decodingFailed(rawContent: normalizedRaw, underlying: error)
         }
     }
 

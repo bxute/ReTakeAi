@@ -92,6 +92,8 @@ struct OpenAIChatCompletionsRequest: Encodable, Sendable {
     let temperature: Double?
     let topP: Double?
     let seed: Int?
+    /// For many models.
+    let maxTokens: Int?
     /// Some newer models (including gpt-5-mini) require `max_completion_tokens` instead of `max_tokens`.
     let maxCompletionTokens: Int?
     let responseFormat: ResponseFormat?
@@ -102,6 +104,7 @@ struct OpenAIChatCompletionsRequest: Encodable, Sendable {
         case temperature
         case topP = "top_p"
         case seed
+        case maxTokens = "max_tokens"
         case maxCompletionTokens = "max_completion_tokens"
         case responseFormat = "response_format"
     }

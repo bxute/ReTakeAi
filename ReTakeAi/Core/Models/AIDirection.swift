@@ -26,6 +26,24 @@ struct AIDirection: Codable, Hashable, Sendable {
         case serious = "Serious"
 
         var id: String { rawValue }
+
+        init(from decoder: Decoder) throws {
+            let c = try decoder.singleValueContainer()
+            let raw = try c.decode(String.self)
+            let normalized = raw.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+
+            switch normalized {
+            case "professional": self = .professional
+            case "emotional": self = .emotional
+            case "energetic": self = .energetic
+            case "calm": self = .calm
+            case "cinematic": self = .cinematic
+            case "fun": self = .fun
+            case "serious": self = .serious
+            default:
+                throw DecodingError.dataCorruptedError(in: c, debugDescription: "Unknown tone: \(raw)")
+            }
+        }
     }
 }
 

@@ -14,35 +14,7 @@ struct OpenAINarrationAndScenesService {
         case invalidScene(orderIndex: Int)
     }
 
-    struct Response: Decodable, Sendable {
-        struct Scene: Decodable, Sendable {
-            let orderIndex: Int
-            let scriptText: String
-            let expectedDurationSeconds: Int
-            let direction: AIDirection?
-
-            enum CodingKeys: String, CodingKey {
-                case orderIndex
-                case scriptText
-                case expectedDurationSeconds
-                case direction
-            }
-        }
-
-        let schemaVersion: String
-        let durationSeconds: Double
-        let narration: String
-        let direction: AIDirection
-        let scenes: [Scene]
-
-        enum CodingKeys: String, CodingKey {
-            case schemaVersion = "schema_version"
-            case durationSeconds = "duration_seconds"
-            case narration
-            case direction
-            case scenes
-        }
-    }
+    typealias Response = AINarrationAndScenesContract
 
     let client: OpenAIChatCompletionsClient
 
@@ -57,7 +29,7 @@ struct OpenAINarrationAndScenesService {
         intent: ScriptIntent,
         toneMood: ScriptToneMood,
         expectedDurationSeconds: Int,
-        maxCompletionTokens: Int? = 1400
+        maxCompletionTokens: Int? = 2400
     ) async throws -> (promptUsed: String, response: Response) {
         let duration = Swift.max(10, Swift.min(expectedDurationSeconds, 300))
 
@@ -66,8 +38,10 @@ struct OpenAINarrationAndScenesService {
 
         Requirements:
         - Return JSON only, matching the schema exactly (no extra fields).
+        - This is a rewrite: you MAY change wording from the source content to better fit the selected intent/tone and target duration.
         - narration must be spoken text only (no headings, no stage directions).
-        - scenes[*].scriptText must be spoken text only for that scene.
+        - scenes[*].narration must be spoken text only for that scene (no headings, no stage directions).
+        - Scenes must be consistent with the rewritten narration (do not preserve the original wording if you rewrote it).
         - Each scene should be short and recordable (one idea per scene).
         - Sum of scenes[*].expectedDurationSeconds should be approximately \(duration).
         - The overall tone should match the selected tone.
@@ -97,12 +71,12 @@ struct OpenAINarrationAndScenesService {
                         items: .object(
                             properties: [
                                 "orderIndex": .integer(minimum: 0),
-                                "scriptText": .string(minLength: 1),
+                                "narration": .string(minLength: 1),
                                 "expectedDurationSeconds": .integer(minimum: 1),
                                 // With strict schemas, all properties must be required.
                                 "direction": directionSchema(requireToneEnum: true)
                             ],
-                            required: ["orderIndex", "scriptText", "expectedDurationSeconds", "direction"],
+                            required: ["orderIndex", "narration", "expectedDurationSeconds", "direction"],
                             additionalProperties: false
                         ),
                         minItems: 1
@@ -113,27 +87,50 @@ struct OpenAINarrationAndScenesService {
             )
         )
 
-        let request = OpenAIChatCompletionsRequest(
-            model: "gpt-5-mini",
-            messages: [
-                .init(role: "system", content: system),
-                .init(role: "user", content: promptUsed)
-            ],
-            // gpt-5-mini rejects non-default temperature/top_p in some accounts.
-            temperature: nil,
-            topP: nil,
-            seed: nil,
-            maxCompletionTokens: maxCompletionTokens,
-            responseFormat: .jsonSchema(schema)
-        )
+        // Primary: gpt-5-mini (can be higher quality, but may burn tokens on reasoning).
+        do {
+            let request = OpenAIChatCompletionsRequest(
+                model: "gpt-5-mini",
+                messages: [
+                    .init(role: "system", content: system),
+                    .init(role: "user", content: promptUsed)
+                ],
+                // gpt-5-mini rejects non-default temperature/top_p in some accounts.
+                temperature: nil,
+                topP: nil,
+                seed: nil,
+                maxTokens: nil,
+                maxCompletionTokens: maxCompletionTokens,
+                responseFormat: .jsonSchema(schema)
+            )
 
-        let decoded: Response = try await client.sendJSON(apiKey: apiKey, requestBody: request, responseType: Response.self)
-        try validate(decoded)
-        return (promptUsed: promptUsed, response: decoded)
+            let decoded: Response = try await client.sendJSON(apiKey: apiKey, requestBody: request, responseType: Response.self)
+            try validate(decoded)
+            return (promptUsed: promptUsed, response: decoded)
+        } catch {
+            // Fallback model: gpt-4o-mini tends to return actual JSON content rather than spending all tokens on reasoning.
+            let fallbackRequest = OpenAIChatCompletionsRequest(
+                model: "gpt-4o-mini",
+                messages: [
+                    .init(role: "system", content: system),
+                    .init(role: "user", content: promptUsed)
+                ],
+                temperature: 0.0,
+                topP: 1.0,
+                seed: nil,
+                maxTokens: 1200,
+                maxCompletionTokens: nil,
+                responseFormat: .jsonSchema(schema)
+            )
+
+            let decoded: Response = try await client.sendJSON(apiKey: apiKey, requestBody: fallbackRequest, responseType: Response.self)
+            try validate(decoded)
+            return (promptUsed: promptUsed, response: decoded)
+        }
     }
 
     private func validate(_ response: Response) throws {
-        guard response.schemaVersion == "1.0" else {
+        guard response.schemaVersion == Response.schemaVersion else {
             throw ValidationError.invalidSchemaVersion(response.schemaVersion)
         }
         guard response.durationSeconds > 0, response.durationSeconds.isFinite else {
@@ -148,7 +145,7 @@ struct OpenAINarrationAndScenesService {
         for scene in response.scenes {
             guard scene.orderIndex >= 0,
                   scene.expectedDurationSeconds > 0,
-                  !scene.scriptText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+                  !scene.narration.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
                 throw ValidationError.invalidScene(orderIndex: scene.orderIndex)
             }
         }
