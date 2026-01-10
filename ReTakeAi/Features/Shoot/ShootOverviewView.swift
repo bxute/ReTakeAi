@@ -34,6 +34,12 @@ struct ShootOverviewView: View {
         .navigationDestination(item: $selectedSceneForDetails) { scene in
             ShootSceneDetailView(projectID: projectID, sceneID: scene.id)
         }
+        .onAppear {
+            viewModel.load()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .sceneDidUpdate)) { _ in
+            viewModel.load()
+        }
         .refreshable {
             viewModel.load()
         }

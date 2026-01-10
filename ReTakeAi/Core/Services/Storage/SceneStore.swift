@@ -22,6 +22,7 @@ class SceneStore: ObservableObject {
         
         try fileManager.createSceneDirectory(for: scene.id, projectID: projectID)
         try saveScene(scene)
+        NotificationCenter.default.post(name: .sceneDidUpdate, object: nil)
         
         AppLogger.storage.info("Created scene \(orderIndex) for project")
         return scene
@@ -29,11 +30,13 @@ class SceneStore: ObservableObject {
     
     func updateScene(_ scene: VideoScene) throws {
         try saveScene(scene)
+        NotificationCenter.default.post(name: .sceneDidUpdate, object: nil)
         AppLogger.storage.info("Updated scene: \(scene.id.uuidString)")
     }
     
     func deleteScene(_ scene: VideoScene) throws {
         try fileManager.deleteScene(sceneID: scene.id, projectID: scene.projectID)
+        NotificationCenter.default.post(name: .sceneDidUpdate, object: nil)
         AppLogger.storage.info("Deleted scene: \(scene.id.uuidString)")
     }
     
@@ -53,12 +56,14 @@ class SceneStore: ObservableObject {
         var updatedScene = scene
         updatedScene.takeIDs.append(take.id)
         try updateScene(updatedScene)
+        NotificationCenter.default.post(name: .sceneDidUpdate, object: nil)
     }
     
     func selectTake(_ take: Take, for scene: VideoScene) throws {
         var updatedScene = scene
         updatedScene.selectedTakeID = take.id
         try updateScene(updatedScene)
+        NotificationCenter.default.post(name: .sceneDidUpdate, object: nil)
     }
     
     private func saveScene(_ scene: VideoScene) throws {
