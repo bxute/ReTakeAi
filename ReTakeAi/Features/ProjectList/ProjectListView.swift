@@ -9,6 +9,7 @@ struct ProjectListView: View {
     @State private var viewModel = ProjectListViewModel()
     @State private var showingCreateSheet = false
     @State private var newProjectTitle = ""
+    @FocusState private var isNewProjectTitleFocused: Bool
     
     var body: some View {
         NavigationStack {
@@ -100,20 +101,33 @@ struct ProjectListView: View {
     
     private var createProjectSheet: some View {
         NavigationStack {
-            Form {
-                Section {
-                    TextField("Project Title", text: $newProjectTitle)
+            VStack(alignment: .leading, spacing: 20) {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Project title")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                    
+                    TextField("e.g. Travel vlog — episode 1", text: $newProjectTitle)
+                        .textFieldStyle(.roundedBorder)
+                        .textInputAutocapitalization(.words)
+                        .submitLabel(.done)
+                        .focused($isNewProjectTitleFocused)
+                        .onSubmit { createProject() }
                 }
                 
-                Section {
-                    Button("Create") {
-                        viewModel.createProject(title: newProjectTitle)
-                        newProjectTitle = ""
-                        showingCreateSheet = false
-                    }
-                    .disabled(newProjectTitle.isEmpty)
+                Button {
+                    createProject()
+                } label: {
+                    Text("Create Project")
+                        .frame(maxWidth: .infinity)
                 }
+                .buttonStyle(.borderedProminent)
+                .controlSize(.large)
+                .disabled(trimmedNewProjectTitle.isEmpty)
+                
+                Spacer(minLength: 0)
             }
+            .padding()
             .navigationTitle("New Project")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -124,7 +138,29 @@ struct ProjectListView: View {
                     }
                 }
             }
+            .onAppear {
+                // Defer focus to ensure the sheet has finished presenting.
+                DispatchQueue.main.async {
+                    isNewProjectTitleFocused = true
+                }
+            }
         }
+    }
+    
+    private var trimmedNewProjectTitle: String {
+        newProjectTitle.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+    
+    private func createProject() {
+        let title = trimmedNewProjectTitle
+        guard !title.isEmpty else { return }
+        
+        viewModel.errorMessage = nil
+        viewModel.createProject(title: title)
+        
+        guard viewModel.errorMessage == nil else { return }
+        newProjectTitle = ""
+        showingCreateSheet = false
     }
 }
 
