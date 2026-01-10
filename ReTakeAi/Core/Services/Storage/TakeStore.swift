@@ -21,7 +21,7 @@ class TakeStore: ObservableObject {
         takeNumber: Int
     ) throws -> Take {
         let asset = AVAsset(url: videoURL)
-        let duration = asset.duration.seconds
+        let duration = TakeStore.safeSeconds(asset.duration)
         
         let destinationURL = try fileManager.saveTakeVideo(
             from: videoURL,
@@ -101,7 +101,7 @@ class TakeStore: ObservableObject {
             guard url.pathExtension == Constants.Recording.videoExtension else { return nil }
             
             let asset = AVAsset(url: url)
-            let duration = asset.duration.seconds
+            let duration = TakeStore.safeSeconds(asset.duration)
             let fileSize = fileManager.fileSize(at: url)
             
             let fileName = url.deletingPathExtension().lastPathComponent
@@ -122,6 +122,12 @@ class TakeStore: ObservableObject {
                 resolution: resolution
             )
         }
+    }
+    
+    private static func safeSeconds(_ time: CMTime) -> TimeInterval {
+        let seconds = time.seconds
+        guard seconds.isFinite, seconds >= 0 else { return 0 }
+        return seconds
     }
     
     private func getVideoResolution(from asset: AVAsset) throws -> VideoResolution {

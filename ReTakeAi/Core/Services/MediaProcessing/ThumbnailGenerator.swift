@@ -49,14 +49,26 @@ actor ThumbnailGenerator {
         count: Int = 5,
         size: CGSize = CGSize(width: 200, height: 200)
     ) async throws -> [UIImage] {
+        guard count > 0 else { return [] }
+        
         let asset = AVAsset(url: videoURL)
         let duration = try await asset.load(.duration)
+
+        let durationSeconds = duration.seconds
+        guard durationSeconds.isFinite, durationSeconds > 0 else {
+            // Fallback: produce 1 thumbnail at t=0 when duration is unavailable/indefinite.
+            return [try await generateThumbnail(from: videoURL, at: .zero, size: size)]
+        }
         
-        let interval = duration.seconds / Double(count + 1)
+        let interval = durationSeconds / Double(count + 1)
+        guard interval.isFinite, interval > 0 else {
+            return [try await generateThumbnail(from: videoURL, at: .zero, size: size)]
+        }
         var thumbnails: [UIImage] = []
         
         for i in 1...count {
-            let time = CMTime(seconds: interval * Double(i), preferredTimescale: 600)
+            let seconds = interval * Double(i)
+            let time = CMTime(seconds: seconds, preferredTimescale: 600)
             let thumbnail = try await generateThumbnail(from: videoURL, at: time, size: size)
             thumbnails.append(thumbnail)
         }
