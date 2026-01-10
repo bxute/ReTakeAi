@@ -54,7 +54,8 @@ final class SceneBreakdownReviewViewModel {
             GeneratedSceneDraft(
                 orderIndex: scene.orderIndex,
                 scriptText: scene.scriptText,
-                expectedDurationSeconds: Int((scene.duration ?? 0).rounded()).clamped(to: 1...600)
+                expectedDurationSeconds: Int((scene.duration ?? 0).rounded()).clamped(to: 1...600),
+                direction: scene.aiDirection ?? project.aiDirection
             )
         }
         promptUsed = nil

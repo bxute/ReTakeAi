@@ -64,6 +64,25 @@ struct SceneReviewView: View {
             } header: {
                 Text("Script")
             }
+
+            if let direction = scene.aiDirection ?? project.aiDirection {
+                Section {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text(direction.tone.rawValue)
+                            .font(.headline)
+
+                        Text(direction.delivery)
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+
+                        Text(direction.actorInstructions)
+                            .font(.body)
+                    }
+                    .padding(.vertical, 6)
+                } header: {
+                    Text("Direction")
+                }
+            }
             
             Section {
                 let takes = viewModel.getTakes(for: scene)

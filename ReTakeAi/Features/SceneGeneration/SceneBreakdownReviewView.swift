@@ -125,6 +125,23 @@ private struct SceneDraftCard: View {
                     .lineLimit(6)
                     .frame(maxWidth: .infinity, alignment: .leading)
 
+                if let direction = draft.direction {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Direction")
+                            .font(.caption.weight(.semibold))
+                            .foregroundStyle(.secondary)
+
+                        Text("\(direction.tone.rawValue) • \(direction.delivery)")
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
+
+                        Text(direction.actorInstructions)
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
+                            .lineLimit(2)
+                    }
+                }
+
                 Text("Tap to edit")
                     .font(.footnote)
                     .foregroundStyle(.secondary)
@@ -164,6 +181,30 @@ private struct SceneDraftEditorSheet: View {
                         .font(.subheadline.weight(.semibold))
                 }
                 .padding(.horizontal)
+
+                if let direction = draft.direction {
+                    VStack(alignment: .leading, spacing: 6) {
+                        Divider()
+                        HStack {
+                            Text("Direction")
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+                            Spacer()
+                            Text(direction.tone.rawValue)
+                                .font(.subheadline.weight(.semibold))
+                        }
+
+                        Text(direction.delivery)
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
+
+                        Text(direction.actorInstructions)
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                    .padding(.horizontal)
+                }
 
                 Divider()
 
