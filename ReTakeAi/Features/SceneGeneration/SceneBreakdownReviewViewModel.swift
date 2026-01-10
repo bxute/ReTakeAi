@@ -25,6 +25,7 @@ final class SceneBreakdownReviewViewModel {
 
     private let projectStore = ProjectStore.shared
     private let sceneStore = SceneStore.shared
+    private let openAIService = OpenAISceneBreakdownService()
 
     init(projectID: UUID, mode: Mode) {
         self.projectID = projectID
@@ -82,18 +83,34 @@ final class SceneBreakdownReviewViewModel {
         let tone = project.toneMood ?? .professional
         let seconds = (project.expectedDurationSeconds ?? 30).clamped(to: 10...300)
 
-        let result = SceneBreakdownGenerator.generateDeterministic(
-            inputs: .init(
-                projectTitle: project.title,
-                script: script,
-                intent: intent,
-                toneMood: tone,
-                expectedDurationSeconds: seconds
-            )
+        let inputs = SceneBreakdownGenerator.Inputs(
+            projectTitle: project.title,
+            script: script,
+            intent: intent,
+            toneMood: tone,
+            expectedDurationSeconds: seconds
         )
 
-        promptUsed = result.promptUsed
-        drafts = result.scenes
+        let prompt = SceneBreakdownGenerator.buildPrompt(inputs: inputs)
+
+        if let apiKey = OpenAIKeyProvider.apiKeyFromBundle() {
+            do {
+                let response = try await openAIService.generateSceneBreakdown(
+                    apiKey: apiKey,
+                    promptUsed: prompt,
+                    inputs: inputs
+                )
+                promptUsed = response.promptUsed
+                drafts = response.drafts
+                return
+            } catch {
+                // Fallback: deterministic splitter
+            }
+        }
+
+        let fallback = SceneBreakdownGenerator.generateDeterministic(inputs: inputs)
+        promptUsed = fallback.promptUsed
+        drafts = fallback.scenes
     }
 
     var canSave: Bool {

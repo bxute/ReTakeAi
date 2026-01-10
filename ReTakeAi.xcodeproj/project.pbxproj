@@ -6,6 +6,10 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		EF53DC882F12A53D0009C810 /* Secrets.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = EF53DC872F12A53D0009C810 /* Secrets.xcconfig */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		EF14E5512F066AEB002662ED /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -27,6 +31,7 @@
 		EF14E5432F066AEA002662ED /* ReTakeAi.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ReTakeAi.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		EF14E5502F066AEB002662ED /* ReTakeAiTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ReTakeAiTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		EF14E55A2F066AEB002662ED /* ReTakeAiUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ReTakeAiUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		EF53DC872F12A53D0009C810 /* Secrets.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Secrets.xcconfig; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -79,6 +84,7 @@
 				EF14E5532F066AEB002662ED /* ReTakeAiTests */,
 				EF14E55D2F066AEB002662ED /* ReTakeAiUITests */,
 				EF14E5442F066AEA002662ED /* Products */,
+				EF53DC872F12A53D0009C810 /* Secrets.xcconfig */,
 			);
 			sourceTree = "<group>";
 		};
@@ -212,6 +218,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				EF53DC882F12A53D0009C810 /* Secrets.xcconfig in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -392,6 +399,7 @@
 		};
 		EF14E5652F066AEB002662ED /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = EF53DC872F12A53D0009C810 /* Secrets.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -404,6 +412,7 @@
 				INFOPLIST_KEY_NSCameraUsageDescription = "We use the camera to record your scene takes.";
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "We use the microphone to record audio with your video takes";
 				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "We save exported videos to your photo library.";
+				INFOPLIST_KEY_OPENAI_API_KEY = "$(OPENAI_API_KEY)";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -429,6 +438,7 @@
 		};
 		EF14E5662F066AEB002662ED /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = EF53DC872F12A53D0009C810 /* Secrets.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -441,6 +451,7 @@
 				INFOPLIST_KEY_NSCameraUsageDescription = "We use the camera to record your scene takes.";
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "We use the microphone to record audio with your video takes";
 				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "We save exported videos to your photo library.";
+				INFOPLIST_KEY_OPENAI_API_KEY = "$(OPENAI_API_KEY)";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
