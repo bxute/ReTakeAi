@@ -11,7 +11,7 @@ struct ShootSceneDetailView: View {
 
     @State private var viewModel: ShootSceneDetailViewModel
     @State private var selectedTake: Take?
-    @State private var showingRecording = false
+    @State private var autoplayPreview = false
 
     init(projectID: UUID, sceneID: UUID) {
         self.projectID = projectID
@@ -22,7 +22,7 @@ struct ShootSceneDetailView: View {
     var body: some View {
         VStack(spacing: 0) {
             if let take = selectedTake {
-                VideoPlayerView(videoURL: take.fileURL)
+                VideoPlayerView(videoURL: take.fileURL, autoplay: autoplayPreview)
                     .frame(height: 300)
                     .background(Color.black)
             }
@@ -41,27 +41,18 @@ struct ShootSceneDetailView: View {
         }
         .navigationTitle(titleText)
         .navigationBarTitleDisplayMode(.inline)
-        .toolbar {
-            ToolbarItem(placement: .primaryAction) {
-                Button {
-                    showingRecording = true
-                } label: {
-                    Label("Record Take", systemImage: "video.badge.plus")
-                }
-                .disabled(viewModel.project == nil || viewModel.scene == nil)
-            }
-        }
-        .sheet(isPresented: $showingRecording) {
-            if let project = viewModel.project, let scene = viewModel.scene {
-                NavigationStack {
-                    RecordingView(project: project, scene: scene)
-                }
-            }
-        }
         .onAppear {
             viewModel.load()
-            // Do not auto-play. User must tap a take to play.
-            selectedTake = nil
+            // Show best take in preview, but do not auto-play.
+            if selectedTake == nil {
+                if let preferredID = viewModel.scene?.selectedTakeID,
+                   let preferred = viewModel.takes.first(where: { $0.id == preferredID }) {
+                    selectedTake = preferred
+                } else {
+                    selectedTake = viewModel.takes.max(by: { $0.takeNumber < $1.takeNumber })
+                }
+            }
+            autoplayPreview = false
         }
         .alert("Error", isPresented: .constant(viewModel.errorMessage != nil)) {
             Button("OK") { viewModel.errorMessage = nil }
@@ -97,7 +88,10 @@ struct ShootSceneDetailView: View {
                     ShootSceneTakeRowView(
                         take: preferred,
                         isPreferred: true,
-                        onPlay: { selectedTake = preferred },
+                        onPlay: {
+                            selectedTake = preferred
+                            autoplayPreview = true
+                        },
                         onMarkPreferred: {}
                     )
                     .swipeActions(edge: .trailing, allowsFullSwipe: false) {
@@ -116,7 +110,10 @@ struct ShootSceneDetailView: View {
                     ShootSceneTakeRowView(
                         take: take,
                         isPreferred: false,
-                        onPlay: { selectedTake = take },
+                        onPlay: {
+                            selectedTake = take
+                            autoplayPreview = true
+                        },
                         onMarkPreferred: { viewModel.markPreferred(take) }
                     )
                     .swipeActions(edge: .trailing, allowsFullSwipe: false) {
