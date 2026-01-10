@@ -12,6 +12,9 @@ struct ProjectDetailView: View {
     @State private var selectedSceneForRecording: VideoScene?
     @State private var showingScriptEditor = false
     @State private var showingAIGeneratedNotice = false
+    @State private var showingSceneBreakdown = false
+    @State private var sceneBreakdownMode: SceneBreakdownReviewViewModel.Mode = .reviewExisting
+    @State private var showingRegenerateConfirm = false
     
     private let sceneStore = SceneStore.shared
     private let projectStore = ProjectStore.shared
@@ -81,6 +84,58 @@ struct ProjectDetailView: View {
                 }
                 .padding(.top, 4)
                 
+                // Primary CTAs (A/B/C)
+                VStack(alignment: .leading, spacing: 12) {
+                    if !hasScript {
+                        Button {
+                            showingScriptEditor = true
+                        } label: {
+                            Label("Write script", systemImage: "pencil.line")
+                                .frame(maxWidth: .infinity)
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .controlSize(.large)
+                    } else if scenes.isEmpty {
+                        Button {
+                            sceneBreakdownMode = .generateFromScript(replaceExisting: true)
+                            showingSceneBreakdown = true
+                        } label: {
+                            Label("Generate scenes", systemImage: "sparkles")
+                                .frame(maxWidth: .infinity)
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .controlSize(.large)
+
+                        Button {
+                            showingScriptEditor = true
+                        } label: {
+                            Text("Edit draft")
+                                .frame(maxWidth: .infinity)
+                        }
+                        .buttonStyle(.bordered)
+                        .controlSize(.large)
+                    } else {
+                        Button {
+                            sceneBreakdownMode = .reviewExisting
+                            showingSceneBreakdown = true
+                        } label: {
+                            Label("Review scenes", systemImage: "list.bullet.rectangle")
+                                .frame(maxWidth: .infinity)
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .controlSize(.large)
+
+                        Button(role: .destructive) {
+                            showingRegenerateConfirm = true
+                        } label: {
+                            Text("Regenerate scenes")
+                                .frame(maxWidth: .infinity)
+                        }
+                        .buttonStyle(.bordered)
+                        .controlSize(.large)
+                    }
+                }
+
                 VStack(alignment: .leading, spacing: 12) {
                     Text("Intent")
                         .font(.headline)
@@ -174,18 +229,19 @@ struct ProjectDetailView: View {
                     Button {
                         generateScriptDraft()
                     } label: {
-                        Label("Generate Script using AI", systemImage: "sparkles")
+                        Label("Generate script draft", systemImage: "sparkles")
                             .frame(maxWidth: .infinity)
                     }
-                    .buttonStyle(.borderedProminent)
-                    
-                    Text("This generates a draft you can edit before generating scenes.")
+                    .buttonStyle(.bordered)
+                    .controlSize(.large)
+
+                    Text("Generates a draft you can edit before generating scenes.")
                         .font(.footnote)
                         .foregroundStyle(.secondary)
                 }
                 .padding(.top, 4)
                 
-                if !scenes.isEmpty {
+            if !scenes.isEmpty {
                     VStack(alignment: .leading, spacing: 12) {
                         HStack {
                             Text("Recording Progress")
@@ -210,16 +266,16 @@ struct ProjectDetailView: View {
                             }
                             .buttonStyle(.borderedProminent)
                             .tint(.red)
-                        }
                     }
                 }
-                
-                if !scenes.isEmpty && scenes.allSatisfy({ $0.isComplete }) {
+            }
+            
+            if !scenes.isEmpty && scenes.allSatisfy({ $0.isComplete }) {
                     VStack(alignment: .leading, spacing: 8) {
-                        NavigationLink {
-                            ExportView(project: currentProject)
-                        } label: {
-                            Label(currentProject.exports.isEmpty ? "Export Final Video" : "Re-Export Video", systemImage: "square.and.arrow.up")
+                    NavigationLink {
+                        ExportView(project: currentProject)
+                    } label: {
+                        Label(currentProject.exports.isEmpty ? "Export Final Video" : "Re-Export Video", systemImage: "square.and.arrow.up")
                                 .frame(maxWidth: .infinity)
                         }
                         .buttonStyle(.bordered)
@@ -228,18 +284,18 @@ struct ProjectDetailView: View {
                         Text(currentProject.exports.isEmpty ? "All scenes recorded! Ready to export." : "Create a new export from the latest takes.")
                             .font(.footnote)
                             .foregroundStyle(.secondary)
-                    }
                 }
-                
-                if !currentProject.exports.isEmpty {
+            }
+            
+            if !currentProject.exports.isEmpty {
                     VStack(alignment: .leading, spacing: 12) {
                         Text("Previous Exports")
                             .font(.headline)
                         
-                        ForEach(currentProject.exports.sorted(by: { $0.exportedAt > $1.exportedAt })) { export in
-                            ExportRowView(export: export, project: currentProject, onDelete: {
-                                deleteExport(export)
-                            })
+                    ForEach(currentProject.exports.sorted(by: { $0.exportedAt > $1.exportedAt })) { export in
+                        ExportRowView(export: export, project: currentProject, onDelete: {
+                            deleteExport(export)
+                        })
                             Divider()
                         }
                     }
@@ -252,6 +308,9 @@ struct ProjectDetailView: View {
         .navigationBarTitleDisplayMode(.large)
         .navigationDestination(isPresented: $showingScriptEditor) {
             ScriptInputView(project: currentProject)
+        }
+        .navigationDestination(isPresented: $showingSceneBreakdown) {
+            SceneBreakdownReviewView(projectID: currentProject.id, mode: sceneBreakdownMode)
         }
         .navigationDestination(for: VideoScene.self) { scene in
             SceneReviewView(project: currentProject, scene: scene)
@@ -275,6 +334,15 @@ struct ProjectDetailView: View {
             Button("OK", role: .cancel) {}
         } message: {
             Text("A draft script was generated based on your intent, duration, and tone. Review and edit it before generating scenes.")
+        }
+        .alert("Replace existing scenes?", isPresented: $showingRegenerateConfirm) {
+            Button("Cancel", role: .cancel) {}
+            Button("Regenerate", role: .destructive) {
+                sceneBreakdownMode = .generateFromScript(replaceExisting: true)
+                showingSceneBreakdown = true
+            }
+        } message: {
+            Text("This will replace your current scenes. Existing takes will remain on disk, but the scene list will be rebuilt.")
         }
     }
     
@@ -430,6 +498,10 @@ struct ProjectDetailView: View {
         if trimmed.count <= 160 { return trimmed }
         let idx = trimmed.index(trimmed.startIndex, offsetBy: 160)
         return String(trimmed[..<idx]) + "…"
+    }
+
+    private var hasScript: Bool {
+        !(currentProject.script ?? "").trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
 }
 
