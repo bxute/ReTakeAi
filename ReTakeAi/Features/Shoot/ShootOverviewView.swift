@@ -10,6 +10,7 @@ struct ShootOverviewView: View {
     @State private var viewModel: ShootOverviewViewModel
 
     @State private var selectedSceneForRecording: VideoScene?
+    @State private var selectedSceneForDetails: VideoScene?
 
     init(projectID: UUID) {
         self.projectID = projectID
@@ -30,6 +31,9 @@ struct ShootOverviewView: View {
         }
         .navigationTitle("Shoot")
         .navigationBarTitleDisplayMode(.inline)
+        .navigationDestination(item: $selectedSceneForDetails) { scene in
+            ShootSceneDetailView(projectID: projectID, sceneID: scene.id)
+        }
         .refreshable {
             viewModel.load()
         }
@@ -102,89 +106,78 @@ struct ShootOverviewView: View {
                     .foregroundStyle(.secondary)
             } else {
                 ForEach(viewModel.scenes.sorted(by: { $0.orderIndex < $1.orderIndex })) { scene in
-                    VStack(alignment: .leading, spacing: 10) {
-                        HStack(spacing: 12) {
-                            VStack(alignment: .leading, spacing: 4) {
-                                HStack {
-                                    Text("Scene \(scene.orderIndex + 1)")
-                                        .font(.subheadline.weight(.semibold))
-                                    Spacer()
-                                    if scene.isRecorded {
-                                        Text("Recorded")
-                                            .font(.caption.weight(.semibold))
-                                            .foregroundStyle(.blue)
-                                    } else {
-                                        Text("Not recorded")
-                                            .font(.caption.weight(.semibold))
-                                            .foregroundStyle(.secondary)
-                                    }
+                    Button {
+                        selectedSceneForDetails = scene
+                    } label: {
+                        VStack(alignment: .leading, spacing: 10) {
+                            HStack {
+                                Text("Scene \(scene.orderIndex + 1)")
+                                    .font(.subheadline.weight(.semibold))
+                                Spacer()
+                                if scene.isRecorded {
+                                    Text("Recorded")
+                                        .font(.caption.weight(.semibold))
+                                        .foregroundStyle(.blue)
+                                } else {
+                                    Text("Not recorded")
+                                        .font(.caption.weight(.semibold))
+                                        .foregroundStyle(.secondary)
                                 }
+                            }
 
-                                Text(scene.scriptText)
-                                    .font(.footnote)
-                                    .foregroundStyle(.secondary)
-                                    .lineLimit(2)
+                            Text(scene.scriptText)
+                                .font(.footnote)
+                                .foregroundStyle(.secondary)
+                                .lineLimit(2)
 
-                                let takes = viewModel.getTakes(for: scene)
-                                HStack(spacing: 10) {
+                            let takes = viewModel.getTakes(for: scene)
+                            let best = viewModel.bestTake(for: scene)
+                            HStack(alignment: .firstTextBaseline, spacing: 10) {
+                                HStack(spacing: 6) {
                                     Text("\(takes.count) take\(takes.count == 1 ? "" : "s")")
                                         .font(.caption)
                                         .foregroundStyle(.secondary)
 
-                                    if let best = viewModel.bestTake(for: scene) {
-                                        HStack(spacing: 6) {
-                                            Image(systemName: scene.selectedTakeID == best.id ? "checkmark.circle.fill" : "sparkles")
-                                                .font(.caption)
-                                                .foregroundStyle(scene.selectedTakeID == best.id ? .green : .secondary)
-                                            Text("Best: Take \(best.takeNumber)")
-                                                .font(.caption)
-                                                .foregroundStyle(.secondary)
-                                        }
+                                    if let best {
+                                        Text("•")
+                                            .font(.caption)
+                                            .foregroundStyle(.tertiary)
+
+                                        Text("Best: Take \(best.takeNumber)")
+                                            .font(.caption)
+                                            .foregroundStyle(.secondary)
+
+                                        Text("•")
+                                            .font(.caption)
+                                            .foregroundStyle(.tertiary)
+
+                                        Text(best.duration.shortDuration)
+                                            .font(.caption)
+                                            .foregroundStyle(.secondary)
                                     }
                                 }
-                            }
 
-                            Spacer(minLength: 0)
+                                Spacer(minLength: 0)
 
-                            NavigationLink {
-                                ShootSceneDetailView(projectID: projectID, sceneID: scene.id)
-                            } label: {
-                                Image(systemName: "chevron.right")
-                                    .font(.footnote.weight(.semibold))
-                                    .foregroundStyle(.tertiary)
-                                    .frame(width: 28, height: 28)
-                            }
-                            .buttonStyle(.plain)
-
-                            Button {
-                                selectedSceneForRecording = scene
-                            } label: {
-                                Image(systemName: "video.circle.fill")
-                                    .font(.title2)
-                                    .foregroundColor(.red)
-                            }
-                            .buttonStyle(.plain)
-                        }
-
-                        let takes = viewModel.getTakes(for: scene)
-                        if !takes.isEmpty {
-                            Divider().opacity(0.4)
-
-                            VStack(alignment: .leading, spacing: 6) {
-                                ForEach(takes.sorted(by: { $0.takeNumber < $1.takeNumber })) { take in
-                                    ShootTakeRowView(
-                                        take: take,
-                                        isSelected: scene.selectedTakeID == take.id
-                                    )
+                                Button {
+                                    selectedSceneForRecording = scene
+                                } label: {
+                                    Text("Re Take")
+                                        .font(.caption.weight(.semibold))
                                 }
+                                .buttonStyle(.bordered)
+                                .controlSize(.small)
+                                .tint(.red)
                             }
                         }
+                        .padding(12)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                .stroke(Color.secondary.opacity(0.25), lineWidth: 1)
+                        )
+                        .contentShape(Rectangle())
                     }
-                    .padding(12)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 14, style: .continuous)
-                            .stroke(Color.secondary.opacity(0.25), lineWidth: 1)
-                    )
+                    .buttonStyle(.plain)
                 }
             }
 
@@ -196,38 +189,8 @@ struct ShootOverviewView: View {
             }
             .buttonStyle(.bordered)
             .controlSize(.large)
+            .padding(.top, 16)
         }
     }
 }
-
-private struct ShootTakeRowView: View {
-    let take: Take
-    let isSelected: Bool
-
-    var body: some View {
-        HStack(alignment: .firstTextBaseline, spacing: 10) {
-            HStack(spacing: 6) {
-                Text("Take \(take.takeNumber)")
-                    .font(.footnote.weight(.semibold))
-
-                if isSelected {
-                    Image(systemName: "star.fill")
-                        .font(.caption2)
-                        .foregroundStyle(.yellow)
-                }
-            }
-
-            Spacer(minLength: 0)
-
-            Text(take.duration.shortDuration)
-                .font(.caption)
-                .foregroundStyle(.secondary)
-
-            Text(take.recordedAt.timeAgo)
-                .font(.caption2)
-                .foregroundStyle(.tertiary)
-        }
-    }
-}
-
 
