@@ -36,42 +36,7 @@ struct ShootSceneDetailView: View {
                     }
                 }
 
-                Section {
-                    if viewModel.takes.isEmpty {
-                        ContentUnavailableView(
-                            "No Takes Yet",
-                            systemImage: "video.slash",
-                            description: Text("Record your first take to get started")
-                        )
-                    } else {
-                        ForEach(viewModel.takes) { take in
-                            ShootSceneTakeRowView(
-                                take: take,
-                                isPreferred: viewModel.scene?.selectedTakeID == take.id,
-                                onPlay: { selectedTake = take },
-                                onMarkPreferred: { viewModel.markPreferred(take) }
-                            )
-                            .swipeActions(edge: .trailing, allowsFullSwipe: false) {
-                                Button(role: .destructive) {
-                                    viewModel.deleteTake(take)
-                                    if selectedTake?.id == take.id { selectedTake = nil }
-                                } label: {
-                                    Label("Delete", systemImage: "trash")
-                                }
-                            }
-                            .swipeActions(edge: .leading, allowsFullSwipe: true) {
-                                Button {
-                                    viewModel.markPreferred(take)
-                                } label: {
-                                    Label("Preferred", systemImage: "checkmark.circle")
-                                }
-                                .tint(.green)
-                            }
-                        }
-                    }
-                } header: {
-                    Text("Takes (\(viewModel.takes.count))")
-                }
+                takesSections
             }
         }
         .navigationTitle(titleText)
@@ -95,14 +60,8 @@ struct ShootSceneDetailView: View {
         }
         .onAppear {
             viewModel.load()
-            if selectedTake == nil {
-                if let preferredID = viewModel.scene?.selectedTakeID,
-                   let preferred = viewModel.takes.first(where: { $0.id == preferredID }) {
-                    selectedTake = preferred
-                } else {
-                    selectedTake = viewModel.takes.last
-                }
-            }
+            // Do not auto-play. User must tap a take to play.
+            selectedTake = nil
         }
         .alert("Error", isPresented: .constant(viewModel.errorMessage != nil)) {
             Button("OK") { viewModel.errorMessage = nil }
@@ -116,6 +75,61 @@ struct ShootSceneDetailView: View {
             return "Scene \(scene.orderIndex + 1)"
         }
         return "Scene"
+    }
+
+    @ViewBuilder
+    private var takesSections: some View {
+        if viewModel.takes.isEmpty {
+            Section {
+                ContentUnavailableView(
+                    "No Takes Yet",
+                    systemImage: "video.slash",
+                    description: Text("Record your first take to get started")
+                )
+            }
+        } else {
+            let preferredID = viewModel.scene?.selectedTakeID
+            let preferred = viewModel.takes.first(where: { $0.id == preferredID })
+            let others = viewModel.takes.filter { $0.id != preferredID }
+
+            if let preferred {
+                Section("Preferred Take") {
+                    ShootSceneTakeRowView(
+                        take: preferred,
+                        isPreferred: true,
+                        onPlay: { selectedTake = preferred },
+                        onMarkPreferred: {}
+                    )
+                    .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                        Button(role: .destructive) {
+                            viewModel.deleteTake(preferred)
+                            if selectedTake?.id == preferred.id { selectedTake = nil }
+                        } label: {
+                            Label("Delete", systemImage: "trash")
+                        }
+                    }
+                }
+            }
+
+            Section("Other Takes") {
+                ForEach(others) { take in
+                    ShootSceneTakeRowView(
+                        take: take,
+                        isPreferred: false,
+                        onPlay: { selectedTake = take },
+                        onMarkPreferred: { viewModel.markPreferred(take) }
+                    )
+                    .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                        Button(role: .destructive) {
+                            viewModel.deleteTake(take)
+                            if selectedTake?.id == take.id { selectedTake = nil }
+                        } label: {
+                            Label("Delete", systemImage: "trash")
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -134,16 +148,8 @@ private struct ShootSceneTakeRowView: View {
                         .foregroundStyle(.blue)
 
                     VStack(alignment: .leading, spacing: 4) {
-                        HStack(spacing: 8) {
-                            Text("Take \(take.takeNumber)")
-                                .font(.headline)
-
-                            if isPreferred {
-                                Image(systemName: "checkmark.circle.fill")
-                                    .font(.caption)
-                                    .foregroundStyle(.green)
-                            }
-                        }
+                        Text("Take \(take.takeNumber)")
+                            .font(.headline)
 
                         HStack(spacing: 12) {
                             Label(take.duration.shortDuration, systemImage: "clock")
@@ -158,14 +164,13 @@ private struct ShootSceneTakeRowView: View {
 
             Spacer(minLength: 0)
 
-            if !isPreferred {
-                Button(action: onMarkPreferred) {
-                    Image(systemName: "checkmark.circle")
-                        .font(.title3)
-                        .foregroundStyle(.green)
-                }
-                .buttonStyle(.borderless)
+            Button(action: onMarkPreferred) {
+                Image(systemName: isPreferred ? "hand.thumbsup.fill" : "hand.thumbsup")
+                    .font(.title3)
+                    .foregroundStyle(isPreferred ? .green : .secondary)
             }
+            .buttonStyle(.borderless)
+            .disabled(isPreferred)
         }
     }
 }

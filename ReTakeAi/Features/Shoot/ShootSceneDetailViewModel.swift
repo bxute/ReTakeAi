@@ -49,16 +49,11 @@ final class ShootSceneDetailViewModel {
     }
 
     func deleteTake(_ take: Take) {
-        guard let currentScene = scene else { return }
+        guard scene != nil else { return }
         do {
             try takeStore.deleteTake(take)
             // Scene metadata is migrated based on disk; reload to reflect takeIDs + preferred take.
-            scene = sceneStore.getScene(sceneID: currentScene.id, projectID: projectID)
-            if let s = scene {
-                takes = takeStore.getTakes(for: s).sorted(by: { $0.takeNumber < $1.takeNumber })
-            } else {
-                takes = []
-            }
+            load()
         } catch {
             errorMessage = "Failed to delete take: \(error.localizedDescription)"
         }
@@ -68,7 +63,7 @@ final class ShootSceneDetailViewModel {
         guard let currentScene = scene else { return }
         do {
             try sceneStore.selectTake(take, for: currentScene)
-            scene = sceneStore.getScene(sceneID: currentScene.id, projectID: projectID)
+            load()
         } catch {
             errorMessage = "Failed to mark preferred: \(error.localizedDescription)"
         }
