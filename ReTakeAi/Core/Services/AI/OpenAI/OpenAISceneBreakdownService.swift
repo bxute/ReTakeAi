@@ -26,7 +26,7 @@ struct OpenAISceneBreakdownService {
         promptUsed: String,
         inputs: SceneBreakdownGenerator.Inputs,
         seed: Int? = 42,
-        maxOutputTokens: Int? = 1200
+        maxTokens: Int? = 1200
     ) async throws -> (promptUsed: String, drafts: [GeneratedSceneDraft]) {
         let system = """
         You must output JSON only. No markdown. No extra text.
@@ -42,6 +42,29 @@ struct OpenAISceneBreakdownService {
         // Put the strictness and contract into the user content as well (helps some models).
         let user = SceneBreakdownGenerator.buildPrompt(inputs: inputs)
 
+        let schema = OpenAIChatCompletionsRequest.JSONSchema(
+            name: "scene_breakdown",
+            strict: true,
+            schema: .object(
+                properties: [
+                    "scenes": .array(
+                        items: .object(
+                            properties: [
+                                "orderIndex": .integer(minimum: 0),
+                                "scriptText": .string(minLength: 1),
+                                "expectedDurationSeconds": .integer(minimum: 1)
+                            ],
+                            required: ["orderIndex", "scriptText", "expectedDurationSeconds"],
+                            additionalProperties: false
+                        ),
+                        minItems: 1
+                    )
+                ],
+                required: ["scenes"],
+                additionalProperties: false
+            )
+        )
+
         let request = OpenAIChatCompletionsRequest(
             model: "gpt-5-mini",
             messages: [
@@ -51,8 +74,8 @@ struct OpenAISceneBreakdownService {
             temperature: 0.0,
             topP: 1.0,
             seed: seed,
-            maxOutputTokens: maxOutputTokens,
-            responseFormat: .init(type: "json_object")
+            maxTokens: maxTokens,
+            responseFormat: .jsonSchema(schema)
         )
 
         let decoded: SceneBreakdownResponse = try await client.sendJSON(
