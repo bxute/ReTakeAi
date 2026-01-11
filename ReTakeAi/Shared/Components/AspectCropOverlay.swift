@@ -42,12 +42,7 @@ struct AspectCropOverlay: View {
     }
 
     private func cropRect(container: CGSize, aspect: VideoAspect) -> CGRect {
-        let targetRatio: CGFloat = {
-            switch aspect {
-            case .portrait9x16: return 9.0 / 16.0
-            case .landscape16x9: return 16.0 / 9.0
-            }
-        }()
+        let targetRatio = aspect.aspectRatio
 
         let containerRatio = container.width / max(container.height, 1)
 

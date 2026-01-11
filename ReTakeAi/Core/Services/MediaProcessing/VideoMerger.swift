@@ -71,9 +71,7 @@ actor VideoMerger {
                     )
 
                     let layerInstruction = AVMutableVideoCompositionLayerInstruction(assetTrack: compositionVideoTrack)
-                    layerInstruction.setTransform(transform, at: currentTime)
-                    // Avoid any transform leaking into later time ranges.
-                    layerInstruction.setOpacity(0.0, at: CMTimeAdd(currentTime, duration))
+                    layerInstruction.setTransform(transform, at: .zero)
 
                     let instruction = AVMutableVideoCompositionInstruction()
                     instruction.timeRange = CMTimeRange(start: currentTime, duration: duration)
@@ -136,20 +134,18 @@ actor VideoMerger {
         renderSize: CGSize,
         mode: VideoLayoutMode
     ) -> CGAffineTransform {
-        // Start with the asset's preferredTransform (handles rotation/mirroring).
-        var transform = preferredTransform
+        // Calculate the oriented bounds after applying preferredTransform
+        let transformedRect = CGRect(origin: .zero, size: naturalSize).applying(preferredTransform)
+        let orientedWidth = abs(transformedRect.width)
+        let orientedHeight = abs(transformedRect.height)
 
-        // Compute the oriented bounds of the source after applying the transform.
-        let sourceRect = CGRect(origin: .zero, size: naturalSize).applying(transform)
+        guard orientedWidth > 0, orientedHeight > 0 else {
+            return preferredTransform
+        }
 
-        // Move into positive coordinate space (origin at 0,0).
-        transform = transform.translatedBy(x: -sourceRect.minX, y: -sourceRect.minY)
-
-        let orientedSize = CGSize(width: abs(sourceRect.width), height: abs(sourceRect.height))
-        guard orientedSize.width > 0, orientedSize.height > 0 else { return transform }
-
-        let scaleX = renderSize.width / orientedSize.width
-        let scaleY = renderSize.height / orientedSize.height
+        // Calculate scale to fit/fill the render size
+        let scaleX = renderSize.width / orientedWidth
+        let scaleY = renderSize.height / orientedHeight
         let scale: CGFloat
         switch mode {
         case .aspectFill:
@@ -158,15 +154,32 @@ actor VideoMerger {
             scale = min(scaleX, scaleY)
         }
 
-        transform = transform.scaledBy(x: scale, y: scale)
+        // Build transform using explicit concatenation in output coordinate space:
+        // 1. Apply preferredTransform (rotation/orientation)
+        // 2. Translate to move content to origin (0,0)
+        // 3. Scale to fit render size
+        // 4. Translate to center in render frame
 
-        // Center the scaled content in the output frame.
-        let scaledSize = CGSize(width: orientedSize.width * scale, height: orientedSize.height * scale)
-        let tx = (renderSize.width - scaledSize.width) / 2.0
-        let ty = (renderSize.height - scaledSize.height) / 2.0
-        transform = transform.translatedBy(x: tx, y: ty)
+        // Step 1: Start with preferredTransform
+        var result = preferredTransform
 
-        return transform
+        // Step 2: Translate to origin (in output space, so we concatenate AFTER)
+        let translateToOrigin = CGAffineTransform(translationX: -transformedRect.minX, y: -transformedRect.minY)
+        result = result.concatenating(translateToOrigin)
+
+        // Step 3: Scale
+        let scaleTransform = CGAffineTransform(scaleX: scale, y: scale)
+        result = result.concatenating(scaleTransform)
+
+        // Step 4: Center in render frame
+        let scaledWidth = orientedWidth * scale
+        let scaledHeight = orientedHeight * scale
+        let tx = (renderSize.width - scaledWidth) / 2.0
+        let ty = (renderSize.height - scaledHeight) / 2.0
+        let centerTransform = CGAffineTransform(translationX: tx, y: ty)
+        result = result.concatenating(centerTransform)
+
+        return result
     }
     
     func mergeWithProgress(

@@ -71,18 +71,9 @@ struct ShootOverviewView: View {
         } message: {
             if let msg = viewModel.errorMessage { Text(msg) }
         }
-        .fullScreenCover(isPresented: $showingPreview) {
+        .navigationDestination(isPresented: $showingPreview) {
             if let previewURL {
-                NavigationStack {
-                    VideoPlayerView(videoURL: previewURL)
-                        .navigationTitle("Preview")
-                        .navigationBarTitleDisplayMode(.inline)
-                        .toolbar {
-                            ToolbarItem(placement: .cancellationAction) {
-                                Button("Done") { showingPreview = false }
-                            }
-                        }
-                }
+                PreviewScreen(projectID: projectID, previewURL: previewURL)
             }
         }
     }
@@ -193,20 +184,12 @@ struct ShootOverviewView: View {
                 Button {
                     Task { await preparePreview() }
                 } label: {
-                    Label("Preview", systemImage: "play.circle.fill")
+                    Label("Preview Video", systemImage: "play.circle.fill")
                         .frame(maxWidth: .infinity)
                 }
-                .buttonStyle(.bordered)
-                .disabled(isPreparingPreview)
-
-                NavigationLink {
-                    ShootExportsView(projectID: projectID)
-                } label: {
-                    Label("Export Video", systemImage: "square.and.arrow.up")
-                        .frame(maxWidth: .infinity)
-                }
-                .buttonStyle(.bordered)
+                .buttonStyle(.borderedProminent)
                 .controlSize(.large)
+                .disabled(isPreparingPreview)
                 .padding(.top, 16)
             }
         }
