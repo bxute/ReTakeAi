@@ -11,8 +11,8 @@ struct PreviewScreen: View {
 
     @State private var previewURL: URL
     @State private var selectedAspect: VideoAspect
-    @State private var mergedAspect: VideoAspect
     @State private var isPreparingPreview = false
+    @State private var cachedPreviews: [VideoAspect: URL]
     @State private var showingExport = false
     @Environment(\.dismiss) private var dismiss
 
@@ -21,7 +21,7 @@ struct PreviewScreen: View {
         self.takes = takes
         _previewURL = State(initialValue: initialPreviewURL)
         _selectedAspect = State(initialValue: initialAspect)
-        _mergedAspect = State(initialValue: initialAspect)
+        _cachedPreviews = State(initialValue: [initialAspect: initialPreviewURL])
     }
 
     var body: some View {
@@ -182,7 +182,11 @@ struct PreviewScreen: View {
     }
 
     private func regeneratePreviewIfNeeded() async {
-        guard selectedAspect != mergedAspect else { return }
+        if let cached = cachedPreviews[selectedAspect],
+           FileManager.default.fileExists(atPath: cached.path) {
+            previewURL = cached
+            return
+        }
         guard !takes.isEmpty else { return }
         guard !isPreparingPreview else { return }
 
@@ -202,7 +206,7 @@ struct PreviewScreen: View {
             )
 
             previewURL = merged
-            mergedAspect = selectedAspect
+            cachedPreviews[selectedAspect] = merged
         } catch {
             // Keep showing the last good preview if regeneration fails.
         }
