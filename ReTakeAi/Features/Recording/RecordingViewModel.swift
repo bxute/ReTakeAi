@@ -146,18 +146,20 @@ class RecordingViewModel {
                 phase = .finalCountdown(number: n)
                 try? await Task.sleep(nanoseconds: 1_000_000_000) // "n" stays visible for 1s
             }
-            // Beep right AFTER "1" disappears, immediately followed by recording start.
-            if preferences.startBeepEnabled {
-                playBeep()
-            }
-        } else {
-            // No countdown - beep right before immediate recording start.
-            if preferences.startBeepEnabled {
-                playBeep()
-            }
+
+            // Hide the countdown immediately after "1" finishes (so beep is NOT played while "1" is visible).
+            phase = .setup
+            setupSecondsRemaining = 0
         }
 
-        // Start recording automatically (immediately after beep)
+        // Beep after "1" disappears (or immediately if no countdown),
+        // then wait 1s, then start recording + teleprompter together.
+        if preferences.startBeepEnabled {
+            playBeep()
+        }
+        try? await Task.sleep(nanoseconds: 1_000_000_000)
+
+        // Start recording automatically (teleprompter scrolling starts with .recording)
         phase = .recording
         await startRecording()
 
