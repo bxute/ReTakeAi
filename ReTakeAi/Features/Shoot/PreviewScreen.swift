@@ -7,30 +7,54 @@ import SwiftUI
 
 struct PreviewScreen: View {
     let projectID: UUID
-    let previewURL: URL
+    let takes: [Take]
 
-    @State private var selectedAspect: VideoAspect = .portrait9x16
+    @State private var previewURL: URL
+    @State private var selectedAspect: VideoAspect
+    @State private var mergedAspect: VideoAspect
+    @State private var isPreparingPreview = false
     @State private var showingExport = false
     @Environment(\.dismiss) private var dismiss
 
+    init(projectID: UUID, takes: [Take], initialPreviewURL: URL, initialAspect: VideoAspect) {
+        self.projectID = projectID
+        self.takes = takes
+        _previewURL = State(initialValue: initialPreviewURL)
+        _selectedAspect = State(initialValue: initialAspect)
+        _mergedAspect = State(initialValue: initialAspect)
+    }
+
     var body: some View {
-        VStack(spacing: 0) {
-            // Video Preview with aspect ratio container
-            videoPreviewSection
-                .frame(maxWidth: .infinity)
-                .background(Color.black)
+        ZStack {
+            VStack(spacing: 0) {
+                // Video Preview with aspect ratio container
+                videoPreviewSection
+                    .frame(maxWidth: .infinity)
+                    .background(Color.black)
 
-            // Aspect Ratio Selector
-            aspectRatioSelector
-                .padding(.horizontal)
-                .padding(.top, 20)
+                // Aspect Ratio Selector
+                aspectRatioSelector
+                    .padding(.horizontal)
+                    .padding(.top, 20)
 
-            Spacer()
+                Spacer()
 
-            // Export CTA
-            exportButton
-                .padding(.horizontal)
-                .padding(.bottom, 16)
+                // Export CTA
+                exportButton
+                    .padding(.horizontal)
+                    .padding(.bottom, 16)
+            }
+
+            if isPreparingPreview {
+                VStack(spacing: 12) {
+                    ProgressView()
+                    Text("Preparing Video Preview….")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .background(.ultraThinMaterial)
+            }
         }
         .navigationTitle("Preview")
         .navigationBarTitleDisplayMode(.inline)
@@ -38,6 +62,9 @@ struct PreviewScreen: View {
             if let project = ProjectStore.shared.getProject(by: projectID) {
                 ExportView(project: project)
             }
+        }
+        .task(id: selectedAspect) {
+            await regeneratePreviewIfNeeded()
         }
     }
 
@@ -152,6 +179,33 @@ struct PreviewScreen: View {
         guard var project = ProjectStore.shared.getProject(by: projectID) else { return }
         project.videoAspect = selectedAspect
         try? ProjectStore.shared.updateProject(project)
+    }
+
+    private func regeneratePreviewIfNeeded() async {
+        guard selectedAspect != mergedAspect else { return }
+        guard !takes.isEmpty else { return }
+        guard !isPreparingPreview else { return }
+
+        isPreparingPreview = true
+        defer { isPreparingPreview = false }
+
+        do {
+            let tmp = FileManager.default.temporaryDirectory
+            let url = tmp.appendingPathComponent("preview_\(projectID.uuidString)_\(selectedAspect.rawValue)_\(Int(Date().timeIntervalSince1970)).mov")
+            try? FileManager.default.removeItem(at: url)
+
+            let merged = try await VideoMerger.shared.mergeScenes(
+                takes,
+                outputURL: url,
+                targetAspect: selectedAspect,
+                progress: nil
+            )
+
+            previewURL = merged
+            mergedAspect = selectedAspect
+        } catch {
+            // Keep showing the last good preview if regeneration fails.
+        }
     }
 }
 

@@ -14,6 +14,8 @@ struct ShootOverviewView: View {
     @State private var isPreparingPreview = false
     @State private var previewURL: URL?
     @State private var showingPreview = false
+    @State private var previewTakes: [Take] = []
+    @State private var previewDefaultAspect: VideoAspect = .portrait9x16
 
     init(projectID: UUID) {
         self.projectID = projectID
@@ -73,7 +75,12 @@ struct ShootOverviewView: View {
         }
         .navigationDestination(isPresented: $showingPreview) {
             if let previewURL {
-                PreviewScreen(projectID: projectID, previewURL: previewURL)
+                PreviewScreen(
+                    projectID: projectID,
+                    takes: previewTakes,
+                    initialPreviewURL: previewURL,
+                    initialAspect: previewDefaultAspect
+                )
             }
         }
     }
@@ -231,13 +238,21 @@ struct ShootOverviewView: View {
             let url = tmp.appendingPathComponent("preview_\(projectID.uuidString)_\(Int(Date().timeIntervalSince1970)).mov")
             try? FileManager.default.removeItem(at: url)
 
+            let first = selectedTakes.first
+            let defaultAspect: VideoAspect = {
+                guard let first else { return .portrait9x16 }
+                return (first.resolution.height >= first.resolution.width) ? .portrait9x16 : .landscape16x9
+            }()
+
             let merged = try await VideoMerger.shared.mergeScenes(
                 selectedTakes,
                 outputURL: url,
-                targetRenderSize: latestProject.videoAspect.exportRenderSize,
+                targetAspect: defaultAspect,
                 progress: nil
             )
 
+            previewTakes = selectedTakes
+            previewDefaultAspect = defaultAspect
             previewURL = merged
             showingPreview = true
         } catch {

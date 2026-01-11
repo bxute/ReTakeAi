@@ -18,6 +18,24 @@ actor VideoMerger {
         case aspectFit
     }
 
+    /// Merge takes into a single video targeting a specific output aspect.
+    /// - Important: Uses per-clip transforms:
+    ///   - Wider-than-target clips -> **Zoom/Fill** (center crop)
+    ///   - Narrower-than-target clips -> **Fit** (pillarbox/letterbox)
+    func mergeScenes(
+        _ takes: [Take],
+        outputURL: URL,
+        targetAspect: VideoAspect,
+        progress: (@Sendable (Double) -> Void)? = nil
+    ) async throws -> URL {
+        try await mergeScenes(
+            takes,
+            outputURL: outputURL,
+            targetRenderSize: targetAspect.exportRenderSize,
+            progress: progress
+        )
+    }
+
     func mergeScenes(
         _ takes: [Take],
         outputURL: URL,
@@ -34,8 +52,15 @@ actor VideoMerger {
 
         // Build a videoComposition so orientation + layout are preserved per clip.
         var instructions: [AVMutableVideoCompositionInstruction] = []
-        var renderSize: CGSize? = targetRenderSize
-        let layoutMode: VideoLayoutMode = .aspectFill
+        let renderSize: CGSize = {
+            if let targetRenderSize {
+                return VideoMerger.roundRenderSize(targetRenderSize)
+            }
+            let first = takes[0]
+            let defaultAspect: VideoAspect = (first.resolution.height >= first.resolution.width) ? .portrait9x16 : .landscape16x9
+            return defaultAspect.exportRenderSize
+        }()
+        let targetAspectRatio = renderSize.width / max(renderSize.height, 1)
         
         var currentTime = CMTime.zero
         let totalTakes = takes.count
@@ -54,24 +79,18 @@ actor VideoMerger {
                 if let compositionVideoTrack {
                     let preferredTransform = try await assetVideoTrack.load(.preferredTransform)
                     let naturalSize = try await assetVideoTrack.load(.naturalSize)
-
-                    // Establish a fixed output canvas based on the first clip's oriented dimensions (unless provided).
-                    if renderSize == nil {
-                        let orientedRect = CGRect(origin: .zero, size: naturalSize).applying(preferredTransform)
-                        let orientedSize = CGSize(width: abs(orientedRect.width), height: abs(orientedRect.height))
-                        renderSize = VideoMerger.roundRenderSize(orientedSize)
-                    }
-
-                    let targetSize = renderSize ?? CGSize(width: 1080, height: 1920)
+                    let oriented = VideoMerger.orientedSize(naturalSize: naturalSize, preferredTransform: preferredTransform)
+                    let sourceAspectRatio = oriented.width / max(oriented.height, 1)
+                    let mode = VideoMerger.layoutMode(sourceAspectRatio: sourceAspectRatio, targetAspectRatio: targetAspectRatio)
                     let transform = VideoMerger.buildTransform(
                         naturalSize: naturalSize,
                         preferredTransform: preferredTransform,
-                        renderSize: targetSize,
-                        mode: layoutMode
+                        renderSize: renderSize,
+                        mode: mode
                     )
 
                     let layerInstruction = AVMutableVideoCompositionLayerInstruction(assetTrack: compositionVideoTrack)
-                    layerInstruction.setTransform(transform, at: .zero)
+                    layerInstruction.setTransform(transform, at: currentTime)
 
                     let instruction = AVMutableVideoCompositionInstruction()
                     instruction.timeRange = CMTimeRange(start: currentTime, duration: duration)
@@ -103,7 +122,7 @@ actor VideoMerger {
             let videoComposition = AVMutableVideoComposition()
             videoComposition.instructions = instructions
             videoComposition.frameDuration = CMTime(value: 1, timescale: 30)
-            videoComposition.renderSize = renderSize ?? CGSize(width: 1080, height: 1920)
+            videoComposition.renderSize = renderSize
             exportSession.videoComposition = videoComposition
         }
         
@@ -126,6 +145,22 @@ actor VideoMerger {
         let w = max(2, Int(size.width.rounded()))
         let h = max(2, Int(size.height.rounded()))
         return CGSize(width: w % 2 == 0 ? w : w + 1, height: h % 2 == 0 ? h : h + 1)
+    }
+
+    private static func orientedSize(naturalSize: CGSize, preferredTransform: CGAffineTransform) -> CGSize {
+        let rect = CGRect(origin: .zero, size: naturalSize).applying(preferredTransform)
+        return CGSize(width: abs(rect.width), height: abs(rect.height))
+    }
+
+    private static func layoutMode(sourceAspectRatio: CGFloat, targetAspectRatio: CGFloat) -> VideoLayoutMode {
+        // Wider-than-target => Zoom/Fill (center crop). Narrower-than-target => Fit (pillarbox/letterbox).
+        if sourceAspectRatio > targetAspectRatio {
+            return .aspectFill
+        } else if sourceAspectRatio < targetAspectRatio {
+            return .aspectFit
+        } else {
+            return .aspectFill
+        }
     }
 
     private static func buildTransform(

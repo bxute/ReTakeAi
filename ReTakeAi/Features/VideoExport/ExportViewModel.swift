@@ -59,7 +59,7 @@ class ExportViewModel {
             let mergedURL = try await videoMerger.mergeScenes(
                 selectedTakes,
                 outputURL: outputURL,
-                targetRenderSize: latestProject.videoAspect.exportRenderSize
+                targetAspect: latestProject.videoAspect
             ) { progress in
                 Task { @MainActor in
                     self.exportProgress = progress
