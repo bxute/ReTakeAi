@@ -179,7 +179,7 @@ struct RecordingView: View {
     }
 
     private var isTeleprompterScrolling: Bool {
-        viewModel.phase == .recording && viewModel.isRecording && viewModel.remainingSeconds > 0
+        viewModel.phase == .recording && viewModel.isRecording
     }
 
     private var readyOverlay: some View {
