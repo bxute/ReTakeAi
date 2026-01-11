@@ -173,7 +173,7 @@ struct ProjectDetailView: View {
                 }
 
             // Bottom CTAs (A/B/C)
-            VStack(alignment: .leading, spacing: 8) {
+            VStack(alignment: .leading, spacing: 6) {
                 if !hasScript {
                     Button {
                         showingScriptEditor = true
@@ -207,14 +207,14 @@ struct ProjectDetailView: View {
                         sceneBreakdownMode = .reviewExisting
                         showingSceneBreakdown = true
                     } label: {
-                        Label("Review scenes", systemImage: "list.bullet.rectangle")
+                        Label("Review Script", systemImage: "list.bullet.rectangle")
                             .frame(maxWidth: .infinity)
                     }
                     .buttonStyle(.borderedProminent)
                     .controlSize(.large)
                 }
             }
-            .padding(.top, 18)
+            .padding(.top, 14)
 
             Button {
                 showingShoot = true
@@ -226,7 +226,7 @@ struct ProjectDetailView: View {
             .controlSize(.large)
             .tint(.red)
             .disabled(scenes.isEmpty)
-            .padding(.top, 4)
+            .padding(.top, 2)
 
             if !currentProject.exports.isEmpty {
                 NavigationLink {
@@ -237,7 +237,7 @@ struct ProjectDetailView: View {
                 }
                 .buttonStyle(.bordered)
                 .controlSize(.large)
-                .padding(.top, 4)
+                .padding(.top, 2)
             }
             }
         }
