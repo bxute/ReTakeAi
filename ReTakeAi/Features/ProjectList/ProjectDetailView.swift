@@ -172,73 +172,70 @@ struct ProjectDetailView: View {
                     }
                 }
 
-            // Bottom CTAs (A/B/C)
-            VStack(alignment: .leading, spacing: 6) {
-                if !hasScript {
-                    Button {
-                        showingScriptEditor = true
-                    } label: {
-                        Label("Write script", systemImage: "pencil.line")
-                            .frame(maxWidth: .infinity)
+                // Bottom CTAs
+                VStack(alignment: .leading, spacing: 8) {
+                    if !hasScript {
+                        Button {
+                            showingScriptEditor = true
+                        } label: {
+                            Label("Write script", systemImage: "pencil.line")
+                                .frame(maxWidth: .infinity)
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .controlSize(.large)
+                    } else if scenes.isEmpty {
+                        Button {
+                            sceneBreakdownMode = .generateFromScript(replaceExisting: true)
+                            showingSceneBreakdown = true
+                        } label: {
+                            Label("Generate scenes", systemImage: "sparkles")
+                                .frame(maxWidth: .infinity)
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .controlSize(.large)
+
+                        Button {
+                            showingScriptEditor = true
+                        } label: {
+                            Text("Edit draft")
+                                .frame(maxWidth: .infinity)
+                        }
+                        .buttonStyle(.bordered)
+                        .controlSize(.large)
+                    } else {
+                        Button {
+                            sceneBreakdownMode = .reviewExisting
+                            showingSceneBreakdown = true
+                        } label: {
+                            Label("Review Script", systemImage: "list.bullet.rectangle")
+                                .frame(maxWidth: .infinity)
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .controlSize(.large)
                     }
-                    .buttonStyle(.borderedProminent)
-                    .controlSize(.large)
-                } else if scenes.isEmpty {
-                    Button {
-                        sceneBreakdownMode = .generateFromScript(replaceExisting: true)
-                        showingSceneBreakdown = true
-                    } label: {
-                        Label("Generate scenes", systemImage: "sparkles")
-                            .frame(maxWidth: .infinity)
-                    }
-                    .buttonStyle(.borderedProminent)
-                    .controlSize(.large)
 
                     Button {
-                        showingScriptEditor = true
+                        showingShoot = true
                     } label: {
-                        Text("Edit draft")
-                            .frame(maxWidth: .infinity)
-                    }
-                    .buttonStyle(.bordered)
-                    .controlSize(.large)
-                } else {
-                    Button {
-                        sceneBreakdownMode = .reviewExisting
-                        showingSceneBreakdown = true
-                    } label: {
-                        Label("Review Script", systemImage: "list.bullet.rectangle")
+                        Label("Go to Shoot", systemImage: "video.fill")
                             .frame(maxWidth: .infinity)
                     }
                     .buttonStyle(.borderedProminent)
                     .controlSize(.large)
+                    .tint(.red)
+                    .disabled(scenes.isEmpty)
+
+                    if !currentProject.exports.isEmpty {
+                        NavigationLink {
+                            ExportsScreen(projectID: currentProject.id)
+                        } label: {
+                            Label("Go to Exports", systemImage: "square.and.arrow.up")
+                                .frame(maxWidth: .infinity)
+                        }
+                        .buttonStyle(.bordered)
+                        .controlSize(.large)
+                    }
                 }
-            }
-            .padding(.top, 14)
-
-            Button {
-                showingShoot = true
-            } label: {
-                Label("Go to Shoot", systemImage: "video.fill")
-                    .frame(maxWidth: .infinity)
-            }
-            .buttonStyle(.borderedProminent)
-            .controlSize(.large)
-            .tint(.red)
-            .disabled(scenes.isEmpty)
-            .padding(.top, 2)
-
-            if !currentProject.exports.isEmpty {
-                NavigationLink {
-                    ExportsScreen(projectID: currentProject.id)
-                } label: {
-                    Label("Go to Exports", systemImage: "square.and.arrow.up")
-                        .frame(maxWidth: .infinity)
-                }
-                .buttonStyle(.bordered)
-                .controlSize(.large)
-                .padding(.top, 2)
-            }
             }
         }
         .padding(.horizontal)
