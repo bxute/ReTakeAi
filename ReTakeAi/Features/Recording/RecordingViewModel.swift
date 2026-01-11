@@ -143,15 +143,18 @@ class RecordingViewModel {
             let startNumber = max(1, min(3, setupSecondsRemaining))
             for n in stride(from: startNumber, through: 1, by: -1) {
                 phase = .finalCountdown(number: n)
+                // Play beep at "1" (1 second before recording starts)
+                if n == 1 && preferences.startBeepEnabled {
+                    playBeep()
+                }
                 try? await Task.sleep(nanoseconds: 1_000_000_000)
             }
+        } else {
+            // No countdown - play beep immediately if enabled
+            if preferences.startBeepEnabled {
+                playBeep()
+            }
         }
-
-        // Beep 1 second before recording begins (if enabled)
-        if preferences.startBeepEnabled {
-            playBeep()
-        }
-        try? await Task.sleep(nanoseconds: 1_000_000_000)
 
         // Start recording automatically
         phase = .recording
@@ -172,10 +175,7 @@ class RecordingViewModel {
                 remainingSeconds = max(0, Int(ceil(scrollDuration - elapsed)))
             }
 
-            // Silent buffer of ~0.5s after teleprompter finishes (no UI indicators)
-            if isRecording {
-                try? await Task.sleep(nanoseconds: 500_000_000)
-            }
+            // Stop recording immediately when teleprompter completes
             if isRecording {
                 await stopRecording()
             }
@@ -186,8 +186,9 @@ class RecordingViewModel {
     }
 
     private func playBeep() {
-        // System "Tock" sound.
-        AudioServicesPlaySystemSound(1104)
+        // Play system sound with vibration fallback
+        // 1057 = "Tink" sound, works even on silent mode with vibration
+        AudioServicesPlayAlertSoundWithCompletion(1057) { }
     }
     
     func startRecording() async {
