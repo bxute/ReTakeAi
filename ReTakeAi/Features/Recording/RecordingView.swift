@@ -207,7 +207,7 @@ struct RecordingView: View {
                             .frame(width: 72, height: 72)
                             .overlay(
                                 Circle()
-                                    .stroke(.white.opacity(0.28), lineWidth: 2)
+                                    .stroke(.white.opacity(0.2), lineWidth: 6)
                             )
                     }
                     .buttonStyle(.plain)
@@ -283,7 +283,7 @@ struct RecordingView: View {
         Group {
             if viewModel.phase == .completed {
                 VStack(spacing: 12) {
-                    Text("Scene recorded")
+                    Text("Cut! Cut!")
                         .font(.headline.weight(.semibold))
                         .foregroundStyle(.white)
                 }
