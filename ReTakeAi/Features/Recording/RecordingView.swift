@@ -160,7 +160,7 @@ struct RecordingView: View {
                             text: scene.scriptText,
                             isRunning: true,
                             direction: viewModel.preferences.scrollDirection,
-                            targetDuration: TimeInterval(viewModel.expectedSeconds) * 1.25,
+                            scrollDuration: viewModel.computedScrollDuration,
                             fontSize: viewModel.preferences.textSize * 1.2,
                             opacity: viewModel.preferences.textOpacity,
                             mirror: viewModel.preferences.mirrorTextForFrontCamera,

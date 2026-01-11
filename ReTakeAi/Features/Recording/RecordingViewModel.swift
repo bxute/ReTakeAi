@@ -32,6 +32,27 @@ class RecordingViewModel {
     var remainingSeconds: Int = 0
     var expectedSeconds: Int = 0
     var preferences: TeleprompterPreferences = TeleprompterPreferencesStore.load()
+
+    /// Computed scroll duration - single source of truth for teleprompter timing
+    /// This determines how long the text takes to scroll, and thus recording duration
+    var computedScrollDuration: TimeInterval {
+        guard let scene = currentScene else { return 10 }
+        
+        // Use scene duration if set, otherwise calculate from script length
+        if let sceneDuration = scene.duration, sceneDuration > 0 {
+            return sceneDuration
+        }
+        
+        // Fall back to calculation from script text and speaking rate
+        let baseRate = TeleprompterTimingCalculator.defaultCharsPerSecond
+        let speedMultiplier = preferences.defaultSpeed.multiplier
+        let adjustedRate = baseRate * speedMultiplier
+        
+        return TeleprompterTimingCalculator.duration(
+            for: scene.scriptText,
+            charsPerSecond: adjustedRate
+        )
+    }
     
     private var currentRecordingURL: URL?
     private var flowTask: Task<Void, Never>?
@@ -89,7 +110,8 @@ class RecordingViewModel {
         guard flowTask == nil else { return }
         guard let project = currentProject, let scene = currentScene else { return }
 
-        expectedSeconds = Int(scene.duration ?? TimeInterval(project.expectedDurationSeconds ?? 30))
+        // Use computed scroll duration as the source of truth
+        expectedSeconds = Int(ceil(computedScrollDuration))
         expectedSeconds = max(1, expectedSeconds)
 
         skipRequested = false
@@ -137,15 +159,17 @@ class RecordingViewModel {
 
         // Auto-stop when teleprompter completes (if enabled)
         if preferences.autoStopEnabled {
-            remainingSeconds = expectedSeconds
+            let scrollDuration = computedScrollDuration
+            remainingSeconds = Int(ceil(scrollDuration))
             let recordingStart = Date()
 
             // Wait for teleprompter to signal completion
+            // Teleprompter fires onComplete when text fully exits viewport
             while !teleprompterComplete && isRecording {
                 try? await Task.sleep(nanoseconds: 100_000_000) // Poll every 100ms
-                // Update remaining seconds for UI display
-                let elapsed = Int(Date().timeIntervalSince(recordingStart))
-                remainingSeconds = max(0, expectedSeconds - elapsed)
+                // Update remaining seconds based on scroll duration, not fixed timer
+                let elapsed = Date().timeIntervalSince(recordingStart)
+                remainingSeconds = max(0, Int(ceil(scrollDuration - elapsed)))
             }
 
             // Silent buffer of ~0.5s after teleprompter finishes (no UI indicators)
