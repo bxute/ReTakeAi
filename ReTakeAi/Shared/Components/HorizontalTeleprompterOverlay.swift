@@ -5,104 +5,109 @@
 
 import SwiftUI
 
+/// A single-line marquee text that scrolls linearly right→left (or left→right).
+/// This view has NO background; the parent is responsible for any container styling.
+///
+/// Scroll speed is calculated internally:
+///   `pointsPerSecond = (textWidth + viewportWidth) / targetDuration`
+///
+/// This guarantees the full text scrolls in exactly `targetDuration` seconds.
+/// Calls `onComplete` when the text has fully exited the viewport.
 struct HorizontalTeleprompterOverlay: View {
     let text: String
     let isRunning: Bool
     let direction: TeleprompterScrollDirection
-    let pointsPerSecond: Double
+    let targetDuration: TimeInterval
     let fontSize: Double
     let opacity: Double
     let mirror: Bool
+    var onComplete: (() -> Void)? = nil
 
-    @State private var contentWidth: CGFloat = 1
-    @State private var viewportWidth: CGFloat = 1
-    @State private var accumulated: TimeInterval = 0
-    @State private var runStart: TimeInterval?
+    @State private var contentWidth: CGFloat = 0
+    @State private var viewportWidth: CGFloat = 0
+    @State private var startTime: TimeInterval?
+    @State private var didComplete = false
 
-    private let spacing: CGFloat = 80
+    /// Calculated scroll speed: (textWidth + viewportWidth) / targetDuration
+    private var pointsPerSecond: Double {
+        let totalDistance = Double(contentWidth + viewportWidth)
+        let duration = max(1.0, targetDuration)
+        return totalDistance / duration
+    }
 
     var body: some View {
-        TimelineView(.animation) { timeline in
-            let t = timeline.date.timeIntervalSinceReferenceDate
-            let elapsed = accumulated + (isRunning ? max(0, t - (runStart ?? t)) : 0)
-            let xOffset = marqueeOffset(elapsed: elapsed)
+        TimelineView(.animation(minimumInterval: 1.0 / 60.0, paused: !isRunning)) { timeline in
+            let now = timeline.date.timeIntervalSinceReferenceDate
+            let (xOffset, isFinished) = computeOffset(viewportWidth: viewportWidth, now: now)
 
-            ZStack {
-                // Readable, calm pill container
-                RoundedRectangle(cornerRadius: 18, style: .continuous)
-                    .fill(.black.opacity(0.35))
-
-                GeometryReader { proxy in
-                    let w = proxy.size.width
-                    ZStack(alignment: .center) {
-                        HStack(spacing: spacing) {
-                            marqueeText
-                            marqueeText
+            GeometryReader { proxy in
+                Text(cleaned(text))
+                    .font(.system(size: fontSize, weight: .semibold, design: .default))
+                    .foregroundStyle(.white.opacity(opacity))
+                    .lineLimit(1)
+                    .fixedSize(horizontal: true, vertical: false)
+                    .background(
+                        GeometryReader { textProxy in
+                            Color.clear
+                                .onAppear { contentWidth = textProxy.size.width }
+                                .onChange(of: textProxy.size.width) { _, newW in contentWidth = newW }
                         }
-                        .offset(x: xOffset)
-                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
-                    }
-                    .frame(width: proxy.size.width, height: proxy.size.height, alignment: .center)
-                    .onAppear { viewportWidth = max(1, w) }
-                    .onChange(of: w) { _, newValue in viewportWidth = max(1, newValue) }
-                }
-                .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+                    )
+                    .offset(x: xOffset)
+                    .frame(width: proxy.size.width, height: proxy.size.height, alignment: .leading)
+                    .scaleEffect(x: mirror ? -1 : 1, y: 1, anchor: .center)
+                    .onAppear { viewportWidth = proxy.size.width }
+                    .onChange(of: proxy.size.width) { _, newW in viewportWidth = newW }
             }
-            .frame(height: 120)
-            .padding(.horizontal, 16)
-            .opacity(opacity)
-            .scaleEffect(x: mirror ? -1 : 1, y: 1, anchor: .center)
-            .accessibilityLabel("Teleprompter")
+            .clipped()
+            .onChange(of: isFinished) { _, finished in
+                if finished && !didComplete {
+                    didComplete = true
+                    onComplete?()
+                }
+            }
         }
         .onAppear {
+            didComplete = false
             if isRunning {
-                runStart = Date().timeIntervalSinceReferenceDate
+                startTime = Date().timeIntervalSinceReferenceDate
             }
         }
-        .onChange(of: isRunning) { _, newValue in
-            let now = Date().timeIntervalSinceReferenceDate
-            if newValue {
-                runStart = now
+        .onChange(of: isRunning) { _, running in
+            if running {
+                didComplete = false
+                startTime = Date().timeIntervalSinceReferenceDate
             } else {
-                if let runStart {
-                    accumulated += max(0, now - runStart)
-                }
-                runStart = nil
+                startTime = nil
             }
         }
     }
 
-    private var marqueeText: some View {
-        Text(cleaned(text))
-            .font(.system(size: fontSize, weight: .semibold, design: .default))
-            .foregroundStyle(.white)
-            .lineLimit(1)
-            .fixedSize(horizontal: true, vertical: false)
-            .padding(.horizontal, 20)
-            .padding(.vertical, 16)
-            .background(
-                GeometryReader { proxy in
-                    Color.clear
-                        .onAppear { contentWidth = max(1, proxy.size.width) }
-                        .onChange(of: proxy.size.width) { _, newValue in contentWidth = max(1, newValue) }
-                }
-            )
-    }
+    /// Returns (offset, isFinished)
+    private func computeOffset(viewportWidth: CGFloat, now: TimeInterval) -> (CGFloat, Bool) {
+        guard isRunning, let start = startTime else {
+            // Not running → text starts off-screen
+            let offset = direction == .rightToLeft ? viewportWidth : -contentWidth
+            return (offset, false)
+        }
 
-    private func marqueeOffset(elapsed: TimeInterval) -> CGFloat {
-        let cycle = contentWidth + spacing
-        guard cycle > 1 else { return 0 }
-
-        let distance = CGFloat((elapsed * pointsPerSecond).truncatingRemainder(dividingBy: Double(cycle)))
+        let elapsed = now - start
+        let traveled = CGFloat(elapsed * pointsPerSecond)
+        let totalDistance = contentWidth + viewportWidth
 
         switch direction {
-        case .leftToRight:
-            // Start off-screen to the left and move right.
-            return (-cycle) + distance
         case .rightToLeft:
-            // Start off-screen to the right and move left into the viewport.
-            // Uses current viewport width so this adapts across devices and text sizes.
-            return viewportWidth - distance
+            // Start at right edge, move left linearly
+            let offset = viewportWidth - traveled
+            // Finished when text has fully exited left edge (offset < -contentWidth)
+            let finished = traveled >= totalDistance
+            return (offset, finished)
+        case .leftToRight:
+            // Start off-screen left, move right linearly
+            let offset = -contentWidth + traveled
+            // Finished when text has fully exited right edge (offset > viewportWidth)
+            let finished = traveled >= totalDistance
+            return (offset, finished)
         }
     }
 

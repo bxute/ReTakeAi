@@ -36,6 +36,7 @@ class RecordingViewModel {
     private var currentRecordingURL: URL?
     private var flowTask: Task<Void, Never>?
     private var skipRequested = false
+    private var teleprompterComplete = false
     
     private let recordingController = RecordingController.shared
     private let cameraService = CameraService.shared
@@ -79,6 +80,11 @@ class RecordingViewModel {
         skipRequested = true
     }
 
+    /// Called by teleprompter when text has fully scrolled off-screen
+    func signalTeleprompterComplete() {
+        teleprompterComplete = true
+    }
+
     private func startGuidedFlowIfNeeded() {
         guard flowTask == nil else { return }
         guard let project = currentProject, let scene = currentScene else { return }
@@ -87,6 +93,7 @@ class RecordingViewModel {
         expectedSeconds = max(1, expectedSeconds)
 
         skipRequested = false
+        teleprompterComplete = false
         phase = .setup
         setupSecondsRemaining = preferences.setupCountdown.rawValue
         remainingSeconds = expectedSeconds
@@ -118,24 +125,32 @@ class RecordingViewModel {
             }
         }
 
-        // Start recording automatically
-        phase = .recording
+        // Beep 1 second before recording begins (if enabled)
         if preferences.startBeepEnabled {
             playBeep()
         }
+        try? await Task.sleep(nanoseconds: 1_000_000_000)
+
+        // Start recording automatically
+        phase = .recording
         await startRecording()
 
-        // Auto-stop when expected duration finishes (if enabled)
+        // Auto-stop when teleprompter completes (if enabled)
         if preferences.autoStopEnabled {
             remainingSeconds = expectedSeconds
-            // Teleprompter ends at expected duration
-            while remainingSeconds > 0 && isRecording {
-                try? await Task.sleep(nanoseconds: 1_000_000_000)
-                remainingSeconds = max(0, remainingSeconds - 1)
+            let recordingStart = Date()
+
+            // Wait for teleprompter to signal completion
+            while !teleprompterComplete && isRecording {
+                try? await Task.sleep(nanoseconds: 100_000_000) // Poll every 100ms
+                // Update remaining seconds for UI display
+                let elapsed = Int(Date().timeIntervalSince(recordingStart))
+                remainingSeconds = max(0, expectedSeconds - elapsed)
             }
-            // Silent buffer of +1s (no UI indicators)
+
+            // Silent buffer of ~0.5s after teleprompter finishes (no UI indicators)
             if isRecording {
-                try? await Task.sleep(nanoseconds: 1_000_000_000)
+                try? await Task.sleep(nanoseconds: 500_000_000)
             }
             if isRecording {
                 await stopRecording()

@@ -64,8 +64,7 @@ struct RecordingView: View {
             teleprompterOverlayRegion
 
             readyOverlay
-            setupOverlay
-            finalCountdownOverlay
+            countdownOverlay
             recordingOverlay
             completedOverlay
         }
@@ -99,12 +98,16 @@ struct RecordingView: View {
             if newValue == .recording || newValue == .finalCountdown(number: 3) || newValue == .finalCountdown(number: 2) || newValue == .finalCountdown(number: 1) {
                 showingCloseButton = false
             }
+            if newValue == .recording {
+                placeholderVisible = false
+                placeholderHideScheduled = true
+            }
 
             if newValue == .setup, placeholderVisible, !placeholderHideScheduled {
                 placeholderHideScheduled = true
                 placeholderHideTask?.cancel()
                 placeholderHideTask = Task {
-                    try? await Task.sleep(nanoseconds: 3_000_000_000)
+                    try? await Task.sleep(nanoseconds: 1_500_000_000) // 1.5 seconds
                     if !Task.isCancelled {
                         placeholderVisible = false
                     }
@@ -136,21 +139,38 @@ struct RecordingView: View {
     private var teleprompterOverlayRegion: some View {
         VStack {
             if viewModel.isSetupComplete {
+                // Single container — no extra layers
                 ZStack(alignment: .center) {
-                    RoundedRectangle(cornerRadius: 18, style: .continuous)
-                        .fill(.black.opacity(0.18))
+                    // Background (edge-to-edge, no rounded corners)
+                    Rectangle()
+                        .fill(.black.opacity(0.22))
 
-                    if placeholderVisible {
+                    // Hint label (separate from marquee)
+                    if placeholderVisible && !isTeleprompterScrolling {
                         Text("Your script will appear here…")
-                            .font(.system(size: viewModel.preferences.textSize * 1.1, weight: .semibold))
-                            .foregroundStyle(.white.opacity(0.75))
+                            .font(.system(size: viewModel.preferences.textSize * 0.88, weight: .semibold))
+                            .foregroundStyle(.white.opacity(0.7))
                             .multilineTextAlignment(.center)
                             .padding(.horizontal, 20)
-                            .transition(.opacity)
+                    }
+
+                    // Marquee label (only when recording)
+                    if isTeleprompterScrolling {
+                        HorizontalTeleprompterOverlay(
+                            text: scene.scriptText,
+                            isRunning: true,
+                            direction: viewModel.preferences.scrollDirection,
+                            targetDuration: TimeInterval(viewModel.expectedSeconds) * 1.25,
+                            fontSize: viewModel.preferences.textSize * 1.2,
+                            opacity: viewModel.preferences.textOpacity,
+                            mirror: viewModel.preferences.mirrorTextForFrontCamera,
+                            onComplete: {
+                                viewModel.signalTeleprompterComplete()
+                            }
+                        )
                     }
                 }
                 .frame(height: 120)
-                .padding(.horizontal, 16)
                 .padding(.top, 28)
             }
             Spacer()
@@ -158,47 +178,8 @@ struct RecordingView: View {
         .allowsHitTesting(false)
     }
 
-    private var setupOverlay: some View {
-        Group {
-            if viewModel.phase == .setup, viewModel.setupSecondsRemaining > 3 {
-                VStack(spacing: 10) {
-                    Spacer()
-
-                    VStack(spacing: 6) {
-                        Text("Get ready")
-                            .font(.subheadline.weight(.semibold))
-                            .foregroundStyle(.white.opacity(0.9))
-
-                        Text("\(viewModel.setupSecondsRemaining)s")
-                            .font(.system(size: 44, weight: .bold, design: .monospaced))
-                            .foregroundStyle(.white)
-
-                        Text("Recording starts soon")
-                            .font(.footnote)
-                            .foregroundStyle(.white.opacity(0.85))
-                    }
-                    .padding(.horizontal, 18)
-                    .padding(.vertical, 14)
-                    .background(.black.opacity(0.25), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
-
-                    Button {
-                        viewModel.startNow()
-                    } label: {
-                        Text("Start now")
-                            .font(.footnote.weight(.semibold))
-                            .foregroundStyle(.white.opacity(0.95))
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 8)
-                            .background(.black.opacity(0.2), in: Capsule())
-                    }
-                    .buttonStyle(.plain)
-
-                    Spacer().frame(height: 44)
-                }
-                .transition(.opacity)
-            }
-        }
-        .animation(.easeInOut(duration: 0.2), value: viewModel.setupSecondsRemaining)
+    private var isTeleprompterScrolling: Bool {
+        viewModel.phase == .recording && viewModel.isRecording && viewModel.remainingSeconds > 0
     }
 
     private var readyOverlay: some View {
@@ -230,16 +211,50 @@ struct RecordingView: View {
         }
     }
 
-    private var finalCountdownOverlay: some View {
+    /// Unified countdown overlay for both setup (10→4) and final (3→1) phases
+    private var countdownOverlay: some View {
         Group {
-            if case let .finalCountdown(number) = viewModel.phase {
+            if let countdownNumber = currentCountdownNumber {
                 ZStack {
                     Color.black.opacity(0.25).ignoresSafeArea()
-                    Text("\(number)")
+
+                    Text("\(countdownNumber)")
                         .font(.system(size: 150, weight: .bold, design: .rounded))
                         .foregroundStyle(.white)
+
+                    // "Start now" button only during setup phase (not during 3-2-1)
+                    if viewModel.phase == .setup {
+                        VStack {
+                            Spacer()
+                            Button {
+                                viewModel.startNow()
+                            } label: {
+                                Text("Start now")
+                                    .font(.footnote.weight(.semibold))
+                                    .foregroundStyle(.white.opacity(0.95))
+                                    .padding(.horizontal, 16)
+                                    .padding(.vertical, 10)
+                                    .background(.black.opacity(0.25), in: Capsule())
+                            }
+                            .buttonStyle(.plain)
+                            .padding(.bottom, 60)
+                        }
+                    }
                 }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
+        }
+    }
+
+    /// Returns the current countdown number to display, or nil if not in countdown
+    private var currentCountdownNumber: Int? {
+        switch viewModel.phase {
+        case .setup where viewModel.setupSecondsRemaining > 0:
+            return viewModel.setupSecondsRemaining
+        case .finalCountdown(let number):
+            return number
+        default:
+            return nil
         }
     }
 
