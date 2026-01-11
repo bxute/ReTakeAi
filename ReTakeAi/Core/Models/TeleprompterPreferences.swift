@@ -47,7 +47,7 @@ struct TeleprompterPreferences: Codable, Hashable {
     var autoStopEnabled: Bool
 
     init(
-        scrollDirection: TeleprompterScrollDirection = .leftToRight,
+        scrollDirection: TeleprompterScrollDirection = .rightToLeft,
         defaultSpeed: TeleprompterSpeedPreset = .normal,
         textSize: Double = 28,
         textOpacity: Double = 0.75,

@@ -15,6 +15,9 @@ struct RecordingView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var showingCloseButton = true
     @State private var closeAutoHideTask: Task<Void, Never>?
+    @State private var placeholderVisible = true
+    @State private var placeholderHideScheduled = false
+    @State private var placeholderHideTask: Task<Void, Never>?
 
     private var isShowingError: Binding<Bool> {
         Binding(
@@ -58,7 +61,7 @@ struct RecordingView: View {
                 .transition(.opacity)
             }
 
-            teleprompterOverlay
+            teleprompterOverlayRegion
 
             readyOverlay
             setupOverlay
@@ -77,6 +80,8 @@ struct RecordingView: View {
         .onDisappear {
             closeAutoHideTask?.cancel()
             closeAutoHideTask = nil
+            placeholderHideTask?.cancel()
+            placeholderHideTask = nil
             viewModel.cleanup()
         }
         .contentShape(Rectangle())
@@ -93,6 +98,17 @@ struct RecordingView: View {
             }
             if newValue == .recording || newValue == .finalCountdown(number: 3) || newValue == .finalCountdown(number: 2) || newValue == .finalCountdown(number: 1) {
                 showingCloseButton = false
+            }
+
+            if newValue == .setup, placeholderVisible, !placeholderHideScheduled {
+                placeholderHideScheduled = true
+                placeholderHideTask?.cancel()
+                placeholderHideTask = Task {
+                    try? await Task.sleep(nanoseconds: 3_000_000_000)
+                    if !Task.isCancelled {
+                        placeholderVisible = false
+                    }
+                }
             }
         }
         .alert("Recording Error", isPresented: isShowingError) {
@@ -117,20 +133,25 @@ struct RecordingView: View {
             .ignoresSafeArea()
     }
     
-    private var teleprompterOverlay: some View {
+    private var teleprompterOverlayRegion: some View {
         VStack {
             if viewModel.isSetupComplete {
-                HorizontalTeleprompterOverlay(
-                    text: scene.scriptText,
-                    isRunning: viewModel.phase == .recording && viewModel.isRecording,
-                    direction: viewModel.preferences.scrollDirection,
-                    pointsPerSecond: derivedTeleprompterPointsPerSecond(),
-                    fontSize: viewModel.preferences.textSize * 1.5,
-                    opacity: viewModel.phase == .completed ? 0 : viewModel.preferences.textOpacity,
-                    mirror: viewModel.preferences.mirrorTextForFrontCamera
-                )
-                .padding(.top, 40)
-                .animation(.easeInOut(duration: 0.25), value: viewModel.phase)
+                ZStack(alignment: .center) {
+                    RoundedRectangle(cornerRadius: 18, style: .continuous)
+                        .fill(.black.opacity(0.18))
+
+                    if placeholderVisible {
+                        Text("Your script will appear here…")
+                            .font(.system(size: viewModel.preferences.textSize * 1.1, weight: .semibold))
+                            .foregroundStyle(.white.opacity(0.75))
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal, 20)
+                            .transition(.opacity)
+                    }
+                }
+                .frame(height: 120)
+                .padding(.horizontal, 16)
+                .padding(.top, 28)
             }
             Spacer()
         }
@@ -215,12 +236,9 @@ struct RecordingView: View {
                 ZStack {
                     Color.black.opacity(0.25).ignoresSafeArea()
                     Text("\(number)")
-                        .id(number)
                         .font(.system(size: 150, weight: .bold, design: .rounded))
                         .foregroundStyle(.white)
-                        .transition(.opacity)
                 }
-                .animation(.easeInOut(duration: 0.4), value: number)
             }
         }
     }
@@ -229,6 +247,8 @@ struct RecordingView: View {
         Group {
             if viewModel.phase == .recording && viewModel.isRecording {
                 VStack {
+                    Spacer()
+
                     HStack(spacing: 10) {
                         Circle()
                             .fill(.red)
@@ -237,18 +257,17 @@ struct RecordingView: View {
                             .font(.caption.weight(.semibold))
                             .foregroundStyle(.red)
 
-                        Spacer()
-
-                        Text(TimeInterval(viewModel.remainingSeconds).formattedDuration)
-                            .font(.system(size: 22, weight: .bold, design: .monospaced))
-                            .foregroundStyle(.white)
+                        if viewModel.remainingSeconds > 0 {
+                            Text(TimeInterval(viewModel.remainingSeconds).formattedDuration)
+                                .font(.system(size: 20, weight: .bold, design: .monospaced))
+                                .foregroundStyle(.white)
+                        }
                     }
                     .padding(.horizontal, 16)
                     .padding(.vertical, 10)
                     .background(.black.opacity(0.18), in: Capsule())
-                    .padding(.top, 20)
-
-                    Spacer()
+                    .frame(maxWidth: .infinity, alignment: .center)
+                    .safeAreaPadding(.bottom, 12)
                 }
                 .transition(.opacity)
                 .animation(.easeInOut(duration: 0.2), value: viewModel.remainingSeconds)
@@ -270,13 +289,6 @@ struct RecordingView: View {
             }
         }
         .animation(.easeInOut(duration: 0.25), value: viewModel.phase)
-    }
-
-    private func derivedTeleprompterPointsPerSecond() -> Double {
-        let expected = Double(max(1, viewModel.expectedSeconds))
-        let characters = Double(scene.scriptText.count)
-        let base = max(30, min(180, (characters / expected) * 6.0))
-        return base * viewModel.preferences.defaultSpeed.multiplier
     }
 
     private var shouldShowCloseButton: Bool {

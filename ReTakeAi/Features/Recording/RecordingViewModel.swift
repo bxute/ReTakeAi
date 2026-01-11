@@ -114,23 +114,28 @@ class RecordingViewModel {
             let startNumber = max(1, min(3, setupSecondsRemaining))
             for n in stride(from: startNumber, through: 1, by: -1) {
                 phase = .finalCountdown(number: n)
-                if n == 1, preferences.startBeepEnabled {
-                    playBeep()
-                }
                 try? await Task.sleep(nanoseconds: 1_000_000_000)
             }
         }
 
         // Start recording automatically
         phase = .recording
+        if preferences.startBeepEnabled {
+            playBeep()
+        }
         await startRecording()
 
         // Auto-stop when expected duration finishes (if enabled)
         if preferences.autoStopEnabled {
             remainingSeconds = expectedSeconds
+            // Teleprompter ends at expected duration
             while remainingSeconds > 0 && isRecording {
                 try? await Task.sleep(nanoseconds: 1_000_000_000)
                 remainingSeconds = max(0, remainingSeconds - 1)
+            }
+            // Silent buffer of +1s (no UI indicators)
+            if isRecording {
+                try? await Task.sleep(nanoseconds: 1_000_000_000)
             }
             if isRecording {
                 await stopRecording()

@@ -34,11 +34,15 @@ struct HorizontalTeleprompterOverlay: View {
 
                 GeometryReader { proxy in
                     let w = proxy.size.width
-                    HStack(spacing: spacing) {
-                        marqueeText
-                        marqueeText
+                    ZStack(alignment: .center) {
+                        HStack(spacing: spacing) {
+                            marqueeText
+                            marqueeText
+                        }
+                        .offset(x: xOffset)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
                     }
-                    .offset(x: xOffset)
+                    .frame(width: proxy.size.width, height: proxy.size.height, alignment: .center)
                     .onAppear { viewportWidth = max(1, w) }
                     .onChange(of: w) { _, newValue in viewportWidth = max(1, newValue) }
                 }
@@ -96,8 +100,9 @@ struct HorizontalTeleprompterOverlay: View {
             // Start off-screen to the left and move right.
             return (-cycle) + distance
         case .rightToLeft:
-            // Start at zero and move left.
-            return -distance
+            // Start off-screen to the right and move left into the viewport.
+            // Uses current viewport width so this adapts across devices and text sizes.
+            return viewportWidth - distance
         }
     }
 
