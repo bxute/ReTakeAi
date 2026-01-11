@@ -143,7 +143,7 @@ struct RecordingView: View {
                 ZStack(alignment: .center) {
                     // Background (edge-to-edge, no rounded corners)
                     Rectangle()
-                        .fill(.black.opacity(0.22))
+                        .fill(.black.opacity(0.264))
 
                     // Hint label (separate from marquee)
                     if placeholderVisible && !isTeleprompterScrolling {

@@ -38,7 +38,7 @@ struct HorizontalTeleprompterOverlay: View {
     var body: some View {
         TimelineView(.animation(minimumInterval: 1.0 / 60.0, paused: !isRunning)) { timeline in
             let now = timeline.date.timeIntervalSinceReferenceDate
-            let (xOffset, isFinished) = computeOffset(viewportWidth: viewportWidth, now: now)
+            let (xOffset, finished) = computeOffset(viewportWidth: viewportWidth, now: now)
 
             GeometryReader { proxy in
                 Text(cleaned(text))
@@ -60,10 +60,10 @@ struct HorizontalTeleprompterOverlay: View {
                     .onChange(of: proxy.size.width) { _, newW in viewportWidth = newW }
             }
             .clipped()
-            .onChange(of: isFinished) { _, finished in
-                if finished && !didComplete {
-                    didComplete = true
-                    onComplete?()
+            .task(id: finished) {
+                // Trigger completion when finished becomes true
+                if finished {
+                    triggerCompletionIfNeeded()
                 }
             }
         }
@@ -81,6 +81,12 @@ struct HorizontalTeleprompterOverlay: View {
                 startTime = nil
             }
         }
+    }
+
+    private func triggerCompletionIfNeeded() {
+        guard !didComplete else { return }
+        didComplete = true
+        onComplete?()
     }
 
     /// Returns (offset, isFinished)
