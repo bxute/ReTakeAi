@@ -9,8 +9,7 @@ struct ExportsScreen: View {
     let projectID: UUID
 
     @State private var project: Project?
-    @State private var playingURL: URL?
-    @State private var showingPlayer = false
+    @State private var playingExport: ExportedVideo?
 
     private var sortedExports: [ExportedVideo] {
         (project?.exports ?? []).sorted { $0.exportedAt > $1.exportedAt }
@@ -50,23 +49,13 @@ struct ExportsScreen: View {
         .refreshable {
             reload()
         }
-        .fullScreenCover(isPresented: $showingPlayer) {
+        .fullScreenCover(item: $playingExport) { export in
             ZStack(alignment: .topTrailing) {
-                if let playingURL, FileManager.default.fileExists(atPath: playingURL.path) {
-                    VideoPlayerView(videoURL: playingURL, autoplay: true) { showingPlayer = false }
-                        .ignoresSafeArea()
-                } else {
-                    Color.black.ignoresSafeArea()
-                    ContentUnavailableView(
-                        "Video Not Found",
-                        systemImage: "exclamationmark.triangle",
-                        description: Text("The exported video file is missing.")
-                    )
-                    .foregroundStyle(.white)
-                }
+                VideoPlayerView(videoURL: export.fileURL, autoplay: true) { playingExport = nil }
+                    .ignoresSafeArea()
 
                 Button {
-                    showingPlayer = false
+                    playingExport = nil
                 } label: {
                     Image(systemName: "xmark.circle.fill")
                         .font(.title2)
@@ -81,13 +70,11 @@ struct ExportsScreen: View {
 
     @ViewBuilder
     private func exportRow(_ export: ExportedVideo) -> some View {
-        let fileExists = FileManager.default.fileExists(atPath: export.fileURL.path)
+        let url = export.fileURL
+        let fileExists = FileManager.default.fileExists(atPath: url.path)
 
         Button {
-            if fileExists {
-                playingURL = export.fileURL
-                showingPlayer = true
-            }
+            playingExport = export
         } label: {
             HStack(spacing: 12) {
                 if fileExists {
@@ -140,9 +127,8 @@ struct ExportsScreen: View {
     private func deleteExport(_ export: ExportedVideo) {
         guard var current = ProjectStore.shared.getProject(by: projectID) else { return }
 
-        if playingURL == export.fileURL {
-            playingURL = nil
-            showingPlayer = false
+        if playingExport?.id == export.id {
+            playingExport = nil
         }
 
         try? FileManager.default.removeItem(at: export.fileURL)

@@ -361,7 +361,10 @@ struct PreviewScreen: View {
             try ProjectStore.shared.updateProject(project)
 
             let exportDir = FileStorageManager.shared.exportsDirectory(for: projectID)
-            let fileName = "export_\(Date().timeIntervalSince1970).mov"
+            // Ensure exports directory exists
+            try FileManager.default.createDirectory(at: exportDir, withIntermediateDirectories: true)
+            
+            let fileName = "export_\(Int(Date().timeIntervalSince1970)).mov"
             let outputURL = exportDir.appendingPathComponent(fileName)
 
             let mergedURL = try await VideoMerger.shared.mergeScenes(
@@ -371,12 +374,18 @@ struct PreviewScreen: View {
                 progress: nil
             )
 
+            // Verify file was written
+            guard FileManager.default.fileExists(atPath: mergedURL.path) else {
+                throw NSError(domain: "Export", code: -1, userInfo: [NSLocalizedDescriptionKey: "Export file not created"])
+            }
+
             let totalDuration = takes.reduce(0) { $0 + $1.duration }
             let fileSize = FileStorageManager.shared.fileSize(at: mergedURL)
 
+            // Store export with the actual output URL's filename
             let exportedVideo = ExportedVideo(
                 projectID: projectID,
-                fileURL: mergedURL,
+                fileURL: outputURL,  // Use outputURL to ensure consistency
                 aspect: selectedAspect,
                 duration: totalDuration,
                 fileSize: fileSize
