@@ -58,6 +58,7 @@ class RecordingViewModel {
     private var flowTask: Task<Void, Never>?
     private var skipRequested = false
     private var teleprompterComplete = false
+    private let beepPlayer = BeepTonePlayer()
     
     private let recordingController = RecordingController.shared
     private let cameraService = CameraService.shared
@@ -143,20 +144,20 @@ class RecordingViewModel {
             let startNumber = max(1, min(3, setupSecondsRemaining))
             for n in stride(from: startNumber, through: 1, by: -1) {
                 phase = .finalCountdown(number: n)
-                // Play beep at "1" (1 second before recording starts)
-                if n == 1 && preferences.startBeepEnabled {
-                    playBeep()
-                }
-                try? await Task.sleep(nanoseconds: 1_000_000_000)
+                try? await Task.sleep(nanoseconds: 1_000_000_000) // "n" stays visible for 1s
+            }
+            // Beep right AFTER "1" disappears, immediately followed by recording start.
+            if preferences.startBeepEnabled {
+                playBeep()
             }
         } else {
-            // No countdown - play beep immediately if enabled
+            // No countdown - beep right before immediate recording start.
             if preferences.startBeepEnabled {
                 playBeep()
             }
         }
 
-        // Start recording automatically
+        // Start recording automatically (immediately after beep)
         phase = .recording
         await startRecording()
 
@@ -186,9 +187,7 @@ class RecordingViewModel {
     }
 
     private func playBeep() {
-        // Play system sound with vibration fallback
-        // 1057 = "Tink" sound, works even on silent mode with vibration
-        AudioServicesPlayAlertSoundWithCompletion(1057) { }
+        beepPlayer.play()
     }
     
     func startRecording() async {
