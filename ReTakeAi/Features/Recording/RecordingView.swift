@@ -140,38 +140,49 @@ struct RecordingView: View {
         VStack {
             if viewModel.isSetupComplete {
                 // Single container — no extra layers
-                ZStack(alignment: .center) {
-                    // Background (edge-to-edge, no rounded corners)
-                    Rectangle()
-                        .fill(.black.opacity(0.264))
+                let indicatorSize: CGFloat = 8
+                let indicatorSpacing: CGFloat = 8
+                let indicatorColor: Color = (viewModel.phase == .recording && viewModel.isRecording) ? .red : .white
 
-                    // Hint label (separate from marquee)
-                    if placeholderVisible && !isTeleprompterScrolling {
-                        Text("Your script will appear here…")
-                            .font(.system(size: viewModel.preferences.textSize * 0.88, weight: .semibold))
-                            .foregroundStyle(.white.opacity(0.7))
-                            .multilineTextAlignment(.center)
-                            .padding(.horizontal, 20)
-                    }
+                VStack(spacing: indicatorSpacing) {
+                    Circle()
+                        .fill(indicatorColor)
+                        .frame(width: indicatorSize, height: indicatorSize)
 
-                    // Marquee label (only when recording)
-                    if isTeleprompterScrolling {
-                        HorizontalTeleprompterOverlay(
-                            text: scene.scriptText,
-                            isRunning: true,
-                            direction: viewModel.preferences.scrollDirection,
-                            scrollDuration: viewModel.computedScrollDuration,
-                            fontSize: viewModel.preferences.textSize * 1.2,
-                            opacity: viewModel.preferences.textOpacity,
-                            mirror: viewModel.preferences.mirrorTextForFrontCamera,
-                            onComplete: {
-                                viewModel.signalTeleprompterComplete()
-                            }
-                        )
+                    ZStack(alignment: .center) {
+                        // Background (edge-to-edge, no rounded corners)
+                        Rectangle()
+                            .fill(.black.opacity(0.264))
+
+                        // Hint label (separate from marquee)
+                        if placeholderVisible && !isTeleprompterScrolling {
+                            Text("Your script will appear here…")
+                                .font(.system(size: viewModel.preferences.textSize * 0.88, weight: .semibold))
+                                .foregroundStyle(.white.opacity(0.7))
+                                .multilineTextAlignment(.center)
+                                .padding(.horizontal, 20)
+                        }
+
+                        // Marquee label (only when recording)
+                        if isTeleprompterScrolling {
+                            HorizontalTeleprompterOverlay(
+                                text: scene.scriptText,
+                                isRunning: true,
+                                direction: viewModel.preferences.scrollDirection,
+                                scrollDuration: viewModel.computedScrollDuration,
+                                fontSize: viewModel.preferences.textSize * 1.2,
+                                opacity: viewModel.preferences.textOpacity,
+                                mirror: viewModel.preferences.mirrorTextForFrontCamera,
+                                onComplete: {
+                                    viewModel.signalTeleprompterComplete()
+                                }
+                            )
+                        }
                     }
+                    .frame(height: 120)
                 }
-                .frame(height: 120)
-                .padding(.top, 28)
+                // Keep the teleprompter bar in the same vertical position as before adding the dot.
+                .padding(.top, 28 - (indicatorSize + indicatorSpacing))
             }
             Spacer()
         }
@@ -191,13 +202,15 @@ struct RecordingView: View {
                     Button {
                         viewModel.beginRecordingTimer()
                     } label: {
-                        Text("Start")
-                            .font(.headline.weight(.semibold))
-                            .frame(width: 140, height: 56)
+                        Image(systemName: "play.fill")
+                            .font(.system(size: 20, weight: .semibold))
+                            .foregroundStyle(.white)
+                            .frame(width: 72, height: 72)
+                            .background(Circle().fill(.red))
                     }
-                    .buttonStyle(.borderedProminent)
-                    .tint(.red)
+                    .buttonStyle(.plain)
                     .disabled(!viewModel.isSetupComplete || viewModel.captureSession == nil)
+                    .accessibilityLabel("Start")
 
                     Text("Tap Start to begin the countdown.")
                         .font(.footnote)
@@ -260,33 +273,7 @@ struct RecordingView: View {
 
     private var recordingOverlay: some View {
         Group {
-            if viewModel.phase == .recording && viewModel.isRecording {
-                VStack {
-                    Spacer()
-
-                    HStack(spacing: 10) {
-                        Circle()
-                            .fill(.red)
-                            .frame(width: 10, height: 10)
-                        Text("REC")
-                            .font(.caption.weight(.semibold))
-                            .foregroundStyle(.red)
-
-                        if viewModel.remainingSeconds > 0 {
-                            Text(TimeInterval(viewModel.remainingSeconds).formattedDuration)
-                                .font(.system(size: 20, weight: .bold, design: .monospaced))
-                                .foregroundStyle(.white)
-                        }
-                    }
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 10)
-                    .background(.black.opacity(0.18), in: Capsule())
-                    .frame(maxWidth: .infinity, alignment: .center)
-                    .safeAreaPadding(.bottom, 12)
-                }
-                .transition(.opacity)
-                .animation(.easeInOut(duration: 0.2), value: viewModel.remainingSeconds)
-            }
+            EmptyView()
         }
     }
 
