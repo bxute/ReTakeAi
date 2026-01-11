@@ -48,7 +48,7 @@ struct TeleprompterPreferences: Codable, Hashable {
 
     init(
         scrollDirection: TeleprompterScrollDirection = .rightToLeft,
-        defaultSpeed: TeleprompterSpeedPreset = .normal,
+        defaultSpeed: TeleprompterSpeedPreset = .slow,
         textSize: Double = 28,
         textOpacity: Double = 0.75,
         mirrorTextForFrontCamera: Bool = false,

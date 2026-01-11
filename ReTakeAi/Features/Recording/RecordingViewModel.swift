@@ -37,17 +37,12 @@ class RecordingViewModel {
     /// This determines how long the text takes to scroll, and thus recording duration
     var computedScrollDuration: TimeInterval {
         guard let scene = currentScene else { return 10 }
-        
-        // Use scene duration if set, otherwise calculate from script length
-        if let sceneDuration = scene.duration, sceneDuration > 0 {
-            return sceneDuration
-        }
-        
-        // Fall back to calculation from script text and speaking rate
+
+        // Always calculate from script length and speaking rate (do NOT use scene.duration).
         let baseRate = TeleprompterTimingCalculator.defaultCharsPerSecond
         let speedMultiplier = preferences.defaultSpeed.multiplier
         let adjustedRate = baseRate * speedMultiplier
-        
+
         return TeleprompterTimingCalculator.duration(
             for: scene.scriptText,
             charsPerSecond: adjustedRate

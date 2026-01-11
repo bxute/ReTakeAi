@@ -209,7 +209,7 @@ enum TeleprompterTimingCalculator {
     
     /// Average characters per second for comfortable reading
     /// ~150 words/min ≈ 12.5 chars/sec (assuming avg 5 chars/word)
-    static let defaultCharsPerSecond: Double = 12.5
+    static let defaultCharsPerSecond: Double = 5
     
     /// Calculate scroll duration based on script length and speaking rate
     /// - Parameters:
