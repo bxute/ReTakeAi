@@ -21,8 +21,6 @@ struct ShootOverviewView: View {
         ScrollView {
             LazyVStack(alignment: .leading, spacing: 28) {
                 if let project = viewModel.project {
-                    progressSection(project: project)
-
                     scenesSection
                 }
             }
@@ -59,43 +57,6 @@ struct ShootOverviewView: View {
         }
     }
 
-    private func progressSection(project: Project) -> some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                Text("Recording Progress")
-                    .font(.headline)
-                Spacer()
-                Text("\(viewModel.recordedScenesCount)/\(viewModel.scenes.count)")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-            }
-
-            ProgressView(value: Double(viewModel.recordedScenesCount), total: Double(max(viewModel.scenes.count, 1)))
-                .tint(viewModel.recordedScenesCount == viewModel.scenes.count ? .green : .blue)
-
-            if let next = viewModel.nextSceneToRecord {
-                Button {
-                    selectedSceneForRecording = next
-                } label: {
-                    Label("Go to Shoot Scene \(next.orderIndex + 1)", systemImage: "video.fill")
-                        .font(.headline)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 10)
-                }
-                .buttonStyle(.borderedProminent)
-                .tint(.red)
-            } else if !viewModel.scenes.isEmpty {
-                Text("All scenes have at least one take.")
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
-            } else {
-                Text("No scenes yet. Generate scenes first.")
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
-            }
-        }
-    }
-
     private var scenesSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             VStack(alignment: .leading, spacing: 4) {
@@ -119,10 +80,10 @@ struct ShootOverviewView: View {
                         HStack(alignment: .top, spacing: 12) {
                             Group {
                                 if let best {
-                                    TapPreviewVideoThumbnailView(
-                                        url: best.fileURL,
-                                        maxPreviewSeconds: min(2.5, best.duration),
-                                        isPortrait: best.resolution.height > best.resolution.width
+                                    VideoThumbnailView(
+                                        videoURL: best.fileURL,
+                                        isPortrait: best.resolution.height > best.resolution.width,
+                                        durationText: nil
                                     )
                                 } else {
                                     ZStack {
@@ -173,6 +134,14 @@ struct ShootOverviewView: View {
                                         Text("Best: #\(best.takeNumber)")
                                             .font(.caption)
                                             .foregroundStyle(.secondary)
+
+                                        Text("•")
+                                            .font(.caption)
+                                            .foregroundStyle(.tertiary)
+
+                                        Text(best.duration.shortDuration)
+                                            .font(.caption)
+                                            .foregroundStyle(.secondary)
                                     }
 
                                     Spacer(minLength: 0)
@@ -192,15 +161,17 @@ struct ShootOverviewView: View {
                 }
             }
 
-            NavigationLink {
-                ShootExportsView(projectID: projectID)
-            } label: {
-                Label("Go to Exports", systemImage: "square.and.arrow.up")
-                    .frame(maxWidth: .infinity)
+            if !viewModel.scenes.isEmpty && viewModel.scenes.allSatisfy({ $0.isRecorded }) {
+                NavigationLink {
+                    ShootExportsView(projectID: projectID)
+                } label: {
+                    Label("Go to Exports", systemImage: "square.and.arrow.up")
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.bordered)
+                .controlSize(.large)
+                .padding(.top, 16)
             }
-            .buttonStyle(.bordered)
-            .controlSize(.large)
-            .padding(.top, 16)
         }
     }
 }
