@@ -112,35 +112,56 @@ struct ShootOverviewView: View {
                     .foregroundStyle(.secondary)
             } else {
                 ForEach(viewModel.scenes.sorted(by: { $0.orderIndex < $1.orderIndex })) { scene in
-                    Button {
-                        selectedSceneForDetails = scene
-                    } label: {
-                        VStack(alignment: .leading, spacing: 10) {
-                            HStack {
-                                Text("Scene \(scene.orderIndex + 1)")
-                                    .font(.subheadline.weight(.semibold))
-                                Spacer()
-                                if scene.isRecorded {
-                                    Text("Recorded")
-                                        .font(.caption.weight(.semibold))
-                                        .foregroundStyle(.blue)
+                    let takes = viewModel.getTakes(for: scene)
+                    let best = viewModel.bestTake(for: scene)
+
+                    VStack(alignment: .leading, spacing: 10) {
+                        HStack(alignment: .top, spacing: 12) {
+                            Group {
+                                if let best {
+                                    TapPreviewVideoThumbnailView(
+                                        url: best.fileURL,
+                                        maxPreviewSeconds: min(2.5, best.duration),
+                                        isPortrait: best.resolution.height > best.resolution.width
+                                    )
                                 } else {
-                                    Text("Not recorded")
-                                        .font(.caption.weight(.semibold))
-                                        .foregroundStyle(.secondary)
+                                    ZStack {
+                                        RoundedRectangle(cornerRadius: 10, style: .continuous)
+                                            .fill(Color.secondary.opacity(0.12))
+                                        Image(systemName: "video.slash")
+                                            .font(.headline)
+                                            .foregroundStyle(.secondary)
+                                    }
                                 }
                             }
+                            .frame(width: 96)
+                            .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
 
-                            Text(scene.scriptText)
-                                .font(.footnote)
-                                .foregroundStyle(.secondary)
-                                .lineLimit(2)
+                            VStack(alignment: .leading, spacing: 6) {
+                                HStack(alignment: .firstTextBaseline) {
+                                    Text("Scene \(scene.orderIndex + 1)")
+                                        .font(.subheadline.weight(.semibold))
 
-                            let takes = viewModel.getTakes(for: scene)
-                            let best = viewModel.bestTake(for: scene)
-                            HStack(alignment: .firstTextBaseline, spacing: 10) {
+                                    Spacer()
+
+                                    Button {
+                                        selectedSceneForRecording = scene
+                                    } label: {
+                                        Text(scene.isRecorded ? "ReTake" : "Record")
+                                            .font(.caption.weight(.semibold))
+                                    }
+                                    .buttonStyle(.bordered)
+                                    .controlSize(.small)
+                                    .tint(.red)
+                                }
+
+                                Text(scene.scriptText)
+                                    .font(.footnote)
+                                    .foregroundStyle(.secondary)
+                                    .lineLimit(2)
+
                                 HStack(spacing: 6) {
-                                    Text("\(takes.count) take\(takes.count == 1 ? "" : "s")")
+                                    Text("Takes: \(takes.count)")
                                         .font(.caption)
                                         .foregroundStyle(.secondary)
 
@@ -149,41 +170,25 @@ struct ShootOverviewView: View {
                                             .font(.caption)
                                             .foregroundStyle(.tertiary)
 
-                                        Text("Best: Take \(best.takeNumber)")
-                                            .font(.caption)
-                                            .foregroundStyle(.secondary)
-
-                                        Text("•")
-                                            .font(.caption)
-                                            .foregroundStyle(.tertiary)
-
-                                        Text(best.duration.shortDuration)
+                                        Text("Best: #\(best.takeNumber)")
                                             .font(.caption)
                                             .foregroundStyle(.secondary)
                                     }
-                                }
 
-                                Spacer(minLength: 0)
-
-                                Button {
-                                    selectedSceneForRecording = scene
-                                } label: {
-                                    Text("Re Take")
-                                        .font(.caption.weight(.semibold))
+                                    Spacer(minLength: 0)
                                 }
-                                .buttonStyle(.bordered)
-                                .controlSize(.small)
-                                .tint(.red)
                             }
                         }
-                        .padding(12)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                .stroke(Color.secondary.opacity(0.25), lineWidth: 1)
-                        )
-                        .contentShape(Rectangle())
                     }
-                    .buttonStyle(.plain)
+                    .padding(12)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 14, style: .continuous)
+                            .stroke(Color.secondary.opacity(0.25), lineWidth: 1)
+                    )
+                    .contentShape(Rectangle())
+                    .onTapGesture {
+                        selectedSceneForDetails = scene
+                    }
                 }
             }
 
