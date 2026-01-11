@@ -51,6 +51,15 @@ final class SceneBreakdownReviewViewModel {
         }
     }
 
+    func regenerateScenesReplacingScriptAndScenes() async {
+        errorMessage = nil
+        guard let project = projectStore.getProject(by: projectID) else {
+            errorMessage = "Project not found"
+            return
+        }
+        await generateFromScript(project: project, replaceExisting: true)
+    }
+
     private func loadExisting(project: Project) {
         let scenes = sceneStore.getScenes(for: project)
         drafts = scenes.sorted(by: { $0.orderIndex < $1.orderIndex }).map { scene in

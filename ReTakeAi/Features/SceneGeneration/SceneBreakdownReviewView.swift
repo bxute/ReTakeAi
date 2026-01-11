@@ -11,6 +11,7 @@ struct SceneBreakdownReviewView: View {
 
     @State private var editingDraft: GeneratedSceneDraft?
     @State private var showingPrompt = false
+    @State private var showingRegenerateConfirm = false
 
     init(projectID: UUID, mode: SceneBreakdownReviewViewModel.Mode) {
         _viewModel = State(initialValue: SceneBreakdownReviewViewModel(projectID: projectID, mode: mode))
@@ -22,6 +23,14 @@ struct SceneBreakdownReviewView: View {
                 LazyVStack(alignment: .leading, spacing: 16) {
                     if let projectDirection = viewModel.projectDirection {
                         ProjectDirectionHeader(direction: projectDirection)
+
+                        Button(role: .destructive) {
+                            showingRegenerateConfirm = true
+                        } label: {
+                            Label("Regenerate scenes", systemImage: "sparkles")
+                                .frame(maxWidth: .infinity)
+                        }
+                        .buttonStyle(.bordered)
                     }
 
                     if let prompt = viewModel.promptUsed {
@@ -92,6 +101,16 @@ struct SceneBreakdownReviewView: View {
             Button("OK") { viewModel.errorMessage = nil }
         } message: {
             if let msg = viewModel.errorMessage { Text(msg) }
+        }
+        .alert("Regenerate scenes?", isPresented: $showingRegenerateConfirm) {
+            Button("Cancel", role: .cancel) {}
+            Button("Regenerate", role: .destructive) {
+                Task {
+                    await viewModel.regenerateScenesReplacingScriptAndScenes()
+                }
+            }
+        } message: {
+            Text("This will overwrite your current script draft and replace your existing scenes using AI. Existing takes remain on disk, but the scene list will be rebuilt.")
         }
     }
 }

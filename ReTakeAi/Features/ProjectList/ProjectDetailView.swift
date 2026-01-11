@@ -13,7 +13,6 @@ struct ProjectDetailView: View {
     @State private var showingAIGeneratedNotice = false
     @State private var showingSceneBreakdown = false
     @State private var sceneBreakdownMode: SceneBreakdownReviewViewModel.Mode = .reviewExisting
-    @State private var showingRegenerateConfirm = false
     @State private var showingShoot = false
     
     private let sceneStore = SceneStore.shared
@@ -213,15 +212,6 @@ struct ProjectDetailView: View {
                     }
                     .buttonStyle(.borderedProminent)
                     .controlSize(.large)
-
-                    Button(role: .destructive) {
-                        showingRegenerateConfirm = true
-                    } label: {
-                        Text("Regenerate scenes")
-                            .frame(maxWidth: .infinity)
-                    }
-                    .buttonStyle(.bordered)
-                    .controlSize(.large)
                 }
             }
             .padding(.top, 8)
@@ -260,15 +250,6 @@ struct ProjectDetailView: View {
         }
         .refreshable {
             loadProjectAndScenes()
-        }
-        .alert("Replace existing scenes?", isPresented: $showingRegenerateConfirm) {
-            Button("Cancel", role: .cancel) {}
-            Button("Regenerate", role: .destructive) {
-                sceneBreakdownMode = .generateFromScript(replaceExisting: true)
-                showingSceneBreakdown = true
-            }
-        } message: {
-            Text("This will replace your current scenes. Existing takes will remain on disk, but the scene list will be rebuilt.")
         }
     }
     
