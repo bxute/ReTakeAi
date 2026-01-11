@@ -73,7 +73,6 @@ struct HorizontalTeleprompterOverlay: View {
             .font(.system(size: fontSize, weight: .semibold, design: .default))
             .foregroundStyle(.white)
             .lineLimit(1)
-            .truncationMode(.clip)
             .fixedSize(horizontal: true, vertical: false)
             .padding(.horizontal, 20)
             .padding(.vertical, 16)
