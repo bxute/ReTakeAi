@@ -11,11 +11,6 @@ struct ShootOverviewView: View {
 
     @State private var selectedSceneForRecording: VideoScene?
     @State private var selectedSceneForDetails: VideoScene?
-    @State private var isPreparingPreview = false
-    @State private var previewURL: URL?
-    @State private var showingPreview = false
-    @State private var previewTakes: [Take] = []
-    @State private var previewDefaultAspect: VideoAspect = .portrait9x16
 
     init(projectID: UUID) {
         self.projectID = projectID
@@ -23,27 +18,14 @@ struct ShootOverviewView: View {
     }
 
     var body: some View {
-        ZStack {
-            ScrollView {
-                LazyVStack(alignment: .leading, spacing: 28) {
-                    if let project = viewModel.project {
-                        scenesSection
-                    }
+        ScrollView {
+            LazyVStack(alignment: .leading, spacing: 28) {
+                if let project = viewModel.project {
+                    scenesSection
                 }
-                .padding(.horizontal)
-                .padding(.vertical, 16)
             }
-
-            if isPreparingPreview {
-                VStack(spacing: 12) {
-                    ProgressView()
-                    Text("Preparing Video Preview….")
-                        .font(.footnote)
-                        .foregroundStyle(.secondary)
-                }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .background(.ultraThinMaterial)
-            }
+            .padding(.horizontal)
+            .padding(.vertical, 16)
         }
         .navigationTitle("Scene Shoot")
         .navigationBarTitleDisplayMode(.inline)
@@ -72,16 +54,6 @@ struct ShootOverviewView: View {
             Button("OK") { viewModel.errorMessage = nil }
         } message: {
             if let msg = viewModel.errorMessage { Text(msg) }
-        }
-        .navigationDestination(isPresented: $showingPreview) {
-            if let previewURL {
-                PreviewScreen(
-                    projectID: projectID,
-                    takes: previewTakes,
-                    initialPreviewURL: previewURL,
-                    initialAspect: previewDefaultAspect
-                )
-            }
         }
     }
 
@@ -188,75 +160,16 @@ struct ShootOverviewView: View {
             }
 
             if !viewModel.scenes.isEmpty && viewModel.scenes.allSatisfy({ $0.isRecorded }) {
-                Button {
-                    Task { await preparePreview() }
+                NavigationLink {
+                    PreviewScreen(projectID: projectID)
                 } label: {
                     Label("Preview Video", systemImage: "play.circle.fill")
                         .frame(maxWidth: .infinity)
                 }
                 .buttonStyle(.borderedProminent)
                 .controlSize(.large)
-                .disabled(isPreparingPreview)
                 .padding(.top, 16)
             }
-        }
-    }
-
-    private func preparePreview() async {
-        guard !isPreparingPreview else { return }
-        isPreparingPreview = true
-        defer { isPreparingPreview = false }
-
-        do {
-            let projectStore = ProjectStore.shared
-            let sceneStore = SceneStore.shared
-            let takeStore = TakeStore.shared
-
-            guard let latestProject = projectStore.getProject(by: projectID) else {
-                viewModel.errorMessage = "Project not found"
-                return
-            }
-
-            let scenes = sceneStore.getScenes(for: latestProject)
-            guard !scenes.isEmpty else {
-                viewModel.errorMessage = "No scenes to preview"
-                return
-            }
-
-            let selectedTakes = scenes.compactMap { scene -> Take? in
-                guard let selectedTakeID = scene.selectedTakeID else { return nil }
-                let takes = takeStore.getTakes(for: scene)
-                return takes.first { $0.id == selectedTakeID }
-            }
-
-            guard selectedTakes.count == scenes.count else {
-                viewModel.errorMessage = "Please select a take for each scene before previewing."
-                return
-            }
-
-            let tmp = FileManager.default.temporaryDirectory
-            let url = tmp.appendingPathComponent("preview_\(projectID.uuidString)_\(Int(Date().timeIntervalSince1970)).mov")
-            try? FileManager.default.removeItem(at: url)
-
-            let first = selectedTakes.first
-            let defaultAspect: VideoAspect = {
-                guard let first else { return .portrait9x16 }
-                return (first.resolution.height >= first.resolution.width) ? .portrait9x16 : .landscape16x9
-            }()
-
-            let merged = try await VideoMerger.shared.mergeScenes(
-                selectedTakes,
-                outputURL: url,
-                targetAspect: defaultAspect,
-                progress: nil
-            )
-
-            previewTakes = selectedTakes
-            previewDefaultAspect = defaultAspect
-            previewURL = merged
-            showingPreview = true
-        } catch {
-            viewModel.errorMessage = "Preview failed: \(error.localizedDescription)"
         }
     }
 }
