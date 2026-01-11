@@ -202,11 +202,13 @@ struct RecordingView: View {
                     Button {
                         viewModel.beginRecordingTimer()
                     } label: {
-                        Image(systemName: "play.fill")
-                            .font(.system(size: 20, weight: .semibold))
-                            .foregroundStyle(.white)
+                        Circle()
+                            .fill(.red)
                             .frame(width: 72, height: 72)
-                            .background(Circle().fill(.red))
+                            .overlay(
+                                Circle()
+                                    .stroke(.white.opacity(0.28), lineWidth: 2)
+                            )
                     }
                     .buttonStyle(.plain)
                     .disabled(!viewModel.isSetupComplete || viewModel.captureSession == nil)
