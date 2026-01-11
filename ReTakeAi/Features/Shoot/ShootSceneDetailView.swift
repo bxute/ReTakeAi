@@ -10,8 +10,7 @@ struct ShootSceneDetailView: View {
     let sceneID: UUID
 
     @State private var viewModel: ShootSceneDetailViewModel
-    @State private var selectedTake: Take?
-    @State private var autoplayPreview = false
+    @State private var playingTake: Take?
 
     init(projectID: UUID, sceneID: UUID) {
         self.projectID = projectID
@@ -20,44 +19,43 @@ struct ShootSceneDetailView: View {
     }
 
     var body: some View {
-        VStack(spacing: 0) {
-            if let take = selectedTake {
-                VideoPlayerView(videoURL: take.fileURL, autoplay: autoplayPreview)
-                    .frame(height: 300)
-                    .background(Color.black)
-            }
-
-            List {
-                if let scene = viewModel.scene {
-                    Section("Script") {
-                        Text(scene.scriptText)
-                            .font(.body)
-                            .padding(.vertical, 6)
-                    }
+        List {
+            if let scene = viewModel.scene {
+                Section("Script") {
+                    Text(scene.scriptText)
+                        .font(.body)
+                        .padding(.vertical, 6)
                 }
-
-                takesSections
             }
+
+            takesSections
         }
         .navigationTitle(titleText)
         .navigationBarTitleDisplayMode(.inline)
         .onAppear {
             viewModel.load()
-            // Show best take in preview, but do not auto-play.
-            if selectedTake == nil {
-                if let preferredID = viewModel.scene?.selectedTakeID,
-                   let preferred = viewModel.takes.first(where: { $0.id == preferredID }) {
-                    selectedTake = preferred
-                } else {
-                    selectedTake = viewModel.takes.max(by: { $0.takeNumber < $1.takeNumber })
-                }
-            }
-            autoplayPreview = false
         }
         .alert("Error", isPresented: .constant(viewModel.errorMessage != nil)) {
             Button("OK") { viewModel.errorMessage = nil }
         } message: {
             if let msg = viewModel.errorMessage { Text(msg) }
+        }
+        .fullScreenCover(item: $playingTake) { take in
+            ZStack(alignment: .topTrailing) {
+                VideoPlayerView(videoURL: take.fileURL, autoplay: true) { playingTake = nil }
+                    .ignoresSafeArea()
+
+                Button {
+                    playingTake = nil
+                } label: {
+                    Image(systemName: "xmark.circle.fill")
+                        .font(.title2)
+                        .foregroundStyle(.white, .black.opacity(0.35))
+                        .padding(10)
+                }
+                .buttonStyle(.plain)
+            }
+            .statusBarHidden(true)
         }
     }
 
@@ -89,15 +87,14 @@ struct ShootSceneDetailView: View {
                         take: preferred,
                         isPreferred: true,
                         onPlay: {
-                            selectedTake = preferred
-                            autoplayPreview = true
+                            playingTake = preferred
                         },
                         onMarkPreferred: {}
                     )
                     .swipeActions(edge: .trailing, allowsFullSwipe: false) {
                         Button(role: .destructive) {
                             viewModel.deleteTake(preferred)
-                            if selectedTake?.id == preferred.id { selectedTake = nil }
+                            if playingTake?.id == preferred.id { playingTake = nil }
                         } label: {
                             Label("Delete", systemImage: "trash")
                         }
@@ -111,15 +108,14 @@ struct ShootSceneDetailView: View {
                         take: take,
                         isPreferred: false,
                         onPlay: {
-                            selectedTake = take
-                            autoplayPreview = true
+                            playingTake = take
                         },
                         onMarkPreferred: { viewModel.markPreferred(take) }
                     )
                     .swipeActions(edge: .trailing, allowsFullSwipe: false) {
                         Button(role: .destructive) {
                             viewModel.deleteTake(take)
-                            if selectedTake?.id == take.id { selectedTake = nil }
+                            if playingTake?.id == take.id { playingTake = nil }
                         } label: {
                             Label("Delete", systemImage: "trash")
                         }
@@ -139,19 +135,20 @@ private struct ShootSceneTakeRowView: View {
     var body: some View {
         HStack(spacing: 12) {
             Button(action: onPlay) {
-                HStack(spacing: 10) {
-                    Image(systemName: "play.circle.fill")
-                        .font(.title3)
-                        .foregroundStyle(.blue)
+                HStack(spacing: 12) {
+                    VideoThumbnailView(
+                        videoURL: take.fileURL,
+                        isPortrait: take.resolution.height >= take.resolution.width,
+                        durationText: nil
+                    )
+                    .frame(width: 80, height: 80)
+                    .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
 
                     VStack(alignment: .leading, spacing: 4) {
                         Text("Take \(take.takeNumber)")
                             .font(.headline)
 
-                        HStack(spacing: 12) {
-                            Label(take.duration.shortDuration, systemImage: "clock")
-                            Text(take.recordedAt.timeAgo)
-                        }
+                        Text("\(take.duration.shortDuration) • \(take.recordedAt.timeAgo)")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                     }
