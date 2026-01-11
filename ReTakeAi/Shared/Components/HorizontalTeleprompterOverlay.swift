@@ -4,6 +4,7 @@
 //
 
 import SwiftUI
+import UIKit
 import Combine
 
 /// A single-line marquee text that scrolls linearly right→left (or left→right).
@@ -48,9 +49,7 @@ struct HorizontalTeleprompterOverlay: View {
             let xOffset = computeOffset(now: now)
 
             GeometryReader { proxy in
-                Text(cleaned(text))
-                    .font(.system(size: fontSize, weight: .semibold, design: .default))
-                    .foregroundStyle(.white.opacity(opacity))
+                Text(styledText)
                     .lineLimit(1)
                     .fixedSize(horizontal: true, vertical: false)
                     .background(
@@ -154,6 +153,45 @@ struct HorizontalTeleprompterOverlay: View {
             // Start off-screen left, move right linearly
             return -contentWidth + traveled
         }
+    }
+
+    /// Styled text with sentence spacing for improved readability
+    /// Adds extra horizontal space after sentence-ending punctuation (. ? !)
+    private var styledText: AttributedString {
+        let cleanedText = cleaned(text)
+        var result = AttributedString()
+        
+        // Sentence spacing multiplier (proportional to font size)
+        let sentenceSpacing = fontSize * 1.4
+        
+        // Base attributes for all text
+        let baseAttributes = AttributeContainer([
+            .font: UIFont.systemFont(ofSize: fontSize, weight: .semibold),
+            .foregroundColor: UIColor.white.withAlphaComponent(opacity)
+        ])
+        
+        // Process text character by character to add spacing after sentence endings
+        var i = cleanedText.startIndex
+        while i < cleanedText.endIndex {
+            let char = cleanedText[i]
+            var charStr = AttributedString(String(char))
+            charStr.mergeAttributes(baseAttributes)
+            
+            // Check if this is sentence-ending punctuation followed by a space
+            let nextIndex = cleanedText.index(after: i)
+            let isSentenceEnd = (char == "." || char == "?" || char == "!")
+            let isFollowedBySpace = nextIndex < cleanedText.endIndex && cleanedText[nextIndex] == " "
+            
+            if isSentenceEnd && isFollowedBySpace {
+                // Add extra kerning after sentence-ending punctuation
+                charStr.kern = sentenceSpacing
+            }
+            
+            result.append(charStr)
+            i = nextIndex
+        }
+        
+        return result
     }
 
     private func cleaned(_ raw: String) -> String {
