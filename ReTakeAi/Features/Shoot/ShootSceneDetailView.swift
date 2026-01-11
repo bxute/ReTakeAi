@@ -136,13 +136,22 @@ private struct ShootSceneTakeRowView: View {
         HStack(spacing: 12) {
             Button(action: onPlay) {
                 HStack(spacing: 12) {
-                    VideoThumbnailView(
-                        videoURL: take.fileURL,
-                        isPortrait: take.resolution.height >= take.resolution.width,
-                        durationText: nil
-                    )
-                    .frame(width: 80, height: 80)
-                    .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+                    ZStack {
+                        VideoThumbnailView(
+                            videoURL: take.fileURL,
+                            isPortrait: take.resolution.height >= take.resolution.width,
+                            durationText: nil
+                        )
+                        .frame(width: 80, height: 80)
+                        .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+
+                        Image(systemName: "play.fill")
+                            .font(.system(size: 12, weight: .semibold))
+                            .foregroundStyle(.white.opacity(0.9))
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 6)
+                            .background(.black.opacity(0.35), in: Capsule())
+                    }
 
                     VStack(alignment: .leading, spacing: 4) {
                         Text("Take \(take.takeNumber)")
