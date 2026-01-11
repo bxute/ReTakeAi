@@ -173,7 +173,7 @@ struct ProjectDetailView: View {
                 }
 
             // Bottom CTAs (A/B/C)
-            VStack(alignment: .leading, spacing: 12) {
+            VStack(alignment: .leading, spacing: 8) {
                 if !hasScript {
                     Button {
                         showingScriptEditor = true
@@ -214,7 +214,7 @@ struct ProjectDetailView: View {
                     .controlSize(.large)
                 }
             }
-            .padding(.top, 8)
+            .padding(.top, 18)
 
             Button {
                 showingShoot = true
@@ -226,7 +226,19 @@ struct ProjectDetailView: View {
             .controlSize(.large)
             .tint(.red)
             .disabled(scenes.isEmpty)
-            .padding(.top, 6)
+            .padding(.top, 4)
+
+            if !currentProject.exports.isEmpty {
+                NavigationLink {
+                    ExportsScreen(projectID: currentProject.id)
+                } label: {
+                    Label("Go to Exports", systemImage: "square.and.arrow.up")
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.bordered)
+                .controlSize(.large)
+                .padding(.top, 4)
+            }
             }
         }
         .padding(.horizontal)

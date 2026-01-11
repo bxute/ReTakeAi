@@ -10,12 +10,14 @@ struct PreviewScreen: View {
     @State private var project: Project?
     @State private var selectedAspect: VideoAspect = .portrait9x16
     @State private var isWorking = false
+    @State private var progressMessage: String?
 
     @State private var cachedPreviewURLs: [VideoAspect: URL] = [:]
     @State private var lastMergedURL: URL?
 
     @State private var showingPlayer = false
     @State private var playingURL: URL?
+    @State private var showingExports = false
 
     @State private var showingExport = false
     @Environment(\.dismiss) private var dismiss
@@ -28,125 +30,94 @@ struct PreviewScreen: View {
         ZStack {
             ScrollView {
                 LazyVStack(alignment: .leading, spacing: 20) {
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("Aspect Ratio")
-                            .font(.subheadline.weight(.semibold))
-                            .foregroundStyle(.secondary)
-                        aspectRatioSelector
-                    }
-                    .padding(.top, 4)
+                    informationSection
 
-                    VStack(alignment: .leading, spacing: 10) {
-                        Text("Background Music")
-                            .font(.subheadline.weight(.semibold))
-                            .foregroundStyle(.secondary)
-                        HStack {
-                            Text("Coming soon")
-                                .foregroundStyle(.secondary)
-                            Spacer()
-                            Image(systemName: "music.note")
-                                .foregroundStyle(.tertiary)
-                        }
-                        .padding(12)
-                        .background(Color(.systemGray6), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
-                    }
+                    aspectSelectionSection
 
-                    VStack(alignment: .leading, spacing: 10) {
-                        Text("Advanced AI Trims")
-                            .font(.subheadline.weight(.semibold))
-                            .foregroundStyle(.secondary)
-                        HStack {
-                            Text("Coming soon")
-                                .foregroundStyle(.secondary)
-                            Spacer()
-                            Image(systemName: "scissors")
-                                .foregroundStyle(.tertiary)
-                        }
-                        .padding(12)
-                        .background(Color(.systemGray6), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
-                    }
+                    optionsSection
+
+                    generatedPreviewSection
 
                     Button {
-                        Task { await generatePreview() }
+                        Task { await generatePreview(force: true) }
                     } label: {
-                        Label("Generate Preview", systemImage: "play.circle.fill")
+                        Label(hasGeneratedPreviewForSelectedAspect ? "Re-Generate Preview" : "Generate Preview", systemImage: "play.circle.fill")
                             .frame(maxWidth: .infinity)
                     }
                     .buttonStyle(.bordered)
                     .controlSize(.large)
                     .disabled(isWorking)
 
-                    if let project, !project.exports.isEmpty {
-                        previousExportsSection(project: project)
+                    if hasGeneratedPreviewForSelectedAspect {
+                        VStack(spacing: 10) {
+                            Button {
+                                Task { await exportVideo() }
+                            } label: {
+                                Label("Export Video", systemImage: "square.and.arrow.up")
+                                    .frame(maxWidth: .infinity)
+                            }
+                            .buttonStyle(.borderedProminent)
+                            .controlSize(.large)
+                            .disabled(isWorking || project == nil)
+
+                            HStack(spacing: 10) {
+                                Text(finalDurationText)
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                                Text("•")
+                                    .font(.caption)
+                                    .foregroundStyle(.tertiary)
+                                Text(finalSizeText)
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                                Spacer()
+                            }
+                        }
                     }
                 }
                 .padding(.horizontal)
                 .padding(.vertical, 16)
             }
 
-            VStack(spacing: 8) {
-                Spacer()
-
-                VStack(spacing: 10) {
-                    Button {
-                        Task { await exportVideo() }
-                    } label: {
-                        Label("Export Video", systemImage: "square.and.arrow.up")
-                            .frame(maxWidth: .infinity)
-                    }
-                    .buttonStyle(.borderedProminent)
-                    .controlSize(.large)
-                    .disabled(isWorking || project == nil)
-
-                    HStack(spacing: 10) {
-                        Text(finalDurationText)
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                        Text("•")
-                            .font(.caption)
-                            .foregroundStyle(.tertiary)
-                        Text(finalSizeText)
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                        Spacer()
-                    }
-                }
-                .padding(.horizontal)
-                .padding(.top, 10)
-                .padding(.bottom, 16)
-                .background(.ultraThinMaterial)
-            }
-
-            if isWorking {
-                VStack(spacing: 12) {
-                    ProgressView()
-                    Text("Preparing Video Preview….")
-                        .font(.footnote)
-                        .foregroundStyle(.secondary)
-                }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .background(.ultraThinMaterial)
+            if let progressMessage {
+                ProgressDialog(message: progressMessage)
             }
         }
         .navigationTitle("Preview")
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .primaryAction) {
+                Button {
+                    showingExports = true
+                } label: {
+                    Text("Go to Exports")
+                }
+                .disabled(project?.exports.isEmpty ?? true)
+            }
+        }
         .task {
             load()
         }
+        .navigationDestination(isPresented: $showingExports) {
+            ExportsScreen(projectID: projectID)
+        }
         .fullScreenCover(isPresented: $showingPlayer) {
             if let playingURL {
-                NavigationStack {
-                    VideoPlayerView(videoURL: playingURL, autoplay: true) {
+                ZStack(alignment: .topTrailing) {
+                    VideoPlayerView(videoURL: playingURL, autoplay: true) { showingPlayer = false }
+                        .ignoresSafeArea()
+
+                    Button {
                         showingPlayer = false
+                    } label: {
+                        Image(systemName: "xmark.circle.fill")
+                            .font(.title2)
+                            .foregroundStyle(.white, .black.opacity(0.35))
+                            .padding(10)
                     }
-                    .navigationTitle("Preview")
-                    .navigationBarTitleDisplayMode(.inline)
-                    .toolbar {
-                        ToolbarItem(placement: .cancellationAction) {
-                            Button("Done") { showingPlayer = false }
-                        }
-                    }
+                    .buttonStyle(.plain)
                 }
+                .statusBarHidden(true)
             }
         }
     }
@@ -187,6 +158,109 @@ struct PreviewScreen: View {
         .padding(2)
     }
 
+    private var informationSection: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text("Information")
+                .font(.headline)
+
+            VStack(alignment: .leading, spacing: 6) {
+                Text(project?.title ?? "Project")
+                    .font(.subheadline.weight(.semibold))
+                Text("Finalize your export settings, then generate a preview or export.")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+            }
+            .padding(12)
+            .background(Color(.systemGray6), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+        }
+    }
+
+    private var aspectSelectionSection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Aspect Ratio")
+                .font(.headline)
+            aspectRatioSelector
+        }
+    }
+
+    private var optionsSection: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            VStack(alignment: .leading, spacing: 10) {
+                Text("Background Music")
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(.secondary)
+                HStack {
+                    Text("Not implemented yet")
+                        .foregroundStyle(.secondary)
+                    Spacer()
+                    Image(systemName: "music.note")
+                        .foregroundStyle(.tertiary)
+                }
+                .padding(12)
+                .background(Color(.systemGray6), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+            }
+
+            VStack(alignment: .leading, spacing: 10) {
+                Text("Advanced AI Trims")
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(.secondary)
+                HStack {
+                    Text("Not implemented yet")
+                        .foregroundStyle(.secondary)
+                    Spacer()
+                    Image(systemName: "scissors")
+                        .foregroundStyle(.tertiary)
+                }
+                .padding(12)
+                .background(Color(.systemGray6), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+            }
+        }
+    }
+
+    private var hasGeneratedPreviewForSelectedAspect: Bool {
+        if let url = cachedPreviewURLs[selectedAspect] {
+            return FileManager.default.fileExists(atPath: url.path)
+        }
+        return false
+    }
+
+    private var generatedPreviewSection: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text("Generated Video")
+                .font(.headline)
+
+            if let url = cachedPreviewURLs[selectedAspect], FileManager.default.fileExists(atPath: url.path) {
+                Button {
+                    playingURL = url
+                    showingPlayer = true
+                } label: {
+                    VideoThumbnailView(videoURL: url, isPortrait: false, durationText: nil)
+                        .aspectRatio(16.0 / 9.0, contentMode: .fit)
+                        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                .stroke(Color.secondary.opacity(0.25), lineWidth: 1)
+                        )
+                }
+                .buttonStyle(.plain)
+
+                Text("Duration: \(finalDurationText.replacingOccurrences(of: "Duration: ", with: ""))")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            } else {
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("No preview generated yet.")
+                        .font(.subheadline.weight(.semibold))
+                    Text("Tap “Generate Preview” to create a preview for the selected aspect ratio.")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                }
+                .padding(12)
+                .background(Color(.systemGray6), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+            }
+        }
+    }
+
     private func load() {
         let projectStore = ProjectStore.shared
         project = projectStore.getProject(by: projectID)
@@ -220,7 +294,7 @@ struct PreviewScreen: View {
     }
 
     private var finalSizeText: String {
-        if let url = lastMergedURL, FileManager.default.fileExists(atPath: url.path) {
+        if let url = cachedPreviewURLs[selectedAspect], FileManager.default.fileExists(atPath: url.path) {
             let size = FileStorageManager.shared.fileSize(at: url)
             return "Size: \(ByteCountFormatter.string(fromByteCount: size, countStyle: .file))"
         }
@@ -229,11 +303,12 @@ struct PreviewScreen: View {
         return "Size: ~\(ByteCountFormatter.string(fromByteCount: estimate, countStyle: .file))"
     }
 
-    private func generatePreview() async {
+    private func generatePreview(force: Bool) async {
         guard !isWorking else { return }
         guard let takes = loadSelectedTakes() else { return }
 
-        if let cached = cachedPreviewURLs[selectedAspect],
+        if !force,
+           let cached = cachedPreviewURLs[selectedAspect],
            FileManager.default.fileExists(atPath: cached.path) {
             lastMergedURL = cached
             playingURL = cached
@@ -242,7 +317,11 @@ struct PreviewScreen: View {
         }
 
         isWorking = true
-        defer { isWorking = false }
+        progressMessage = "Preparing Video Preview…."
+        defer {
+            isWorking = false
+            progressMessage = nil
+        }
 
         do {
             let tmp = FileManager.default.temporaryDirectory
@@ -271,7 +350,11 @@ struct PreviewScreen: View {
         guard let takes = loadSelectedTakes() else { return }
 
         isWorking = true
-        defer { isWorking = false }
+        progressMessage = "Exporting Video…."
+        defer {
+            isWorking = false
+            progressMessage = nil
+        }
 
         do {
             project.videoAspect = selectedAspect
@@ -292,6 +375,7 @@ struct PreviewScreen: View {
             let fileSize = FileStorageManager.shared.fileSize(at: mergedURL)
 
             let exportedVideo = ExportedVideo(
+                projectID: projectID,
                 fileURL: mergedURL,
                 aspect: selectedAspect,
                 duration: totalDuration,
@@ -304,52 +388,31 @@ struct PreviewScreen: View {
             updated.status = .exported
             try ProjectStore.shared.updateProject(updated)
             self.project = updated
+            showingExports = true
         } catch {
             // no-op for now
         }
     }
+}
 
-    private func previousExportsSection(project: Project) -> some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("Previous Exports")
-                .font(.headline)
+private struct ProgressDialog: View {
+    let message: String
 
-            ForEach(project.exports.sorted(by: { $0.exportedAt > $1.exportedAt })) { export in
-                Button {
-                    playingURL = export.fileURL
-                    showingPlayer = true
-                } label: {
-                    HStack(spacing: 12) {
-                        VideoThumbnailView(
-                            videoURL: export.fileURL,
-                            isPortrait: export.aspect == .portrait9x16,
-                            durationText: export.formattedDuration
-                        )
-                        .frame(width: 96)
-                        .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+    var body: some View {
+        ZStack {
+            Color.black.opacity(0.25)
+                .ignoresSafeArea()
 
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text(export.formattedDate)
-                                .font(.subheadline.weight(.semibold))
-                            Text("\(export.aspect.title) • \(export.formattedSize)")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                        }
-
-                        Spacer(minLength: 0)
-
-                        Image(systemName: "play.circle.fill")
-                            .font(.title3)
-                            .foregroundStyle(.blue)
-                    }
-                    .padding(12)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 14, style: .continuous)
-                            .stroke(Color.secondary.opacity(0.25), lineWidth: 1)
-                    )
-                }
-                .buttonStyle(.plain)
+            VStack(spacing: 12) {
+                ProgressView()
+                Text(message)
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
             }
+            .padding(.horizontal, 18)
+            .padding(.vertical, 16)
+            .frame(maxWidth: 320)
+            .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
         }
     }
 }

@@ -10,8 +10,10 @@ struct VideoThumbnailView: View {
     let videoURL: URL
     let isPortrait: Bool
     let durationText: String?
+    var maxPixelSize: CGSize = CGSize(width: 1024, height: 1024)
 
     @State private var image: UIImage?
+    @State private var loadingComplete = false
 
     var body: some View {
         ZStack {
@@ -19,6 +21,13 @@ struct VideoThumbnailView: View {
                 Image(uiImage: image)
                     .resizable()
                     .scaledToFill()
+            } else if loadingComplete {
+                // File missing or failed to generate
+                ZStack {
+                    Color.secondary.opacity(0.12)
+                    Image(systemName: "video.slash")
+                        .foregroundStyle(.secondary)
+                }
             } else {
                 ZStack {
                     Color.secondary.opacity(0.12)
@@ -40,16 +49,23 @@ struct VideoThumbnailView: View {
             }
         }
         .task(id: videoURL) {
+            loadingComplete = false
+            guard FileManager.default.fileExists(atPath: videoURL.path) else {
+                self.image = nil
+                loadingComplete = true
+                return
+            }
             do {
                 let thumb = try await ThumbnailGenerator.shared.generateThumbnail(
                     from: videoURL,
-                    at: CMTime(seconds: 0.0, preferredTimescale: 600),
-                    size: CGSize(width: 360, height: 360)
+                    at: CMTime(seconds: 0.5, preferredTimescale: 600),
+                    size: maxPixelSize
                 )
                 self.image = thumb
             } catch {
                 self.image = nil
             }
+            loadingComplete = true
         }
     }
 }

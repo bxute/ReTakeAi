@@ -74,6 +74,7 @@ class ExportViewModel {
             let fileSize = fileManager.fileSize(at: mergedURL)
             
             let exportedVideo = ExportedVideo(
+                projectID: project.id,
                 fileURL: mergedURL,
                 aspect: latestProject.videoAspect,
                 duration: totalDuration,
