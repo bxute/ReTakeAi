@@ -35,21 +35,20 @@ struct RecordingView: View {
                     .foregroundStyle(.white)
             }
             
-            VStack {
+            VStack(spacing: 0) {
                 topBar
-                
                 Spacer()
-                
-                if viewModel.showTeleprompter {
-                    teleprompterOverlay
-                }
-                
-                Spacer()
-                
-                bottomControls
             }
+
+            teleprompterOverlay
+
+            readyOverlay
+            setupOverlay
+            finalCountdownOverlay
+            recordingOverlay
+            completedOverlay
         }
-        .navigationBarBackButtonHidden(viewModel.isRecording)
+        .toolbar(.hidden, for: .navigationBar)
         .task {
             await viewModel.setup(project: project, scene: scene)
         }
@@ -63,6 +62,14 @@ struct RecordingView: View {
         .onDisappear {
             UIDevice.current.endGeneratingDeviceOrientationNotifications()
             viewModel.cleanup()
+        }
+        .onChange(of: viewModel.phase) { _, newValue in
+            if newValue == .completed {
+                Task {
+                    try? await Task.sleep(nanoseconds: 1_000_000_000)
+                    dismiss()
+                }
+            }
         }
         .alert("Recording Error", isPresented: isShowingError) {
             if let msg = viewModel.errorMessage, msg.localizedCaseInsensitiveContains("not authorized") {
@@ -96,7 +103,7 @@ struct RecordingView: View {
     
     private var topBar: some View {
         HStack {
-            if !viewModel.isRecording {
+            if viewModel.phase == .ready || viewModel.phase == .setup || viewModel.phase == .initializing {
                 Button {
                     dismiss()
                 } label: {
@@ -110,100 +117,157 @@ struct RecordingView: View {
             }
             
             Spacer()
-            
-            Button {
-                viewModel.toggleTeleprompter()
-            } label: {
-                Image(systemName: viewModel.showTeleprompter ? "text.bubble.fill" : "text.bubble")
-                    .font(.title3)
-                    .foregroundColor(.white)
-                    .padding(12)
-                    .background(Color.black.opacity(0.5))
-                    .clipShape(Circle())
-            }
-            
-            Button {
-                Task {
-                    await viewModel.switchCamera()
-                }
-            } label: {
-                Image(systemName: "arrow.triangle.2.circlepath.camera")
-                    .font(.title3)
-                    .foregroundColor(.white)
-                    .padding(12)
-                    .background(Color.black.opacity(0.5))
-                    .clipShape(Circle())
-            }
-            .disabled(viewModel.isRecording)
         }
         .padding()
     }
     
     private var teleprompterOverlay: some View {
-        ScrollView {
-            Text(scene.scriptText)
-                .font(.system(size: 24))
-                .foregroundColor(.white)
-                .padding()
+        VStack {
+            if viewModel.isSetupComplete {
+                HorizontalTeleprompterOverlay(
+                    text: scene.scriptText,
+                    isRunning: viewModel.phase == .recording && viewModel.isRecording,
+                    direction: viewModel.preferences.scrollDirection,
+                    pointsPerSecond: derivedTeleprompterPointsPerSecond(),
+                    fontSize: viewModel.preferences.textSize,
+                    opacity: viewModel.phase == .completed ? 0 : viewModel.preferences.textOpacity,
+                    mirror: viewModel.preferences.mirrorTextForFrontCamera
+                )
+                .padding(.top, 96)
+                .animation(.easeInOut(duration: 0.25), value: viewModel.phase)
+            }
+            Spacer()
         }
-        .frame(maxHeight: 200)
-        .background(Color.black.opacity(0.7))
-        .cornerRadius(12)
-        .padding(.horizontal)
+        .allowsHitTesting(false)
     }
-    
-    private var bottomControls: some View {
-        VStack(spacing: 16) {
-            if viewModel.isRecording {
-                Text(viewModel.recordingDuration.formattedDuration)
-                    .font(.system(size: 48, weight: .bold, design: .monospaced))
-                    .foregroundColor(.red)
-            }
-            
-            HStack(spacing: 40) {
-                if viewModel.isRecording {
+
+    private var setupOverlay: some View {
+        Group {
+            if viewModel.phase == .setup, viewModel.setupSecondsRemaining > 3 {
+                VStack(spacing: 10) {
+                    Spacer()
+                    Text("Recording starts in \(viewModel.setupSecondsRemaining)s")
+                        .font(.footnote.weight(.semibold))
+                        .foregroundStyle(.white.opacity(0.9))
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 8)
+                        .background(.black.opacity(0.45), in: Capsule())
+
                     Button {
-                        Task {
-                            await viewModel.cancelRecording()
-                        }
+                        viewModel.startNow()
                     } label: {
-                        Image(systemName: "xmark")
-                            .font(.title)
-                            .foregroundColor(.white)
-                            .frame(width: 60, height: 60)
-                            .background(Color.red.opacity(0.8))
-                            .clipShape(Circle())
+                        Text("Start now")
+                            .font(.footnote.weight(.semibold))
+                            .foregroundStyle(.white)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 8)
+                            .background(.black.opacity(0.35), in: Capsule())
                     }
+                    .buttonStyle(.plain)
+
+                    Spacer().frame(height: 38)
                 }
-                
-                Button {
-                    Task {
-                        if viewModel.isRecording {
-                            await viewModel.stopRecording()
-                            dismiss()
-                        } else {
-                            await viewModel.startRecording()
-                        }
-                    }
-                } label: {
-                    Circle()
-                        .fill(viewModel.isRecording ? Color.red : Color.white)
-                        .frame(width: 80, height: 80)
-                        .overlay(
-                            Circle()
-                                .stroke(Color.white, lineWidth: 4)
-                                .padding(4)
-                        )
-                }
-                .disabled(!viewModel.isSetupComplete || viewModel.captureSession == nil)
-                .opacity((!viewModel.isSetupComplete || viewModel.captureSession == nil) ? 0.4 : 1.0)
-                
-                if viewModel.isRecording {
-                    Color.clear
-                        .frame(width: 60, height: 60)
-                }
+                .transition(.opacity)
             }
         }
-        .padding(.bottom, 40)
+        .animation(.easeInOut(duration: 0.2), value: viewModel.setupSecondsRemaining)
+    }
+
+    private var readyOverlay: some View {
+        Group {
+            if viewModel.phase == .ready {
+                VStack(spacing: 12) {
+                    Spacer()
+
+                    Button {
+                        viewModel.beginRecordingTimer()
+                    } label: {
+                        Text("Start")
+                            .font(.headline.weight(.semibold))
+                            .frame(width: 140, height: 56)
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .tint(.red)
+                    .disabled(!viewModel.isSetupComplete || viewModel.captureSession == nil)
+
+                    Text("Tap Start to begin the countdown.")
+                        .font(.footnote)
+                        .foregroundStyle(.white.opacity(0.85))
+
+                    Spacer().frame(height: 38)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .transition(.opacity)
+            }
+        }
+    }
+
+    private var finalCountdownOverlay: some View {
+        Group {
+            if case let .finalCountdown(number) = viewModel.phase {
+                ZStack {
+                    Color.black.opacity(0.35).ignoresSafeArea()
+                    Text("\(number)")
+                        .font(.system(size: 140, weight: .bold, design: .rounded))
+                        .foregroundStyle(.white)
+                        .transition(.opacity)
+                }
+                .animation(.easeInOut(duration: 0.35), value: number)
+            }
+        }
+    }
+
+    private var recordingOverlay: some View {
+        Group {
+            if viewModel.phase == .recording && viewModel.isRecording {
+                VStack {
+                    HStack(spacing: 10) {
+                        Circle()
+                            .fill(.red)
+                            .frame(width: 10, height: 10)
+                        Text("REC")
+                            .font(.caption.weight(.semibold))
+                            .foregroundStyle(.red)
+
+                        Spacer()
+
+                        Text(TimeInterval(viewModel.remainingSeconds).formattedDuration)
+                            .font(.system(size: 22, weight: .bold, design: .monospaced))
+                            .foregroundStyle(.white)
+                    }
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 10)
+                    .background(.black.opacity(0.35), in: Capsule())
+                    .padding(.top, 20)
+
+                    Spacer()
+                }
+                .transition(.opacity)
+                .animation(.easeInOut(duration: 0.2), value: viewModel.remainingSeconds)
+            }
+        }
+    }
+
+    private var completedOverlay: some View {
+        Group {
+            if viewModel.phase == .completed {
+                VStack(spacing: 12) {
+                    Text("Scene recorded")
+                        .font(.headline.weight(.semibold))
+                        .foregroundStyle(.white)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .background(Color.black.opacity(0.25))
+                .transition(.opacity)
+            }
+        }
+        .animation(.easeInOut(duration: 0.25), value: viewModel.phase)
+    }
+
+    private func derivedTeleprompterPointsPerSecond() -> Double {
+        let expected = Double(max(1, viewModel.expectedSeconds))
+        let characters = Double(scene.scriptText.count)
+        let base = max(30, min(180, (characters / expected) * 6.0))
+        return base * viewModel.preferences.defaultSpeed.multiplier
     }
 }
