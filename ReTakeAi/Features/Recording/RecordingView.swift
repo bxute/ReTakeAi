@@ -13,7 +13,8 @@ struct RecordingView: View {
     
     @State private var viewModel = RecordingViewModel()
     @Environment(\.dismiss) private var dismiss
-    @State private var effectiveAspect: VideoAspect = .portrait9x16
+    @State private var showingCloseButton = true
+    @State private var closeAutoHideTask: Task<Void, Never>?
 
     private var isShowingError: Binding<Bool> {
         Binding(
@@ -35,9 +36,26 @@ struct RecordingView: View {
                     .foregroundStyle(.white)
             }
             
-            VStack(spacing: 0) {
-                topBar
-                Spacer()
+            if shouldShowCloseButton {
+                VStack {
+                    HStack {
+                        Button {
+                            dismiss()
+                        } label: {
+                            Image(systemName: "xmark.circle.fill")
+                                .font(.title2)
+                                .foregroundStyle(.white, .black.opacity(0.35))
+                        }
+                        .buttonStyle(.plain)
+
+                        Spacer()
+                    }
+                    .padding(.leading, 14)
+                    .padding(.top, 10)
+
+                    Spacer()
+                }
+                .transition(.opacity)
             }
 
             teleprompterOverlay
@@ -48,20 +66,23 @@ struct RecordingView: View {
             recordingOverlay
             completedOverlay
         }
+        .statusBarHidden(true)
         .toolbar(.hidden, for: .navigationBar)
         .task {
             await viewModel.setup(project: project, scene: scene)
         }
         .onAppear {
-            updateEffectiveAspect()
-            UIDevice.current.beginGeneratingDeviceOrientationNotifications()
-        }
-        .onReceive(NotificationCenter.default.publisher(for: UIDevice.orientationDidChangeNotification)) { _ in
-            updateEffectiveAspect()
+            scheduleCloseAutoHide()
         }
         .onDisappear {
-            UIDevice.current.endGeneratingDeviceOrientationNotifications()
+            closeAutoHideTask?.cancel()
+            closeAutoHideTask = nil
             viewModel.cleanup()
+        }
+        .contentShape(Rectangle())
+        .onTapGesture {
+            showingCloseButton = true
+            scheduleCloseAutoHide()
         }
         .onChange(of: viewModel.phase) { _, newValue in
             if newValue == .completed {
@@ -69,6 +90,9 @@ struct RecordingView: View {
                     try? await Task.sleep(nanoseconds: 1_000_000_000)
                     dismiss()
                 }
+            }
+            if newValue == .recording || newValue == .finalCountdown(number: 3) || newValue == .finalCountdown(number: 2) || newValue == .finalCountdown(number: 1) {
+                showingCloseButton = false
             }
         }
         .alert("Recording Error", isPresented: isShowingError) {
@@ -91,34 +115,6 @@ struct RecordingView: View {
     private func cameraPreview(session: AVCaptureSession) -> some View {
         CameraPreviewView(session: session)
             .ignoresSafeArea()
-            .overlay {
-                AspectCropOverlay(aspect: effectiveAspect)
-            }
-    }
-
-    private func updateEffectiveAspect() {
-        let io = (UIApplication.shared.connectedScenes.first as? UIWindowScene)?.interfaceOrientation ?? .portrait
-        effectiveAspect = io.isLandscape ? .landscape16x9 : .portrait9x16
-    }
-    
-    private var topBar: some View {
-        HStack {
-            if viewModel.phase == .ready || viewModel.phase == .setup || viewModel.phase == .initializing {
-                Button {
-                    dismiss()
-                } label: {
-                    Image(systemName: "xmark")
-                        .font(.title3)
-                        .foregroundColor(.white)
-                        .padding(12)
-                        .background(Color.black.opacity(0.5))
-                        .clipShape(Circle())
-                }
-            }
-            
-            Spacer()
-        }
-        .padding()
     }
     
     private var teleprompterOverlay: some View {
@@ -129,11 +125,11 @@ struct RecordingView: View {
                     isRunning: viewModel.phase == .recording && viewModel.isRecording,
                     direction: viewModel.preferences.scrollDirection,
                     pointsPerSecond: derivedTeleprompterPointsPerSecond(),
-                    fontSize: viewModel.preferences.textSize,
+                    fontSize: viewModel.preferences.textSize * 1.5,
                     opacity: viewModel.phase == .completed ? 0 : viewModel.preferences.textOpacity,
                     mirror: viewModel.preferences.mirrorTextForFrontCamera
                 )
-                .padding(.top, 96)
+                .padding(.top, 40)
                 .animation(.easeInOut(duration: 0.25), value: viewModel.phase)
             }
             Spacer()
@@ -146,26 +142,37 @@ struct RecordingView: View {
             if viewModel.phase == .setup, viewModel.setupSecondsRemaining > 3 {
                 VStack(spacing: 10) {
                     Spacer()
-                    Text("Recording starts in \(viewModel.setupSecondsRemaining)s")
-                        .font(.footnote.weight(.semibold))
-                        .foregroundStyle(.white.opacity(0.9))
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 8)
-                        .background(.black.opacity(0.45), in: Capsule())
+
+                    VStack(spacing: 6) {
+                        Text("Get ready")
+                            .font(.subheadline.weight(.semibold))
+                            .foregroundStyle(.white.opacity(0.9))
+
+                        Text("\(viewModel.setupSecondsRemaining)s")
+                            .font(.system(size: 44, weight: .bold, design: .monospaced))
+                            .foregroundStyle(.white)
+
+                        Text("Recording starts soon")
+                            .font(.footnote)
+                            .foregroundStyle(.white.opacity(0.85))
+                    }
+                    .padding(.horizontal, 18)
+                    .padding(.vertical, 14)
+                    .background(.black.opacity(0.25), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
 
                     Button {
                         viewModel.startNow()
                     } label: {
                         Text("Start now")
                             .font(.footnote.weight(.semibold))
-                            .foregroundStyle(.white)
+                            .foregroundStyle(.white.opacity(0.95))
                             .padding(.horizontal, 12)
                             .padding(.vertical, 8)
-                            .background(.black.opacity(0.35), in: Capsule())
+                            .background(.black.opacity(0.2), in: Capsule())
                     }
                     .buttonStyle(.plain)
 
-                    Spacer().frame(height: 38)
+                    Spacer().frame(height: 44)
                 }
                 .transition(.opacity)
             }
@@ -206,13 +213,14 @@ struct RecordingView: View {
         Group {
             if case let .finalCountdown(number) = viewModel.phase {
                 ZStack {
-                    Color.black.opacity(0.35).ignoresSafeArea()
+                    Color.black.opacity(0.25).ignoresSafeArea()
                     Text("\(number)")
-                        .font(.system(size: 140, weight: .bold, design: .rounded))
+                        .id(number)
+                        .font(.system(size: 150, weight: .bold, design: .rounded))
                         .foregroundStyle(.white)
                         .transition(.opacity)
                 }
-                .animation(.easeInOut(duration: 0.35), value: number)
+                .animation(.easeInOut(duration: 0.4), value: number)
             }
         }
     }
@@ -237,7 +245,7 @@ struct RecordingView: View {
                     }
                     .padding(.horizontal, 16)
                     .padding(.vertical, 10)
-                    .background(.black.opacity(0.35), in: Capsule())
+                    .background(.black.opacity(0.18), in: Capsule())
                     .padding(.top, 20)
 
                     Spacer()
@@ -269,5 +277,19 @@ struct RecordingView: View {
         let characters = Double(scene.scriptText.count)
         let base = max(30, min(180, (characters / expected) * 6.0))
         return base * viewModel.preferences.defaultSpeed.multiplier
+    }
+
+    private var shouldShowCloseButton: Bool {
+        showingCloseButton && (viewModel.phase == .ready || viewModel.phase == .setup)
+    }
+
+    private func scheduleCloseAutoHide() {
+        closeAutoHideTask?.cancel()
+        closeAutoHideTask = Task {
+            try? await Task.sleep(nanoseconds: 2_000_000_000)
+            if !Task.isCancelled {
+                showingCloseButton = false
+            }
+        }
     }
 }

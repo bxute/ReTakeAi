@@ -47,11 +47,11 @@ struct TeleprompterPreferences: Codable, Hashable {
     var autoStopEnabled: Bool
 
     init(
-        scrollDirection: TeleprompterScrollDirection = .rightToLeft,
+        scrollDirection: TeleprompterScrollDirection = .leftToRight,
         defaultSpeed: TeleprompterSpeedPreset = .normal,
         textSize: Double = 28,
         textOpacity: Double = 0.75,
-        mirrorTextForFrontCamera: Bool = true,
+        mirrorTextForFrontCamera: Bool = false,
         setupCountdown: SetupCountdownDuration = .s10,
         startBeepEnabled: Bool = true,
         autoStopEnabled: Bool = true

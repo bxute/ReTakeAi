@@ -16,15 +16,16 @@ struct HorizontalTeleprompterOverlay: View {
 
     @State private var contentWidth: CGFloat = 1
     @State private var viewportWidth: CGFloat = 1
-    @State private var elapsed: TimeInterval = 0
-    @State private var lastTick: TimeInterval?
+    @State private var accumulated: TimeInterval = 0
+    @State private var runStart: TimeInterval?
 
     private let spacing: CGFloat = 80
 
     var body: some View {
         TimelineView(.animation) { timeline in
             let t = timeline.date.timeIntervalSinceReferenceDate
-            let xOffset = marqueeOffset(at: t)
+            let elapsed = accumulated + (isRunning ? max(0, t - (runStart ?? t)) : 0)
+            let xOffset = marqueeOffset(elapsed: elapsed)
 
             ZStack {
                 // Readable, calm pill container
@@ -49,15 +50,31 @@ struct HorizontalTeleprompterOverlay: View {
             .scaleEffect(x: mirror ? -1 : 1, y: 1, anchor: .center)
             .accessibilityLabel("Teleprompter")
         }
+        .onAppear {
+            if isRunning {
+                runStart = Date().timeIntervalSinceReferenceDate
+            }
+        }
+        .onChange(of: isRunning) { _, newValue in
+            let now = Date().timeIntervalSinceReferenceDate
+            if newValue {
+                runStart = now
+            } else {
+                if let runStart {
+                    accumulated += max(0, now - runStart)
+                }
+                runStart = nil
+            }
+        }
     }
 
     private var marqueeText: some View {
         Text(cleaned(text))
             .font(.system(size: fontSize, weight: .semibold, design: .default))
             .foregroundStyle(.white)
-            .lineLimit(2)
-            .lineSpacing(10)
-            .multilineTextAlignment(.center)
+            .lineLimit(1)
+            .truncationMode(.clip)
+            .fixedSize(horizontal: true, vertical: false)
             .padding(.horizontal, 20)
             .padding(.vertical, 16)
             .background(
@@ -69,24 +86,20 @@ struct HorizontalTeleprompterOverlay: View {
             )
     }
 
-    private func marqueeOffset(at t: TimeInterval) -> CGFloat {
-        if isRunning {
-            if let lastTick {
-                elapsed += (t - lastTick)
-            }
-            lastTick = t
-        } else {
-            lastTick = nil
-        }
-
+    private func marqueeOffset(elapsed: TimeInterval) -> CGFloat {
         let cycle = contentWidth + spacing
         guard cycle > 1 else { return 0 }
 
-        let base = CGFloat((elapsed * pointsPerSecond).truncatingRemainder(dividingBy: Double(cycle)))
-        let signed = (direction == .rightToLeft) ? -base : base
+        let distance = CGFloat((elapsed * pointsPerSecond).truncatingRemainder(dividingBy: Double(cycle)))
 
-        // Start from slightly outside the viewport so it's centered-ish above eye-line.
-        return signed
+        switch direction {
+        case .leftToRight:
+            // Start off-screen to the left and move right.
+            return (-cycle) + distance
+        case .rightToLeft:
+            // Start at zero and move left.
+            return -distance
+        }
     }
 
     private func cleaned(_ raw: String) -> String {
