@@ -1,0 +1,81 @@
+← Review Scenes
+Project: [Project Title] 
+Subtext (small, optional):
+7 scenes • ~90 seconds total
+
+
+## Project Direction (Collapsed by Default)
+🎭 Project Direction Fun
+upbeat conversational
+Tap to expand:
+`
+Speak with energy and warmth.
+Keep pacing friendly and relaxed.
+`
+
+## Regenerate Action (De-emphasized)
+↻ Regenerate scenes
+
+Rules:
+- Text button, not filled
+- Place **below direction**, not above scenes
+- Add confirmation:
+  > Regenerating will replace current scenes
+
+
+## Scene Card (Redesigned)
+
+### Scene Card — Default (Collapsed)
+Scene 1 10s
+Hey there! Need something done fast and well?
+
+Rules:
+- Show **only narration preview**
+- 1–2 lines max
+- Entire card tappable
+
+### Scene Card — Expanded (On Tap)
+
+Scene 1 10s
+
+🗣️ Narration
+Hey there! Need something done fast and well?
+I'm your go-to gig pro.
+
+🎬 Direction
+Fun • energetic • conversational
+Be upbeat and friendly, like greeting a neighbor.
+
+[ Edit narration ] [ Edit direction ]
+
+Rules:
+- Narration first (primary)
+- Direction secondary and visually lighter
+- No “Tap to edit” copy — buttons are clearer
+
+
+
+## Bottom Action (Very Important)
+
+Add a **sticky bottom CTA**:
+[ Continue to Shoot ]
+
+Rules:
+- Primary action on this screen
+- Always visible
+- Reinforces next step
+
+
+
+## Loading State (When Generating Scenes)
+
+Replace spinner with guided reassurance:
+Breaking your script into scenes…
+This usually takes a few seconds.
+
+Optional progress hints:
+- Analyzing script
+- Structuring scenes
+- Adding delivery guidance
+
+(No percentages, no AI jargon)

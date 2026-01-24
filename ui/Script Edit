@@ -1,0 +1,49 @@
+← Back                Script Draft            Save
+
+Raw Script Draft
+Paste or write freely — we’ll break this into scenes later.
+
+[ Large, readable text area with generous spacing ]
+
+(Start typing or paste your script here…)
+
+-----------------------------------------
+Clear draft                 Format later
+
+
+
+Rules:
+- **Save** is always visible
+- Save is **disabled until text changes**
+- No secondary icons or actions
+- Focus is only on writing
+
+
+### Readability Improvements
+- Line height: `1.4–1.6`
+- Slightly lighter font weight
+- Generous horizontal padding
+- Clear paragraph spacing
+
+
+## Empty State Placeholder
+When editor is empty, show:
+Start typing or paste your script here…
+You can write rough notes, full paragraphs,
+or unstructured thoughts.
+
+
+## Save Interaction Model
+- First tap → Save
+- After first save → auto-save silently
+- Button state changes:
+  - `Save` → `Saved`
+
+Optional one-time feedback:
+Saved. You can refine this later.
+
+
+## Helper Actions (Optional)
+Sticky row above keyboard:
+
+[Clear draft]      [Format later]

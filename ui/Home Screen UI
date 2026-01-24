@@ -1,0 +1,125 @@
+## Without Projects
+[ Tagline ]
+[ One-line explanation ]
+[ + Create New Video ]
+[ Script → Record → Edit ]
+[ Light social proof ] - Later once app gets adopted
+
+## Tagline & One-Line Explanation (Empty State)
+1. **Record professional videos — one scene at a time.**  
+   Create clean videos without re-recording everything.
+
+2. **Create clean videos without re-recording everything.**  
+   Record once, fix only the scene that needs it.
+
+3. **No pressure. Record one scene at a time.**  
+   Mess up a line? Just retake that scene.
+
+4. **Record once. Fix one scene. Move on.**  
+   Scene-based recording makes retakes effortless.
+
+5. **A calmer way to record professional videos.**  
+   Plan, read, and record in short, focused scenes.
+
+6. **Stop recording full takes. Start recording scenes.**  
+   Break your video into manageable, editable parts.
+
+7. **From idea to finished video — faster.**  
+   Script, record, and auto-assemble with ease.
+
+8. **Break videos into scenes, not retries.**  
+   Save time by redoing only what matters.
+
+9. **Designed for clear, confident on-camera delivery.**  
+   Use structured scenes and a built-in teleprompter.
+
+10. **Less setup. Fewer retakes. Better videos.**  
+    A simple workflow built for busy creators.
+
+
+
+---
+## With Projects
+
+[ Home Title ]                         ⚙️
+-----------------------------------------
+[ Resume Recording Card ]
+🎬 My LinkedIn Video
+Scene 3 of 7 • Last edited 2h ago
+[ Resume Recording ]
+
+
+[ Project List ]
+Each project row can show:
+Title
+Platform badge (LinkedIn / YouTube / Reels)
+Progress indicator (●●●○○)
+Subtle status text:
+“Draft”
+“Ready to export”
+“Exported”
+
+
+[ Tip / Value Card ]
+
+# Tip / Value Card — Complete Specification
+
+1. Record scene-by-scene to avoid full re-records.
+2. Short scenes make retakes faster and easier.
+3. If a scene feels off, retake just that scene.
+4. Pause naturally — silences are trimmed automatically.
+5. Lock exposure to prevent brightness flicker.
+6. Clean audio matters more than perfect video.
+7. Most creators finish a video in under 10 minutes.
+8. Structure reduces recording stress.
+9. Progress beats perfection.
+10. You’re in control — one scene at a time.
+
+Rules:
+- Show **only one tip at a time**
+- Maximum **2 lines**
+- Calm, declarative language only
+
+---
+
+## Placement
+
+### Empty State
+- Display **below “How it works”**
+- Never above the primary Create button
+
+### Projects State
+- Display **below the Projects list**
+- Hidden if screen height is too small
+
+---
+
+## UI Presentation
+
+### Card Layout
+- Full-width card
+- Rounded corners: `12–16dp`
+- Padding: `12–16dp`
+- Light neutral background OR subtle outline
+- No shadows heavier than list cards
+
+[ + Button in Nav ]
+## Create Action
+
+- Use a **Floating Action Button (+)**
+- Position: bottom-right
+- Visible only when projects exist
+- Primary action: Create New Video
+- Same action as empty-state Create button
+
+--------------------------------------------
+
+## V2 (With login)
+Replace gear with:
+👤 Profile avatar (or initials)
+
+## Tap opens:
+Profile
+Settings
+Subscription
+Same placement, zero relearning.
