@@ -26,9 +26,23 @@ class ProjectListViewModel {
         progressByProjectID = Dictionary(uniqueKeysWithValues: projects.map { project in
             let scenes = sceneStore.getScenes(for: project)
             let recorded = scenes.filter { $0.isRecorded }.count
+            let completed = scenes.filter { $0.isComplete }.count
             let total = scenes.count
-            let next = scenes.first(where: { !$0.isRecorded })?.orderIndex ?? scenes.first?.orderIndex ?? 0
-            return (project.id, ProjectProgress(totalScenes: total, recordedScenes: recorded, nextSceneNumber: next + 1))
+            let next = scenes.first(where: { !$0.isComplete })?.orderIndex ?? scenes.first?.orderIndex ?? 0
+            
+            let hasScript = !(project.script ?? "").trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            let isRecordComplete = total > 0 && completed == total
+            let hasExport = !project.exports.isEmpty
+            
+            return (project.id, ProjectProgress(
+                totalScenes: total,
+                recordedScenes: recorded,
+                completedScenes: completed,
+                nextSceneNumber: next + 1,
+                hasScript: hasScript,
+                isRecordComplete: isRecordComplete,
+                hasExport: hasExport
+            ))
         })
     }
     
@@ -75,21 +89,60 @@ class ProjectListViewModel {
     }
 
     var resumeProject: Project? {
-        // Most recently edited, non-exported, in-progress project.
-        projects.first(where: { project in
-            guard project.status != .exported && (project.status == .draft || project.status == .recording) else { return false }
-            return (progressByProjectID[project.id]?.totalScenes ?? 0) > 0
-        })
+        // Selection logic:
+        // 1. Only consider projects that are NOT exported
+        // 2. Prefer projects with recording in progress (some scenes recorded, not all complete)
+        // 3. If none match, select most recently edited non-exported project with scenes
+        // 4. If all projects are exported, return nil
+        
+        // Projects are already sorted by updatedAt (most recent first)
+        let nonExported = projects.filter { project in
+            guard let progress = progressByProjectID[project.id] else { return false }
+            return !progress.hasExport
+        }
+        
+        // First priority: projects with recording in progress
+        if let inProgress = nonExported.first(where: { project in
+            progressByProjectID[project.id]?.isRecordingInProgress == true
+        }) {
+            return inProgress
+        }
+        
+        // Second priority: most recently edited non-exported project with scenes
+        if let withScenes = nonExported.first(where: { project in
+            (progressByProjectID[project.id]?.totalScenes ?? 0) > 0
+        }) {
+            return withScenes
+        }
+        
+        return nil
     }
 
     func progress(for project: Project) -> ProjectProgress {
-        progressByProjectID[project.id] ?? ProjectProgress(totalScenes: 0, recordedScenes: 0, nextSceneNumber: 1)
+        progressByProjectID[project.id] ?? ProjectProgress(
+            totalScenes: 0,
+            recordedScenes: 0,
+            completedScenes: 0,
+            nextSceneNumber: 1,
+            hasScript: false,
+            isRecordComplete: false,
+            hasExport: false
+        )
     }
 
     struct ProjectProgress: Hashable {
         let totalScenes: Int
         let recordedScenes: Int
+        let completedScenes: Int
         let nextSceneNumber: Int
+        let hasScript: Bool
+        let isRecordComplete: Bool
+        let hasExport: Bool
+        
+        /// Recording is in progress if at least one scene is recorded but not all are complete
+        var isRecordingInProgress: Bool {
+            totalScenes > 0 && recordedScenes > 0 && !isRecordComplete
+        }
     }
     
     var recentProjects: [Project] {

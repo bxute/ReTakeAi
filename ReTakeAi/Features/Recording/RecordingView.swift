@@ -79,7 +79,7 @@ struct RecordingView: View {
         .onDisappear {
             closeAutoHideTask?.cancel()
             closeAutoHideTask = nil
-            placeholderHideTask?.cancel()
+            placeholderHideTask?.cancel() 
             placeholderHideTask = nil
             viewModel.cleanup()
         }

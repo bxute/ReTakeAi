@@ -11,9 +11,9 @@ struct ProjectListView: View {
     @State private var newProjectTitle = ""
     @FocusState private var isNewProjectTitleFocused: Bool
     @State private var emptyStateContent: EmptyStateContent.Content = EmptyStateContent.random()
-    @State private var tipText: String = TipContent.random()
     @State private var resumeRecordingProject: Project?
     @State private var resumeRecordingScene: VideoScene?
+    @State private var isKeyboardVisible = false
     
     var body: some View {
         NavigationStack {
@@ -51,6 +51,12 @@ struct ProjectListView: View {
             }
         }
         .tint(AppTheme.Colors.cta)
+        .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillShowNotification)) { _ in
+            isKeyboardVisible = true
+        }
+        .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillHideNotification)) { _ in
+            isKeyboardVisible = false
+        }
         .onAppear {
             // Ensure we never navigate with a stale Project value (draft/empty scenes).
             viewModel.refresh()
@@ -58,41 +64,46 @@ struct ProjectListView: View {
     }
     
     private var homeWithProjects: some View {
-        ZStack(alignment: .bottomTrailing) {
+        ZStack {
             AppTheme.Colors.background
                 .ignoresSafeArea()
             
-            ScrollView {
-                LazyVStack(alignment: .leading, spacing: 16) {
-                    topBar
-                    
-                    if let resume = viewModel.resumeProject {
-                        resumeRecordingCard(for: resume)
+            VStack(spacing: 0) {
+                ScrollView {
+                    LazyVStack(alignment: .leading, spacing: 16) {
+                        topBar
+                        
+                        if let resume = viewModel.resumeProject {
+                            resumeRecordingCard(for: resume)
+                        }
+                        
+                        projectsSection
                     }
-                    
-                    projectsSection
-                    
-                    ViewThatFits(in: .vertical) {
-                        tipCard
-                        EmptyView()
-                    }
+                    .padding(.horizontal, 16)
+                    .padding(.top, 10)
+                    .padding(.bottom, 96)
                 }
-                .padding(.horizontal, 16)
-                .padding(.top, 10)
-                .padding(.bottom, 96)
-            }
-            .scrollIndicators(.hidden)
-            .refreshable {
-                viewModel.refresh()
-                tipText = TipContent.random()
+                .scrollIndicators(.hidden)
+                .refreshable {
+                    viewModel.refresh()
+                }
+                
+                if !isKeyboardVisible {
+                    tipHint
+                        .padding(.horizontal, 16)
+                        .padding(.bottom, 16)
+                }
             }
             
-            floatingCreateButton
-                .padding(.trailing, 20)
-                .padding(.bottom, 20)
-        }
-        .onAppear {
-            tipText = TipContent.random()
+            VStack {
+                Spacer()
+                HStack {
+                    Spacer()
+                    floatingCreateButton
+                        .padding(.trailing, 20)
+                        .padding(.bottom, isKeyboardVisible ? 20 : 56)
+                }
+            }
         }
     }
     
@@ -195,24 +206,20 @@ struct ProjectListView: View {
     private func resumeRecordingCard(for project: Project) -> some View {
         let progress = viewModel.progress(for: project)
         
-        return VStack(alignment: .leading, spacing: 12) {
+        return VStack(alignment: .leading, spacing: 14) {
             VStack(alignment: .leading, spacing: 6) {
-                Text(project.title)
-                    .font(.headline)
-                    .foregroundStyle(AppTheme.Colors.textPrimary)
-                
-                HStack(spacing: 10) {
-                    Text("Scene \(max(1, progress.nextSceneNumber)) of \(max(0, progress.totalScenes))")
-                        .foregroundStyle(AppTheme.Colors.textSecondary)
-                    
-                    Text("•")
-                        .foregroundStyle(AppTheme.Colors.textTertiary)
-                    
-                    Text("Last edited \(project.updatedAt.timeAgo)")
-                        .foregroundStyle(AppTheme.Colors.textSecondary)
+                HStack(spacing: 8) {
+                    Text("🎬")
+                    Text(project.title)
+                        .lineLimit(1)
                 }
-                .font(.subheadline)
-                .lineLimit(1)
+                .font(.headline)
+                .foregroundStyle(AppTheme.Colors.textPrimary)
+                
+                Text("Scene \(max(1, progress.nextSceneNumber)) of \(progress.totalScenes) • Last edited \(project.updatedAt.timeAgo)")
+                    .font(.caption)
+                    .foregroundStyle(AppTheme.Colors.textSecondary)
+                    .lineLimit(1)
             }
             
             Button {
@@ -228,6 +235,7 @@ struct ProjectListView: View {
             }
             .buttonStyle(.plain)
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
         .padding(16)
         .background(AppTheme.Colors.surface)
         .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
@@ -235,36 +243,34 @@ struct ProjectListView: View {
             RoundedRectangle(cornerRadius: 16, style: .continuous)
                 .stroke(AppTheme.Colors.border, lineWidth: 1)
         )
-        .shadow(color: .black.opacity(0.12), radius: 10, x: 0, y: 6)
+        .shadow(color: .black.opacity(0.08), radius: 8, x: 0, y: 4)
     }
     
     private var projectsSection: some View {
-        LazyVStack(alignment: .leading, spacing: 10) {
-            ForEach(viewModel.projects) { project in
+        let resumeProjectID = viewModel.resumeProject?.id
+        let filteredProjects = viewModel.projects.filter { $0.id != resumeProjectID }
+        
+        return VStack(spacing: 10) {
+            ForEach(filteredProjects) { project in
                 NavigationLink(value: project) {
                     ProjectHomeRowView(
                         project: project,
                         progress: viewModel.progress(for: project)
                     )
+                    .frame(maxWidth: .infinity)
                 }
                 .buttonStyle(.plain)
             }
         }
     }
     
-    private var tipCard: some View {
-        Text(tipText)
-            .font(.subheadline)
-            .foregroundStyle(AppTheme.Colors.textSecondary)
+    private var tipHint: some View {
+        Text("Tip: \(TipContent.sessionTip)")
+            .font(.footnote)
+            .foregroundStyle(AppTheme.Colors.textTertiary)
             .lineLimit(2)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(16)
-            .background(AppTheme.Colors.surface)
-            .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-            .overlay(
-                RoundedRectangle(cornerRadius: 16, style: .continuous)
-                    .stroke(AppTheme.Colors.border, lineWidth: 1)
-            )
+            .multilineTextAlignment(.center)
+            .frame(maxWidth: .infinity, alignment: .center)
     }
     
     private var floatingCreateButton: some View {
@@ -301,8 +307,8 @@ private struct ProjectHomeRowView: View {
     let progress: ProjectListViewModel.ProjectProgress
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            HStack(alignment: .firstTextBaseline) {
+        VStack(alignment: .leading, spacing: 14) {
+            HStack(alignment: .firstTextBaseline, spacing: 12) {
                 Text(project.title)
                     .font(.headline)
                     .foregroundStyle(AppTheme.Colors.textPrimary)
@@ -310,19 +316,24 @@ private struct ProjectHomeRowView: View {
                 
                 Spacer(minLength: 0)
                 
-                platformBadge
+                statusChip
             }
             
-            HStack(spacing: 10) {
-                progressDots
-                
-                Spacer(minLength: 0)
-                
-                Text(statusText)
-                    .font(.subheadline)
-                    .foregroundStyle(AppTheme.Colors.textSecondary)
+            GeometryReader { geo in
+                HStack(alignment: .bottom) {
+                    StepProgressIndicator(progress: progress)
+                        .frame(width: geo.size.width * 0.4, alignment: .leading)
+                    
+                    Spacer(minLength: 0)
+                    
+                    Text(project.updatedAt.timeAgo)
+                        .font(.caption2)
+                        .foregroundStyle(AppTheme.Colors.textTertiary)
+                }
             }
+            .frame(height: 34)
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
         .padding(14)
         .background(AppTheme.Colors.surface)
         .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
@@ -332,50 +343,176 @@ private struct ProjectHomeRowView: View {
         )
     }
     
-    private var platformText: String {
-        switch project.videoAspect {
-        case .portrait9x16: return "Reels"
-        case .landscape16x9: return "YouTube"
-        case .square1x1: return "LinkedIn"
+    private var statusText: String {
+        if progress.hasExport {
+            return "Exported"
         }
+        if progress.isRecordComplete {
+            return "Ready to export"
+        }
+        return "Draft"
     }
     
-    private var platformBadge: some View {
-        Text(platformText)
+    private var statusChip: some View {
+        Text(statusText)
             .font(.caption.weight(.semibold))
-            .foregroundStyle(AppTheme.Colors.textTertiary)
+            .foregroundStyle(AppTheme.Colors.textSecondary)
             .padding(.horizontal, 10)
             .padding(.vertical, 6)
             .background(AppTheme.Colors.background, in: Capsule())
             .overlay(
-                Capsule().stroke(AppTheme.Colors.border, lineWidth: 1)
+                Capsule()
+                    .stroke(AppTheme.Colors.border, lineWidth: 1)
             )
     }
+}
+
+// MARK: - Step Progress Indicator
+
+private struct StepProgressIndicator: View {
+    let progress: ProjectListViewModel.ProjectProgress
     
-    private var statusText: String {
-        switch project.status {
-        case .draft: return "Draft"
-        case .recording: return "Draft"
-        case .completed: return "Ready to export"
-        case .exported: return "Exported"
+    private enum StepState {
+        case completed
+        case current
+        case upcoming
+    }
+    
+    var body: some View {
+        VStack(spacing: 6) {
+            HStack(spacing: 0) {
+                stepLabel("Script", state: scriptState)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                stepLabel("Record", state: recordState)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                stepLabel("Export", state: exportState)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            
+            GeometryReader { geo in
+                let w = geo.size.width
+                let y = geo.size.height / 2
+                let col = w / 3.0
+                // Center dots under leading-aligned labels (fixed step titles).
+                let nodeXInColumn = min(22.0, col / 2.0)
+                let x1 = nodeXInColumn - 8.0
+                let x2 = col + nodeXInColumn
+                let x3 = (2.0 * col) + nodeXInColumn - 3.0
+                
+                ZStack {
+                    Path { p in
+                        p.move(to: CGPoint(x: x1, y: y))
+                        p.addLine(to: CGPoint(x: x2, y: y))
+                    }
+                    .stroke(connectorColor(from: scriptState, to: recordState), lineWidth: 1)
+                    
+                    Path { p in
+                        p.move(to: CGPoint(x: x2, y: y))
+                        p.addLine(to: CGPoint(x: x3, y: y))
+                    }
+                    .stroke(connectorColor(from: recordState, to: exportState), lineWidth: 1)
+                    
+                    stepNode(state: scriptState)
+                        .position(x: x1, y: y)
+                    
+                    stepNode(state: recordState)
+                        .position(x: x2, y: y)
+                    
+                    stepNode(state: exportState)
+                        .position(x: x3, y: y)
+                }
+            }
+            .frame(height: 12)
+        }
+        .font(.caption2)
+        .accessibilityLabel(accessibilityText)
+    }
+    
+    private var scriptState: StepState {
+        progress.hasScript ? .completed : .current
+    }
+    
+    private var recordState: StepState {
+        if !progress.hasScript { return .upcoming }
+        if progress.isRecordComplete { return .completed }
+        return .current
+    }
+    
+    private var exportState: StepState {
+        if progress.hasExport { return .completed }
+        if progress.hasScript && progress.isRecordComplete { return .current }
+        return .upcoming
+    }
+    
+    private func stepLabel(_ text: String, state: StepState) -> some View {
+        Text(text)
+            .foregroundStyle(colorFor(state))
+            .fontWeight(weightFor(state))
+    }
+    
+    private func stepNode(state: StepState) -> some View {
+        Group {
+            switch state {
+            case .completed:
+                ZStack {
+                    Circle()
+                        .fill(AppTheme.Colors.background)
+                    Circle()
+                        .stroke(AppTheme.Colors.border, lineWidth: 1)
+                    Image(systemName: "checkmark")
+                        .font(.system(size: 7, weight: .bold, design: .rounded))
+                        .foregroundStyle(AppTheme.Colors.textSecondary)
+                }
+                .frame(width: 12, height: 12)
+            case .current:
+                Circle()
+                    .fill(AppTheme.Colors.textSecondary)
+                    .frame(width: 10, height: 10)
+            case .upcoming:
+                Circle()
+                    .stroke(AppTheme.Colors.textTertiary, lineWidth: 1.25)
+                    .frame(width: 10, height: 10)
+            }
+        }
+        .accessibilityHidden(true)
+    }
+    
+    private func stepConnector(from left: StepState, to right: StepState) -> some View {
+        Rectangle()
+            .fill(connectorColor(from: left, to: right))
+            .frame(height: 1)
+            .frame(maxWidth: .infinity)
+            .accessibilityHidden(true)
+    }
+    
+    private func connectorColor(from left: StepState, to right: StepState) -> Color {
+        if left == .completed && (right == .completed || right == .current) {
+            return AppTheme.Colors.textTertiary
+        }
+        return AppTheme.Colors.border
+    }
+    
+    private func colorFor(_ state: StepState) -> Color {
+        switch state {
+        case .completed: return AppTheme.Colors.textSecondary
+        case .current: return AppTheme.Colors.textSecondary
+        case .upcoming: return AppTheme.Colors.textTertiary
         }
     }
     
-    private var progressDots: some View {
-        let totalDots = 5
-        let filled = min(
-            totalDots,
-            max(0, Int(round(Double(progress.recordedScenes) / Double(max(1, progress.totalScenes)) * Double(totalDots))))
-        )
-        
-        return HStack(spacing: 6) {
-            ForEach(0..<totalDots, id: \.self) { idx in
-                Circle()
-                    .fill(idx < filled ? AppTheme.Colors.cta : AppTheme.Colors.border)
-                    .frame(width: 7, height: 7)
-            }
+    private func weightFor(_ state: StepState) -> Font.Weight {
+        switch state {
+        case .completed: return .regular
+        case .current: return .medium
+        case .upcoming: return .regular
         }
-        .accessibilityLabel("Progress \(progress.recordedScenes) of \(progress.totalScenes) scenes")
+    }
+    
+    private var accessibilityText: String {
+        let script = progress.hasScript ? "complete" : "current"
+        let record = progress.isRecordComplete ? "complete" : (progress.hasScript ? "current" : "upcoming")
+        let export = progress.hasExport ? "complete" : (progress.hasScript && progress.isRecordComplete ? "current" : "upcoming")
+        return "Script \(script), Record \(record), Export \(export)"
     }
 }
 
@@ -422,9 +559,8 @@ private enum TipContent {
         "You’re in control — one scene at a time.",
     ]
     
-    static func random() -> String {
-        options.randomElement() ?? options[0]
-    }
+    // Selected once per cold start, stays constant for the entire app session.
+    static let sessionTip: String = options.randomElement() ?? options[0]
 }
 
 // MARK: - ProjectListView (continued)
