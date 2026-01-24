@@ -11,15 +11,21 @@ struct ProjectListView: View {
     @State private var newProjectTitle = ""
     @FocusState private var isNewProjectTitleFocused: Bool
     @State private var emptyStateContent: EmptyStateContent.Content = EmptyStateContent.random()
+    @State private var tipText: String = TipContent.random()
+    @State private var resumeRecordingProject: Project?
+    @State private var resumeRecordingScene: VideoScene?
     
     var body: some View {
         NavigationStack {
             Group {
                 if viewModel.hasProjects {
-                    projectsList
+                    homeWithProjects
                 } else {
                     emptyState
                 }
+            }
+            .navigationDestination(for: Project.self) { project in
+                ProjectDetailView(project: project)
             }
             .sheet(isPresented: $showingCreateSheet) {
                 createProjectSheet
@@ -33,6 +39,16 @@ struct ProjectListView: View {
                     Text(error)
                 }
             }
+            .fullScreenCover(item: $resumeRecordingScene, onDismiss: {
+                resumeRecordingProject = nil
+                viewModel.refresh()
+            }) { scene in
+                if let project = resumeRecordingProject {
+                    NavigationStack {
+                        RecordingView(project: project, scene: scene)
+                    }
+                }
+            }
         }
         .tint(AppTheme.Colors.cta)
         .onAppear {
@@ -41,31 +57,42 @@ struct ProjectListView: View {
         }
     }
     
-    private var projectsList: some View {
-        List {
-            ForEach(viewModel.projects) { project in
-                NavigationLink(value: project) {
-                    ProjectRowView(project: project)
-                }
-                .listRowBackground(AppTheme.Colors.surface)
-                .swipeActions(edge: .trailing, allowsFullSwipe: false) {
-                    Button(role: .destructive) {
-                        viewModel.deleteProject(project)
-                    } label: {
-                        Label("Delete", systemImage: "trash")
+    private var homeWithProjects: some View {
+        ZStack(alignment: .bottomTrailing) {
+            AppTheme.Colors.background
+                .ignoresSafeArea()
+            
+            ScrollView {
+                LazyVStack(alignment: .leading, spacing: 16) {
+                    topBar
+                    
+                    if let resume = viewModel.resumeProject {
+                        resumeRecordingCard(for: resume)
                     }
-                    .tint(AppTheme.Colors.destructive)
+                    
+                    projectsSection
+                    
+                    ViewThatFits(in: .vertical) {
+                        tipCard
+                        EmptyView()
+                    }
                 }
+                .padding(.horizontal, 16)
+                .padding(.top, 10)
+                .padding(.bottom, 96)
             }
+            .scrollIndicators(.hidden)
+            .refreshable {
+                viewModel.refresh()
+                tipText = TipContent.random()
+            }
+            
+            floatingCreateButton
+                .padding(.trailing, 20)
+                .padding(.bottom, 20)
         }
-        .listStyle(.plain)
-        .scrollContentBackground(.hidden)
-        .background(AppTheme.Colors.background)
-        .navigationDestination(for: Project.self) { project in
-            ProjectDetailView(project: project)
-        }
-        .refreshable {
-            viewModel.refresh()
+        .onAppear {
+            tipText = TipContent.random()
         }
     }
     
@@ -138,6 +165,218 @@ struct ProjectListView: View {
             emptyStateContent = EmptyStateContent.random()
         }
     }
+    
+    private var topBar: some View {
+        HStack(alignment: .center) {
+            Text("Home")
+                .font(.headline)
+                .foregroundStyle(AppTheme.Colors.textPrimary)
+            
+            Spacer(minLength: 0)
+            
+            Button {
+                // TODO: Settings screen
+            } label: {
+                Image(systemName: "gearshape")
+                    .font(.headline)
+                    .foregroundStyle(AppTheme.Colors.textSecondary)
+                    .padding(8)
+                    .background(AppTheme.Colors.surface, in: Circle())
+                    .overlay(
+                        Circle().stroke(AppTheme.Colors.border, lineWidth: 1)
+                    )
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("Settings")
+        }
+        .padding(.top, 6)
+    }
+    
+    private func resumeRecordingCard(for project: Project) -> some View {
+        let progress = viewModel.progress(for: project)
+        
+        return VStack(alignment: .leading, spacing: 12) {
+            VStack(alignment: .leading, spacing: 6) {
+                Text(project.title)
+                    .font(.headline)
+                    .foregroundStyle(AppTheme.Colors.textPrimary)
+                
+                HStack(spacing: 10) {
+                    Text("Scene \(max(1, progress.nextSceneNumber)) of \(max(0, progress.totalScenes))")
+                        .foregroundStyle(AppTheme.Colors.textSecondary)
+                    
+                    Text("•")
+                        .foregroundStyle(AppTheme.Colors.textTertiary)
+                    
+                    Text("Last edited \(project.updatedAt.timeAgo)")
+                        .foregroundStyle(AppTheme.Colors.textSecondary)
+                }
+                .font(.subheadline)
+                .lineLimit(1)
+            }
+            
+            Button {
+                startResumeRecording(for: project)
+            } label: {
+                Text("Resume Recording")
+                    .fontWeight(.semibold)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 14)
+                    .background(AppTheme.Colors.cta)
+                    .foregroundStyle(AppTheme.Colors.textPrimary)
+                    .cornerRadius(12)
+            }
+            .buttonStyle(.plain)
+        }
+        .padding(16)
+        .background(AppTheme.Colors.surface)
+        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .stroke(AppTheme.Colors.border, lineWidth: 1)
+        )
+        .shadow(color: .black.opacity(0.12), radius: 10, x: 0, y: 6)
+    }
+    
+    private var projectsSection: some View {
+        LazyVStack(alignment: .leading, spacing: 10) {
+            ForEach(viewModel.projects) { project in
+                NavigationLink(value: project) {
+                    ProjectHomeRowView(
+                        project: project,
+                        progress: viewModel.progress(for: project)
+                    )
+                }
+                .buttonStyle(.plain)
+            }
+        }
+    }
+    
+    private var tipCard: some View {
+        Text(tipText)
+            .font(.subheadline)
+            .foregroundStyle(AppTheme.Colors.textSecondary)
+            .lineLimit(2)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(16)
+            .background(AppTheme.Colors.surface)
+            .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .stroke(AppTheme.Colors.border, lineWidth: 1)
+            )
+    }
+    
+    private var floatingCreateButton: some View {
+        Button {
+            showingCreateSheet = true
+        } label: {
+            Image(systemName: "plus")
+                .font(.system(size: 18, weight: .semibold))
+                .foregroundStyle(AppTheme.Colors.textPrimary)
+                .frame(width: 54, height: 54)
+                .background(AppTheme.Colors.cta, in: Circle())
+                .overlay(
+                    Circle().stroke(AppTheme.Colors.border, lineWidth: 1)
+                )
+                .shadow(color: .black.opacity(0.20), radius: 10, x: 0, y: 6)
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("Create New Video")
+    }
+    
+    private func startResumeRecording(for project: Project) {
+        let scenes = SceneStore.shared.getScenes(for: project)
+        guard let nextScene = scenes.first(where: { !$0.isRecorded }) ?? scenes.first else { return }
+        
+        resumeRecordingProject = ProjectStore.shared.getProject(by: project.id) ?? project
+        resumeRecordingScene = nextScene
+    }
+}
+
+// MARK: - Home Project Row
+
+private struct ProjectHomeRowView: View {
+    let project: Project
+    let progress: ProjectListViewModel.ProjectProgress
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(alignment: .firstTextBaseline) {
+                Text(project.title)
+                    .font(.headline)
+                    .foregroundStyle(AppTheme.Colors.textPrimary)
+                    .lineLimit(1)
+                
+                Spacer(minLength: 0)
+                
+                platformBadge
+            }
+            
+            HStack(spacing: 10) {
+                progressDots
+                
+                Spacer(minLength: 0)
+                
+                Text(statusText)
+                    .font(.subheadline)
+                    .foregroundStyle(AppTheme.Colors.textSecondary)
+            }
+        }
+        .padding(14)
+        .background(AppTheme.Colors.surface)
+        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                .stroke(AppTheme.Colors.border, lineWidth: 1)
+        )
+    }
+    
+    private var platformText: String {
+        switch project.videoAspect {
+        case .portrait9x16: return "Reels"
+        case .landscape16x9: return "YouTube"
+        case .square1x1: return "LinkedIn"
+        }
+    }
+    
+    private var platformBadge: some View {
+        Text(platformText)
+            .font(.caption.weight(.semibold))
+            .foregroundStyle(AppTheme.Colors.textTertiary)
+            .padding(.horizontal, 10)
+            .padding(.vertical, 6)
+            .background(AppTheme.Colors.background, in: Capsule())
+            .overlay(
+                Capsule().stroke(AppTheme.Colors.border, lineWidth: 1)
+            )
+    }
+    
+    private var statusText: String {
+        switch project.status {
+        case .draft: return "Draft"
+        case .recording: return "Draft"
+        case .completed: return "Ready to export"
+        case .exported: return "Exported"
+        }
+    }
+    
+    private var progressDots: some View {
+        let totalDots = 5
+        let filled = min(
+            totalDots,
+            max(0, Int(round(Double(progress.recordedScenes) / Double(max(1, progress.totalScenes)) * Double(totalDots))))
+        )
+        
+        return HStack(spacing: 6) {
+            ForEach(0..<totalDots, id: \.self) { idx in
+                Circle()
+                    .fill(idx < filled ? AppTheme.Colors.cta : AppTheme.Colors.border)
+                    .frame(width: 7, height: 7)
+            }
+        }
+        .accessibilityLabel("Progress \(progress.recordedScenes) of \(progress.totalScenes) scenes")
+    }
 }
 
 // MARK: - Empty State Content
@@ -163,6 +402,27 @@ private enum EmptyStateContent {
     ]
     
     static func random() -> Content {
+        options.randomElement() ?? options[0]
+    }
+}
+
+// MARK: - Tip Content
+
+private enum TipContent {
+    static let options: [String] = [
+        "Record scene-by-scene to avoid full re-records.",
+        "Short scenes make retakes faster and easier.",
+        "If a scene feels off, retake just that scene.",
+        "Pause naturally — silences are trimmed automatically.",
+        "Lock exposure to prevent brightness flicker.",
+        "Clean audio matters more than perfect video.",
+        "Most creators finish a video in under 10 minutes.",
+        "Structure reduces recording stress.",
+        "Progress beats perfection.",
+        "You’re in control — one scene at a time.",
+    ]
+    
+    static func random() -> String {
         options.randomElement() ?? options[0]
     }
 }

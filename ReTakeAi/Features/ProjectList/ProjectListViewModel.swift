@@ -12,15 +12,24 @@ class ProjectListViewModel {
     var isLoading = false
     var errorMessage: String?
     var showingCreateProject = false
+    var progressByProjectID: [UUID: ProjectProgress] = [:]
     
     private let projectStore = ProjectStore.shared
+    private let sceneStore = SceneStore.shared
     
     init() {
         loadProjects()
     }
     
     func loadProjects() {
-        projects = projectStore.projects
+        projects = projectStore.projects.sorted { $0.updatedAt > $1.updatedAt }
+        progressByProjectID = Dictionary(uniqueKeysWithValues: projects.map { project in
+            let scenes = sceneStore.getScenes(for: project)
+            let recorded = scenes.filter { $0.isRecorded }.count
+            let total = scenes.count
+            let next = scenes.first(where: { !$0.isRecorded })?.orderIndex ?? scenes.first?.orderIndex ?? 0
+            return (project.id, ProjectProgress(totalScenes: total, recordedScenes: recorded, nextSceneNumber: next + 1))
+        })
     }
     
     func refresh() {
@@ -63,6 +72,24 @@ class ProjectListViewModel {
     
     var hasProjects: Bool {
         !projects.isEmpty
+    }
+
+    var resumeProject: Project? {
+        // Most recently edited, non-exported, in-progress project.
+        projects.first(where: { project in
+            guard project.status != .exported && (project.status == .draft || project.status == .recording) else { return false }
+            return (progressByProjectID[project.id]?.totalScenes ?? 0) > 0
+        })
+    }
+
+    func progress(for project: Project) -> ProjectProgress {
+        progressByProjectID[project.id] ?? ProjectProgress(totalScenes: 0, recordedScenes: 0, nextSceneNumber: 1)
+    }
+
+    struct ProjectProgress: Hashable {
+        let totalScenes: Int
+        let recordedScenes: Int
+        let nextSceneNumber: Int
     }
     
     var recentProjects: [Project] {
