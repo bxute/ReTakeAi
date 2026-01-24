@@ -206,35 +206,45 @@ struct ProjectListView: View {
     private func resumeRecordingCard(for project: Project) -> some View {
         let progress = viewModel.progress(for: project)
         
-        return VStack(alignment: .leading, spacing: 14) {
-            VStack(alignment: .leading, spacing: 6) {
-                HStack(spacing: 8) {
-                    Text("🎬")
-                    Text(project.title)
-                        .lineLimit(1)
-                }
-                .font(.headline)
-                .foregroundStyle(AppTheme.Colors.textPrimary)
-                
-                Text("Scene \(max(1, progress.nextSceneNumber)) of \(progress.totalScenes) • Last edited \(project.updatedAt.timeAgo)")
-                    .font(.caption)
-                    .foregroundStyle(AppTheme.Colors.textSecondary)
-                    .lineLimit(1)
-            }
-            
-            Button {
-                startResumeRecording(for: project)
-            } label: {
-                Text("Resume Recording")
-                    .fontWeight(.semibold)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 14)
-                    .background(AppTheme.Colors.cta)
-                    .foregroundStyle(AppTheme.Colors.textPrimary)
-                    .cornerRadius(12)
+        return ZStack {
+            NavigationLink(value: project) {
+                Color.clear
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
             .buttonStyle(.plain)
+            .opacity(0.01)
+            
+            VStack(alignment: .leading, spacing: 20) {
+                VStack(alignment: .leading, spacing: 6) {
+                    HStack(spacing: 8) {
+                        Text("🎬")
+                        Text(project.title)
+                            .lineLimit(1)
+                    }
+                    .font(.headline)
+                    .foregroundStyle(AppTheme.Colors.textPrimary)
+                    
+                    Text("Scene \(max(1, progress.nextSceneNumber)) of \(progress.totalScenes) • Last edited \(project.updatedAt.timeAgo)")
+                        .font(.caption)
+                        .foregroundStyle(AppTheme.Colors.textSecondary)
+                        .lineLimit(1)
+                }
+                
+                Button {
+                    startResumeRecording(for: project)
+                } label: {
+                    Text("Resume Recording")
+                        .fontWeight(.semibold)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 14)
+                        .background(AppTheme.Colors.cta)
+                        .foregroundStyle(AppTheme.Colors.textPrimary)
+                        .cornerRadius(12)
+                }
+                .buttonStyle(.plain)
+            }
         }
+        .contentShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(16)
         .background(AppTheme.Colors.surface)
