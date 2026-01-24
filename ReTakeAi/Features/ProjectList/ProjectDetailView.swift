@@ -79,11 +79,19 @@ struct ProjectDetailView: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbarBackground(AppTheme.Colors.background, for: .navigationBar)
         .toolbarBackground(.visible, for: .navigationBar)
-        .contextMenu {
-            Button(role: .destructive) {
-                showingDeleteConfirm = true
-            } label: {
-                Label("Delete Project", systemImage: "trash")
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Menu {
+                    Button(role: .destructive) {
+                        showingDeleteConfirm = true
+                    } label: {
+                        Label("Delete Project", systemImage: "trash")
+                    }
+                } label: {
+                    Image(systemName: "ellipsis.circle")
+                        .font(.body)
+                        .foregroundStyle(AppTheme.Colors.textSecondary)
+                }
             }
         }
         .alert("Delete this project?", isPresented: $showingDeleteConfirm) {
@@ -512,6 +520,7 @@ struct ProjectDetailView: View {
     private func deleteProject() {
         do {
             try projectStore.deleteProject(currentProject)
+            NotificationCenter.default.post(name: .projectDidDelete, object: nil)
             dismiss()
         } catch {
             deleteErrorMessage = error.localizedDescription

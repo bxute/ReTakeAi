@@ -61,6 +61,9 @@ struct ProjectListView: View {
             // Ensure we never navigate with a stale Project value (draft/empty scenes).
             viewModel.refresh()
         }
+        .onReceive(NotificationCenter.default.publisher(for: .projectDidDelete)) { _ in
+            viewModel.refresh()
+        }
     }
     
     private var homeWithProjects: some View {
@@ -206,14 +209,7 @@ struct ProjectListView: View {
     private func resumeRecordingCard(for project: Project) -> some View {
         let progress = viewModel.progress(for: project)
         
-        return ZStack {
-            NavigationLink(value: project) {
-                Color.clear
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-            }
-            .buttonStyle(.plain)
-            .opacity(0.01)
-            
+        return NavigationLink(value: project) {
             VStack(alignment: .leading, spacing: 20) {
                 VStack(alignment: .leading, spacing: 6) {
                     HStack(spacing: 8) {
@@ -241,19 +237,18 @@ struct ProjectListView: View {
                         .foregroundStyle(AppTheme.Colors.textPrimary)
                         .cornerRadius(12)
                 }
-                .buttonStyle(.plain)
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(16)
+            .background(AppTheme.Colors.surface)
+            .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .stroke(AppTheme.Colors.border, lineWidth: 1)
+            )
+            .shadow(color: .black.opacity(0.08), radius: 8, x: 0, y: 4)
         }
-        .contentShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(16)
-        .background(AppTheme.Colors.surface)
-        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-        .overlay(
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .stroke(AppTheme.Colors.border, lineWidth: 1)
-        )
-        .shadow(color: .black.opacity(0.08), radius: 8, x: 0, y: 4)
+        .buttonStyle(.plain)
     }
     
     private var projectsSection: some View {
