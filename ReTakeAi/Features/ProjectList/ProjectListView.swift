@@ -10,6 +10,7 @@ struct ProjectListView: View {
     @State private var showingCreateSheet = false
     @State private var newProjectTitle = ""
     @FocusState private var isNewProjectTitleFocused: Bool
+    @State private var emptyStateContent: EmptyStateContent.Content = EmptyStateContent.random()
     
     var body: some View {
         NavigationStack {
@@ -18,16 +19,6 @@ struct ProjectListView: View {
                     projectsList
                 } else {
                     emptyState
-                }
-            }
-            .navigationTitle("Projects")
-            .toolbar {
-                ToolbarItem(placement: .primaryAction) {
-                    Button {
-                        showingCreateSheet = true
-                    } label: {
-                        Label("New Project", systemImage: "plus")
-                    }
                 }
             }
             .sheet(isPresented: $showingCreateSheet) {
@@ -43,6 +34,7 @@ struct ProjectListView: View {
                 }
             }
         }
+        .tint(AppTheme.Colors.cta)
         .onAppear {
             // Ensure we never navigate with a stale Project value (draft/empty scenes).
             viewModel.refresh()
@@ -55,15 +47,20 @@ struct ProjectListView: View {
                 NavigationLink(value: project) {
                     ProjectRowView(project: project)
                 }
+                .listRowBackground(AppTheme.Colors.surface)
                 .swipeActions(edge: .trailing, allowsFullSwipe: false) {
                     Button(role: .destructive) {
                         viewModel.deleteProject(project)
                     } label: {
                         Label("Delete", systemImage: "trash")
                     }
+                    .tint(AppTheme.Colors.destructive)
                 }
             }
         }
+        .listStyle(.plain)
+        .scrollContentBackground(.hidden)
+        .background(AppTheme.Colors.background)
         .navigationDestination(for: Project.self) { project in
             ProjectDetailView(project: project)
         }
@@ -73,42 +70,123 @@ struct ProjectListView: View {
     }
     
     private var emptyState: some View {
-        VStack(spacing: 20) {
-            Image(systemName: "video.bubble")
-                .font(.system(size: 72))
-                .foregroundColor(.secondary)
+        VStack(spacing: 0) {
+            Spacer()
             
-            Text("No Projects Yet")
-                .font(.title2)
-                .fontWeight(.semibold)
+            // Tagline + Explanation
+            VStack(spacing: 16) {
+                Text(emptyStateContent.tagline)
+                    .font(.title)
+                    .fontWeight(.semibold)
+                    .foregroundStyle(AppTheme.Colors.textPrimary)
+                    .multilineTextAlignment(.center)
+                
+                Text(emptyStateContent.explanation)
+                    .font(.body)
+                    .foregroundStyle(AppTheme.Colors.textSecondary)
+                    .multilineTextAlignment(.center)
+                    .lineLimit(2)
+            }
+            .padding(.horizontal, 32)
             
-            Text("Create your first video project to get started")
-                .font(.subheadline)
-                .foregroundColor(.secondary)
-                .multilineTextAlignment(.center)
+            Spacer()
+                .frame(height: 40)
             
+            // Primary CTA
             Button {
                 showingCreateSheet = true
             } label: {
-                Label("Create Project", systemImage: "plus.circle.fill")
-                    .font(.headline)
+                HStack(spacing: 8) {
+                    Image(systemName: "plus")
+                        .fontWeight(.semibold)
+                    Text("Create New Video")
+                        .fontWeight(.semibold)
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 16)
+                .background(AppTheme.Colors.cta)
+                .foregroundStyle(AppTheme.Colors.textPrimary)
+                .cornerRadius(12)
             }
-            .buttonStyle(.borderedProminent)
-            .controlSize(.large)
+            .padding(.horizontal, 32)
+            
+            Spacer()
+                .frame(height: 48)
+            
+            // Workflow hint
+            HStack(spacing: 12) {
+                Text("Script")
+                Image(systemName: "arrow.right")
+                    .font(.caption)
+                Text("Record")
+                Image(systemName: "arrow.right")
+                    .font(.caption)
+                Text("Export")
+            }
+            .font(.subheadline)
+            .foregroundStyle(AppTheme.Colors.textTertiary)
+            
+            Spacer()
+            
+            // TODO: Social proof placeholder (future)
+            // "Trusted by educators & professional creators"
+            // Do not show fake numbers - add real data when available
         }
-        .padding()
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(AppTheme.Colors.background)
+        .onAppear {
+            emptyStateContent = EmptyStateContent.random()
+        }
+    }
+}
+
+// MARK: - Empty State Content
+
+private enum EmptyStateContent {
+    struct Content {
+        let tagline: String
+        let explanation: String
     }
     
+    // Tagline options (A/B test candidates). We randomly pick ONE each time the empty state appears.
+    static let options: [Content] = [
+        Content(tagline: "Record professional videos — one scene at a time.", explanation: "Create clean videos without re-recording everything."),
+        Content(tagline: "Create clean videos without re-recording everything.", explanation: "Record once, fix only the scene that needs it."),
+        Content(tagline: "No pressure. Record one scene at a time.", explanation: "Mess up a line? Just retake that scene."),
+        Content(tagline: "Record once. Fix one scene. Move on.", explanation: "Scene-based recording makes retakes effortless."),
+        Content(tagline: "A calmer way to record professional videos.", explanation: "Plan, read, and record in short, focused scenes."),
+        Content(tagline: "Stop recording full takes. Start recording scenes.", explanation: "Break your video into manageable, editable parts."),
+        Content(tagline: "From idea to finished video — faster.", explanation: "Script, record, and auto-assemble with ease."),
+        Content(tagline: "Break videos into scenes, not retries.", explanation: "Save time by redoing only what matters."),
+        Content(tagline: "Designed for clear, confident on-camera delivery.", explanation: "Use structured scenes and a built-in teleprompter."),
+        Content(tagline: "Less setup. Fewer retakes. Better videos.", explanation: "A simple workflow built for busy creators."),
+    ]
+    
+    static func random() -> Content {
+        options.randomElement() ?? options[0]
+    }
+}
+
+// MARK: - ProjectListView (continued)
+
+extension ProjectListView {
     private var createProjectSheet: some View {
         NavigationStack {
             VStack(alignment: .leading, spacing: 20) {
                 VStack(alignment: .leading, spacing: 8) {
                     Text("Project title")
                         .font(.caption)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(AppTheme.Colors.textSecondary)
                     
                     TextField("e.g. Travel vlog — episode 1", text: $newProjectTitle)
-                        .textFieldStyle(.roundedBorder)
+                        .padding(12)
+                        .background(AppTheme.Colors.surface)
+                        .foregroundStyle(AppTheme.Colors.textPrimary)
+                        .cornerRadius(8)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 8)
+                                .stroke(AppTheme.Colors.border, lineWidth: 1)
+                        )
                         .textInputAutocapitalization(.words)
                         .submitLabel(.done)
                         .focused($isNewProjectTitleFocused)
@@ -119,23 +197,31 @@ struct ProjectListView: View {
                     createProject()
                 } label: {
                     Text("Create Project")
+                        .fontWeight(.semibold)
                         .frame(maxWidth: .infinity)
+                        .padding(.vertical, 16)
+                        .background(trimmedNewProjectTitle.isEmpty ? AppTheme.Colors.textTertiary : AppTheme.Colors.cta)
+                        .foregroundStyle(AppTheme.Colors.textPrimary)
+                        .cornerRadius(12)
                 }
-                .buttonStyle(.borderedProminent)
-                .controlSize(.large)
                 .disabled(trimmedNewProjectTitle.isEmpty)
                 
                 Spacer(minLength: 0)
             }
             .padding()
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(AppTheme.Colors.background)
             .navigationTitle("New Project")
             .navigationBarTitleDisplayMode(.inline)
+            .toolbarBackground(AppTheme.Colors.background, for: .navigationBar)
+            .toolbarBackground(.visible, for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") {
                         showingCreateSheet = false
                         newProjectTitle = ""
                     }
+                    .foregroundStyle(AppTheme.Colors.textSecondary)
                 }
             }
             .onAppear {
@@ -145,6 +231,7 @@ struct ProjectListView: View {
                 }
             }
         }
+        .tint(AppTheme.Colors.cta)
     }
     
     private var trimmedNewProjectTitle: String {
@@ -171,6 +258,7 @@ struct ProjectRowView: View {
         VStack(alignment: .leading, spacing: 8) {
             Text(project.title)
                 .font(.headline)
+                .foregroundStyle(AppTheme.Colors.textPrimary)
             
             HStack {
                 StatusBadge(status: project.status)
@@ -179,7 +267,7 @@ struct ProjectRowView: View {
                 
                 Text(project.updatedAt.timeAgo)
                     .font(.caption)
-                    .foregroundColor(.secondary)
+                    .foregroundStyle(AppTheme.Colors.textTertiary)
             }
         }
         .padding(.vertical, 4)
@@ -194,17 +282,17 @@ struct StatusBadge: View {
             .font(.caption)
             .padding(.horizontal, 8)
             .padding(.vertical, 4)
-            .background(statusColor.opacity(0.2))
-            .foregroundColor(statusColor)
+            .background(statusColor.opacity(0.15))
+            .foregroundStyle(statusColor)
             .cornerRadius(6)
     }
     
     private var statusColor: Color {
         switch status {
-        case .draft: return .gray
-        case .recording: return .blue
-        case .completed: return .green
-        case .exported: return .purple
+        case .draft: return AppTheme.Colors.textTertiary
+        case .recording: return AppTheme.Colors.cta
+        case .completed: return AppTheme.Colors.success
+        case .exported: return AppTheme.Colors.cta
         }
     }
 }
