@@ -567,67 +567,22 @@ private enum TipContent {
 
 extension ProjectListView {
     private var createProjectSheet: some View {
-        NavigationStack {
-            VStack(alignment: .leading, spacing: 20) {
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Project title")
-                        .font(.caption)
-                        .foregroundStyle(AppTheme.Colors.textSecondary)
-                    
-                    TextField("e.g. Travel vlog — episode 1", text: $newProjectTitle)
-                        .padding(12)
-                        .background(AppTheme.Colors.surface)
-                        .foregroundStyle(AppTheme.Colors.textPrimary)
-                        .cornerRadius(8)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 8)
-                                .stroke(AppTheme.Colors.border, lineWidth: 1)
-                        )
-                        .textInputAutocapitalization(.words)
-                        .submitLabel(.done)
-                        .focused($isNewProjectTitleFocused)
-                        .onSubmit { createProject() }
-                }
-                
-                Button {
-                    createProject()
-                } label: {
-                    Text("Create Project")
-                        .fontWeight(.semibold)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 16)
-                        .background(trimmedNewProjectTitle.isEmpty ? AppTheme.Colors.textTertiary : AppTheme.Colors.cta)
-                        .foregroundStyle(AppTheme.Colors.textPrimary)
-                        .cornerRadius(12)
-                }
-                .disabled(trimmedNewProjectTitle.isEmpty)
-                
-                Spacer(minLength: 0)
+        CreateProjectOnboardingSheet(
+            onCancel: {
+                showingCreateSheet = false
+            },
+            onCreate: { title, intent, durationSeconds, toneMood in
+                viewModel.errorMessage = nil
+                viewModel.createProject(
+                    title: title,
+                    scriptIntent: intent,
+                    expectedDurationSeconds: durationSeconds,
+                    toneMood: toneMood
+                )
+                guard viewModel.errorMessage == nil else { return }
+                showingCreateSheet = false
             }
-            .padding()
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(AppTheme.Colors.background)
-            .navigationTitle("New Project")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbarBackground(AppTheme.Colors.background, for: .navigationBar)
-            .toolbarBackground(.visible, for: .navigationBar)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") {
-                        showingCreateSheet = false
-                        newProjectTitle = ""
-                    }
-                    .foregroundStyle(AppTheme.Colors.textSecondary)
-                }
-            }
-            .onAppear {
-                // Defer focus to ensure the sheet has finished presenting.
-                DispatchQueue.main.async {
-                    isNewProjectTitleFocused = true
-                }
-            }
-        }
-        .tint(AppTheme.Colors.cta)
+        )
     }
     
     private var trimmedNewProjectTitle: String {
@@ -644,6 +599,396 @@ extension ProjectListView {
         guard viewModel.errorMessage == nil else { return }
         newProjectTitle = ""
         showingCreateSheet = false
+    }
+}
+
+private struct CreateProjectOnboardingSheet: View {
+    let onCancel: () -> Void
+    let onCreate: (_ title: String, _ intent: ScriptIntent?, _ durationSeconds: Int?, _ toneMood: ScriptToneMood?) -> Void
+    
+    @State private var title: String = ""
+    @State private var selectedIntent: VideoIntent = .socialContent
+    @State private var otherIntentText: String = ""
+    @State private var duration: TargetDuration = .s60
+    @State private var tone: ToneOption = .professional
+    
+    @FocusState private var isTitleFocused: Bool
+    @FocusState private var isOtherIntentFocused: Bool
+    
+    private var isCreateEnabled: Bool { !trimmedTitle.isEmpty }
+    
+    var body: some View {
+        NavigationStack {
+            ZStack {
+                AppTheme.Colors.background.ignoresSafeArea()
+                
+                VStack(spacing: 0) {
+                    ScrollView(showsIndicators: false) {
+                        VStack(spacing: 28) {
+                            // MARK: - Step 1: Project Name
+                            sectionCard {
+                                VStack(alignment: .leading, spacing: 14) {
+                                    sectionHeader(number: 1, title: "Project Name")
+                                    
+                                    TextField("e.g., Product Launch Video", text: $title)
+                                        .font(.body)
+                                        .padding(.horizontal, 16)
+                                        .padding(.vertical, 14)
+                                        .background(AppTheme.Colors.background)
+                                        .foregroundStyle(AppTheme.Colors.textPrimary)
+                                        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                                        .overlay(
+                                            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                                .stroke(isTitleFocused ? AppTheme.Colors.cta.opacity(0.6) : AppTheme.Colors.border, lineWidth: 1)
+                                        )
+                                        .textInputAutocapitalization(.words)
+                                        .submitLabel(.next)
+                                        .focused($isTitleFocused)
+                                        .onSubmit { isTitleFocused = false }
+                                }
+                            }
+                            
+                            // MARK: - Step 2: Video Intent
+                            sectionCard {
+                                VStack(alignment: .leading, spacing: 14) {
+                                    sectionHeader(number: 2, title: "Video Intent")
+                                    
+                                    FlowLayout(spacing: 10) {
+                                        ForEach(VideoIntent.allCases, id: \.self) { intent in
+                                            ChipButton(
+                                                title: intent.title,
+                                                isSelected: selectedIntent == intent
+                                            ) {
+                                                withAnimation(.easeInOut(duration: 0.15)) {
+                                                    selectedIntent = intent
+                                                    if intent != .other {
+                                                        otherIntentText = ""
+                                                        isOtherIntentFocused = false
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                    
+                                    if selectedIntent == .other {
+                                        TextField("Describe your intent", text: $otherIntentText)
+                                            .font(.subheadline)
+                                            .padding(.horizontal, 14)
+                                            .padding(.vertical, 12)
+                                            .background(AppTheme.Colors.background)
+                                            .foregroundStyle(AppTheme.Colors.textPrimary)
+                                            .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                                            .overlay(
+                                                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                                                    .stroke(AppTheme.Colors.border, lineWidth: 1)
+                                            )
+                                            .submitLabel(.done)
+                                            .focused($isOtherIntentFocused)
+                                            .transition(.opacity.combined(with: .move(edge: .top)))
+                                    }
+                                }
+                            }
+                            
+                            // MARK: - Step 3: Duration
+                            sectionCard {
+                                VStack(alignment: .leading, spacing: 14) {
+                                    sectionHeader(number: 3, title: "Target Duration")
+                                    
+                                    HStack(spacing: 8) {
+                                        ForEach(TargetDuration.allCases, id: \.self) { d in
+                                            DurationChip(
+                                                title: d.label,
+                                                isSelected: duration == d
+                                            ) {
+                                                withAnimation(.easeInOut(duration: 0.15)) {
+                                                    duration = d
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            
+                            // MARK: - Step 4: Tone
+                            sectionCard {
+                                VStack(alignment: .leading, spacing: 14) {
+                                    sectionHeader(number: 4, title: "Vibe")
+                                    
+                                    FlowLayout(spacing: 10) {
+                                        ForEach(ToneOption.allCases, id: \.self) { option in
+                                            ChipButton(
+                                                title: option.displayTitle,
+                                                isSelected: tone == option
+                                            ) {
+                                                withAnimation(.easeInOut(duration: 0.15)) {
+                                                    tone = option
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        .padding(.horizontal, 20)
+                        .padding(.top, 8)
+                        .padding(.bottom, 100)
+                    }
+                    
+                    // MARK: - Bottom CTA
+                    VStack(spacing: 0) {
+                        Divider()
+                            .overlay(AppTheme.Colors.border.opacity(0.5))
+                        
+                        Button {
+                            onCreate(trimmedTitle, selectedIntent.mappedScriptIntent, duration.secondsValue, tone.mappedToneMood)
+                        } label: {
+                            Text("Create Project")
+                                .font(.headline)
+                                .foregroundStyle(isCreateEnabled ? .white : AppTheme.Colors.textTertiary)
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 16)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                        .fill(isCreateEnabled ? AppTheme.Colors.cta : AppTheme.Colors.surface)
+                                )
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                        .stroke(AppTheme.Colors.border.opacity(isCreateEnabled ? 0 : 1), lineWidth: 1)
+                                )
+                        }
+                        .disabled(!isCreateEnabled)
+                        .padding(.horizontal, 20)
+                        .padding(.vertical, 16)
+                        .background(AppTheme.Colors.background)
+                    }
+                }
+            }
+            .navigationTitle("New Project")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbarBackground(AppTheme.Colors.background, for: .navigationBar)
+            .toolbarBackground(.visible, for: .navigationBar)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel", action: onCancel)
+                        .foregroundStyle(AppTheme.Colors.textSecondary)
+                }
+            }
+            .onAppear {
+                DispatchQueue.main.async {
+                    isTitleFocused = true
+                }
+            }
+        }
+        .tint(AppTheme.Colors.cta)
+    }
+    
+    private var trimmedTitle: String {
+        title.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+    
+    @ViewBuilder
+    private func sectionCard<Content: View>(@ViewBuilder content: () -> Content) -> some View {
+        content()
+            .padding(16)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(AppTheme.Colors.surface)
+            .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+    }
+    
+    @ViewBuilder
+    private func sectionHeader(number: Int, title: String) -> some View {
+        HStack(spacing: 10) {
+            Text("\(number)")
+                .font(.caption.weight(.bold))
+                .foregroundStyle(AppTheme.Colors.cta)
+                .frame(width: 22, height: 22)
+                .background(AppTheme.Colors.cta.opacity(0.15))
+                .clipShape(Circle())
+            
+            Text(title)
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(AppTheme.Colors.textSecondary)
+        }
+    }
+    
+    private enum VideoIntent: CaseIterable, Hashable {
+        case marketingAd
+        case tutorialHowTo
+        case productDemo
+        case storytelling
+        case socialContent
+        case other
+        
+        var title: String {
+            switch self {
+            case .marketingAd: return "Marketing / Ad"
+            case .tutorialHowTo: return "Tutorial / How-to"
+            case .productDemo: return "Product Demo"
+            case .storytelling: return "Storytelling"
+            case .socialContent: return "Social Content"
+            case .other: return "Other"
+            }
+        }
+        
+        var mappedScriptIntent: ScriptIntent? {
+            switch self {
+            case .marketingAd: return .promote
+            case .tutorialHowTo: return .educate
+            case .productDemo: return .explain
+            case .storytelling: return .storytelling
+            case .socialContent: return .entertainment
+            case .other: return .corporate
+            }
+        }
+    }
+    
+    private enum TargetDuration: CaseIterable, Hashable {
+        case s30
+        case s60
+        case s90
+        case m2
+        case m3plus
+        
+        var label: String {
+            switch self {
+            case .s30: return "30s"
+            case .s60: return "60s"
+            case .s90: return "90s"
+            case .m2: return "2m"
+            case .m3plus: return "3m+"
+            }
+        }
+        
+        var secondsValue: Int {
+            switch self {
+            case .s30: return 30
+            case .s60: return 60
+            case .s90: return 90
+            case .m2: return 120
+            case .m3plus: return 180
+            }
+        }
+    }
+    
+    private enum ToneOption: CaseIterable, Hashable {
+        case professional
+        case casual
+        case energetic
+        case friendly
+        case serious
+        
+        var displayTitle: String {
+            switch self {
+            case .professional: return "💼 Professional"
+            case .casual: return "😊 Casual"
+            case .energetic: return "⚡ Energetic"
+            case .friendly: return "🤝 Friendly"
+            case .serious: return "🎯 Serious"
+            }
+        }
+        
+        var mappedToneMood: ScriptToneMood? {
+            switch self {
+            case .professional: return .professional
+            case .casual: return .calm
+            case .energetic: return .energetic
+            case .friendly: return .fun
+            case .serious: return .serious
+            }
+        }
+    }
+}
+
+// MARK: - Chip Components
+
+private struct ChipButton: View {
+    let title: String
+    let isSelected: Bool
+    let action: () -> Void
+    
+    var body: some View {
+        Button(action: action) {
+            Text(title)
+                .font(.subheadline.weight(.medium))
+                .foregroundStyle(isSelected ? AppTheme.Colors.textPrimary : AppTheme.Colors.textSecondary)
+                .padding(.horizontal, 16)
+                .padding(.vertical, 10)
+                .background(
+                    RoundedRectangle(cornerRadius: 20, style: .continuous)
+                        .fill(isSelected ? AppTheme.Colors.cta.opacity(0.15) : AppTheme.Colors.background)
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 20, style: .continuous)
+                        .stroke(isSelected ? AppTheme.Colors.cta.opacity(0.5) : AppTheme.Colors.border, lineWidth: 1)
+                )
+        }
+        .buttonStyle(.plain)
+    }
+}
+
+private struct DurationChip: View {
+    let title: String
+    let isSelected: Bool
+    let action: () -> Void
+    
+    var body: some View {
+        Button(action: action) {
+            Text(title)
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(isSelected ? AppTheme.Colors.textPrimary : AppTheme.Colors.textTertiary)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 12)
+                .background(
+                    RoundedRectangle(cornerRadius: 10, style: .continuous)
+                        .fill(isSelected ? AppTheme.Colors.cta.opacity(0.15) : AppTheme.Colors.background)
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 10, style: .continuous)
+                        .stroke(isSelected ? AppTheme.Colors.cta.opacity(0.5) : AppTheme.Colors.border, lineWidth: 1)
+                )
+        }
+        .buttonStyle(.plain)
+    }
+}
+
+// MARK: - Flow Layout
+
+private struct FlowLayout: Layout {
+    var spacing: CGFloat = 8
+    
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        let result = arrangeSubviews(proposal: proposal, subviews: subviews)
+        return result.size
+    }
+    
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+        let result = arrangeSubviews(proposal: proposal, subviews: subviews)
+        for (index, frame) in result.frames.enumerated() {
+            subviews[index].place(at: CGPoint(x: bounds.minX + frame.minX, y: bounds.minY + frame.minY), proposal: .unspecified)
+        }
+    }
+    
+    private func arrangeSubviews(proposal: ProposedViewSize, subviews: Subviews) -> (size: CGSize, frames: [CGRect]) {
+        let maxWidth = proposal.width ?? .infinity
+        var frames: [CGRect] = []
+        var x: CGFloat = 0
+        var y: CGFloat = 0
+        var rowHeight: CGFloat = 0
+        
+        for subview in subviews {
+            let size = subview.sizeThatFits(.unspecified)
+            if x + size.width > maxWidth && x > 0 {
+                x = 0
+                y += rowHeight + spacing
+                rowHeight = 0
+            }
+            frames.append(CGRect(origin: CGPoint(x: x, y: y), size: size))
+            rowHeight = max(rowHeight, size.height)
+            x += size.width + spacing
+        }
+        
+        let totalHeight = y + rowHeight
+        return (CGSize(width: maxWidth, height: totalHeight), frames)
     }
 }
 

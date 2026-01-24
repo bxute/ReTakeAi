@@ -60,6 +60,26 @@ class ProjectListViewModel {
             AppLogger.ui.error("Failed to create project: \(error.localizedDescription)")
         }
     }
+
+    func createProject(
+        title: String,
+        scriptIntent: ScriptIntent?,
+        expectedDurationSeconds: Int?,
+        toneMood: ScriptToneMood?
+    ) {
+        do {
+            var project = try projectStore.createProject(title: title, script: nil)
+            project.scriptIntent = scriptIntent
+            project.expectedDurationSeconds = expectedDurationSeconds
+            project.toneMood = toneMood
+            try projectStore.updateProject(project)
+            loadProjects()
+            AppLogger.ui.info("Created project: \(title)")
+        } catch {
+            errorMessage = "Failed to create project: \(error.localizedDescription)"
+            AppLogger.ui.error("Failed to create project: \(error.localizedDescription)")
+        }
+    }
     
     func deleteProject(_ project: Project) {
         do {
