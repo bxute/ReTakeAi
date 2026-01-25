@@ -77,7 +77,6 @@ struct RecordingView: View {
                         .buttonStyle(.plain)
                     }
                     .padding(.horizontal, 14)
-                    .padding(.top, 4)
 
                     Spacer()
                 }
@@ -230,7 +229,7 @@ struct RecordingView: View {
                     .frame(height: 120)
                 }
                 // Position below top bar (close/settings buttons)
-                .padding(.top, 44)
+                .padding(.top, 32)
             }
             Spacer()
         }

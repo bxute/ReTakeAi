@@ -48,26 +48,84 @@ class CameraService: NSObject, ObservableObject {
         // Configure video input first to know which camera we're using
         try configureVideoInput(for: session)
         
-        // Apply resolution from settings with fallback
+        // Get settings
         let resolution = UserDefaults.standard.string(forKey: "recording_resolution") ?? "1080p"
-        let preset = bestAvailablePreset(for: resolution, session: session)
-        session.sessionPreset = preset
+        let frameRate = UserDefaults.standard.integer(forKey: "recording_frameRate")
+        let targetFps = frameRate > 0 ? frameRate : 30
+        
+        // Try to find a format that supports both resolution and frame rate
+        if let device = videoInput?.device,
+           let format = findBestFormat(for: device, resolution: resolution, fps: targetFps) {
+            // Use manual format selection for custom resolution + fps
+            session.sessionPreset = .inputPriority
+            try device.lockForConfiguration()
+            device.activeFormat = format
+            let frameDuration = CMTimeMake(value: 1, timescale: Int32(targetFps))
+            device.activeVideoMinFrameDuration = frameDuration
+            device.activeVideoMaxFrameDuration = frameDuration
+            device.unlockForConfiguration()
+            AppLogger.recording.info("Applied format: \(format.formatDescription) @ \(targetFps)fps")
+        } else {
+            // Fallback to preset (may not support custom fps)
+            let preset = bestAvailablePreset(for: resolution, session: session)
+            session.sessionPreset = preset
+            AppLogger.recording.warning("Using preset fallback: \(preset.rawValue)")
+        }
         
         try configureAudioInput(for: session)
         try configureMovieOutput(for: session)
-        
-        // Apply frame rate from settings
-        let frameRate = UserDefaults.standard.integer(forKey: "recording_frameRate")
-        if frameRate > 0 {
-            applyFrameRate(frameRate, to: videoInput?.device)
-        }
         
         session.commitConfiguration()
         
         self.captureSession = session
         self.isSessionConfigured = true
         
-        AppLogger.recording.info("Camera session configured with preset: \(preset.rawValue) @ \(frameRate)fps")
+        AppLogger.recording.info("Camera session configured: \(resolution) @ \(targetFps)fps")
+    }
+    
+    private func findBestFormat(for device: AVCaptureDevice, resolution: String, fps: Int) -> AVCaptureDevice.Format? {
+        let targetDimensions = dimensionsForResolution(resolution)
+        
+        // Find formats that match resolution and support the fps
+        let matchingFormats = device.formats.filter { format in
+            let desc = format.formatDescription
+            let dimensions = CMVideoFormatDescriptionGetDimensions(desc)
+            
+            // Check resolution matches (within tolerance)
+            let matchesResolution = dimensions.width >= targetDimensions.width &&
+                                    dimensions.height >= targetDimensions.height
+            
+            // Check fps is supported
+            let supportsFps = format.videoSupportedFrameRateRanges.contains { range in
+                range.maxFrameRate >= Double(fps)
+            }
+            
+            // Prefer formats without binning for better quality
+            let mediaSubType = CMFormatDescriptionGetMediaSubType(desc)
+            let is420v = mediaSubType == kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange
+            let is420f = mediaSubType == kCVPixelFormatType_420YpCbCr8BiPlanarFullRange
+            
+            return matchesResolution && supportsFps && (is420v || is420f)
+        }
+        
+        // Sort by resolution (prefer exact match, then smallest that fits)
+        let sorted = matchingFormats.sorted { a, b in
+            let dimA = CMVideoFormatDescriptionGetDimensions(a.formatDescription)
+            let dimB = CMVideoFormatDescriptionGetDimensions(b.formatDescription)
+            let diffA = abs(Int(dimA.width) - Int(targetDimensions.width))
+            let diffB = abs(Int(dimB.width) - Int(targetDimensions.width))
+            return diffA < diffB
+        }
+        
+        return sorted.first
+    }
+    
+    private func dimensionsForResolution(_ resolution: String) -> CMVideoDimensions {
+        switch resolution {
+        case "720p": return CMVideoDimensions(width: 1280, height: 720)
+        case "4K": return CMVideoDimensions(width: 3840, height: 2160)
+        default: return CMVideoDimensions(width: 1920, height: 1080) // 1080p
+        }
     }
     
     private func bestAvailablePreset(for resolution: String, session: AVCaptureSession) -> AVCaptureSession.Preset {
@@ -227,17 +285,24 @@ class CameraService: NSObject, ObservableObject {
         session.addInput(newInput)
         self.videoInput = newInput
         
-        // Reapply resolution (may need fallback for front camera)
+        // Reapply resolution and frame rate
         let resolution = UserDefaults.standard.string(forKey: "recording_resolution") ?? "1080p"
-        let preset = bestAvailablePreset(for: resolution, session: session)
-        if session.canSetSessionPreset(preset) {
-            session.sessionPreset = preset
-        }
-        
-        // Reapply frame rate
         let frameRate = UserDefaults.standard.integer(forKey: "recording_frameRate")
-        if frameRate > 0 {
-            applyFrameRate(frameRate, to: newCamera)
+        let targetFps = frameRate > 0 ? frameRate : 30
+        
+        if let format = findBestFormat(for: newCamera, resolution: resolution, fps: targetFps) {
+            session.sessionPreset = .inputPriority
+            try newCamera.lockForConfiguration()
+            newCamera.activeFormat = format
+            let frameDuration = CMTimeMake(value: 1, timescale: Int32(targetFps))
+            newCamera.activeVideoMinFrameDuration = frameDuration
+            newCamera.activeVideoMaxFrameDuration = frameDuration
+            newCamera.unlockForConfiguration()
+        } else {
+            let preset = bestAvailablePreset(for: resolution, session: session)
+            if session.canSetSessionPreset(preset) {
+                session.sessionPreset = preset
+            }
         }
         
         if let connection = movieOutput?.connection(with: .video) {
@@ -246,7 +311,7 @@ class CameraService: NSObject, ObservableObject {
         
         session.commitConfiguration()
         
-        AppLogger.recording.info("Switched to \(newPosition == .front ? "front" : "back") camera with preset: \(preset.rawValue)")
+        AppLogger.recording.info("Switched to \(newPosition == .front ? "front" : "back") camera: \(resolution) @ \(targetFps)fps")
     }
     
     func cleanup() {
