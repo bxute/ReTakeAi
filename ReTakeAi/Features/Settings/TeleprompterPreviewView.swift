@@ -24,6 +24,11 @@ struct TeleprompterPreviewView: View {
         )
     }
     
+    private var previewHeight: CGFloat {
+        // Text height + vertical padding (14 top + 14 bottom)
+        preferences.textSize + 28
+    }
+    
     var body: some View {
         ZStack {
             AppTheme.Colors.surface
@@ -42,9 +47,9 @@ struct TeleprompterPreviewView: View {
                 }
             )
             .id(loopID)
-            .padding(.vertical, 14)
         }
         .frame(maxWidth: .infinity)
+        .frame(height: previewHeight)
         .overlay(
             Rectangle()
                 .fill(AppTheme.Colors.border)
