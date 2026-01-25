@@ -53,10 +53,12 @@ struct SceneBreakdownReviewView: View {
                     .foregroundStyle(AppTheme.Colors.cta)
                 } else {
                     Menu {
-                        Button {
-                            enterReorderMode()
-                        } label: {
-                            Label("Reorder Scenes", systemImage: "arrow.up.arrow.down")
+                        if viewModel.drafts.count > 1 {
+                            Button {
+                                enterReorderMode()
+                            } label: {
+                                Label("Reorder Scenes", systemImage: "arrow.up.arrow.down")
+                            }
                         }
                         
                         Button {
@@ -120,7 +122,7 @@ struct SceneBreakdownReviewView: View {
     private var scenesContent: some View {
         VStack(spacing: 0) {
             ScrollView {
-                LazyVStack(alignment: .leading, spacing: 16) {
+                VStack(alignment: .leading, spacing: 16) {
                     if isReorderMode {
                         // Reorder mode
                         ForEach(Array(reorderedDrafts.enumerated()), id: \.element.id) { index, draft in
