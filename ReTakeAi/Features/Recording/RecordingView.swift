@@ -187,49 +187,38 @@ struct RecordingView: View {
         VStack {
             // Hide teleprompter when close/settings buttons are visible
             if viewModel.isSetupComplete && !shouldShowCloseButton {
-                // Single container — no extra layers
-                let indicatorSize: CGFloat = 8
-                let indicatorSpacing: CGFloat = 8
-                let indicatorColor: Color = (viewModel.phase == .recording && viewModel.isRecording) ? .red : .white
+                ZStack(alignment: .center) {
+                    // Background (edge-to-edge, no rounded corners)
+                    Rectangle()
+                        .fill(.black.opacity(0.264))
 
-                VStack(spacing: indicatorSpacing) {
-                    Circle()
-                        .fill(indicatorColor)
-                        .frame(width: indicatorSize, height: indicatorSize)
-
-                    ZStack(alignment: .center) {
-                        // Background (edge-to-edge, no rounded corners)
-                        Rectangle()
-                            .fill(.black.opacity(0.264))
-
-                        // Hint label (separate from marquee)
-                        if placeholderVisible && !isTeleprompterScrolling {
-                            Text("Your script will appear here…")
-                                .font(.system(size: viewModel.preferences.textSize * 0.88, weight: .semibold))
-                                .foregroundStyle((Color(hex: viewModel.preferences.textColor.hexValue) ?? .white).opacity(0.7))
-                                .multilineTextAlignment(.center)
-                                .padding(.horizontal, 20)
-                        }
-
-                        // Marquee label (only when recording)
-                        if isTeleprompterScrolling {
-                            HorizontalTeleprompterOverlay(
-                                text: scene.scriptText,
-                                isRunning: true,
-                                direction: viewModel.preferences.scrollDirection,
-                                scrollDuration: viewModel.computedScrollDuration,
-                                fontSize: viewModel.preferences.textSize * 1.2,
-                                opacity: viewModel.preferences.textOpacity,
-                                mirror: viewModel.preferences.mirrorTextForFrontCamera,
-                                textColorHex: viewModel.preferences.textColor.hexValue,
-                                onComplete: {
-                                    viewModel.signalTeleprompterComplete()
-                                }
-                            )
-                        }
+                    // Hint label (separate from marquee)
+                    if placeholderVisible && !isTeleprompterScrolling {
+                        Text("Your script will appear here…")
+                            .font(.system(size: viewModel.preferences.textSize * 0.88, weight: .semibold))
+                            .foregroundStyle((Color(hex: viewModel.preferences.textColor.hexValue) ?? .white).opacity(0.7))
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal, 20)
                     }
-                    .frame(height: 120)
+
+                    // Marquee label (only when recording)
+                    if isTeleprompterScrolling {
+                        HorizontalTeleprompterOverlay(
+                            text: scene.scriptText,
+                            isRunning: true,
+                            direction: viewModel.preferences.scrollDirection,
+                            scrollDuration: viewModel.computedScrollDuration,
+                            fontSize: viewModel.preferences.textSize * 1.2,
+                            opacity: viewModel.preferences.textOpacity,
+                            mirror: viewModel.preferences.mirrorTextForFrontCamera,
+                            textColorHex: viewModel.preferences.textColor.hexValue,
+                            onComplete: {
+                                viewModel.signalTeleprompterComplete()
+                            }
+                        )
+                    }
                 }
+                .frame(height: 120)
                 // Position just below dynamic island (minimal top padding)
                 .padding(.top, 4)
                 .transition(.opacity)
