@@ -1,0 +1,281 @@
+//
+//  SettingsView.swift
+//  ReTakeAi
+//
+
+import SwiftUI
+
+struct SettingsView: View {
+    @State private var viewModel = SettingsViewModel()
+    @Environment(\.dismiss) private var dismiss
+    
+    var body: some View {
+        ZStack {
+            AppTheme.Colors.background
+                .ignoresSafeArea()
+            
+            ScrollView {
+                VStack(spacing: 24) {
+                    // Live Preview
+                    previewSection
+                    
+                    // Teleprompter Settings
+                    teleprompterSection
+                }
+                .padding(.horizontal, 16)
+                .padding(.top, 8)
+                .padding(.bottom, 32)
+            }
+            .scrollIndicators(.hidden)
+        }
+        .navigationTitle("Settings")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbarBackground(AppTheme.Colors.background, for: .navigationBar)
+        .toolbarBackground(.visible, for: .navigationBar)
+    }
+    
+    // MARK: - Preview Section
+    
+    private var previewSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            sectionHeader("Preview")
+            
+            TeleprompterPreviewView(
+                preferences: viewModel.preferences,
+                restartTrigger: viewModel.previewRestartTrigger
+            )
+        }
+    }
+    
+    // MARK: - Teleprompter Section
+    
+    private var teleprompterSection: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            sectionHeader("Teleprompter")
+            
+            VStack(spacing: 0) {
+                // Speed
+                settingsRow(title: "Speed") {
+                    speedPicker
+                }
+                
+                divider
+                
+                // Text Size
+                settingsRow(title: "Text Size", subtitle: viewModel.textSizeDisplay) {
+                    textSizeSlider
+                }
+                
+                divider
+                
+                // Alignment
+                settingsRow(title: "Alignment") {
+                    alignmentPicker
+                }
+                
+                divider
+                
+                // Direction
+                settingsRow(title: "Direction") {
+                    directionPicker
+                }
+                
+                divider
+                
+                // Countdown
+                settingsRow(title: "Countdown") {
+                    countdownPicker
+                }
+                
+                divider
+                
+                // Mirror Text
+                toggleRow(title: "Mirror Text", subtitle: "For front camera", isOn: $viewModel.mirrorText)
+                
+                divider
+                
+                // Start Beep
+                toggleRow(title: "Start Beep", isOn: $viewModel.startBeepEnabled)
+                
+                divider
+                
+                // Auto-Stop
+                toggleRow(title: "Auto-Stop", subtitle: "Stop recording when script ends", isOn: $viewModel.autoStopEnabled)
+            }
+            .background(AppTheme.Colors.surface)
+            .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .stroke(AppTheme.Colors.border, lineWidth: 1)
+            )
+        }
+    }
+    
+    // MARK: - Pickers
+    
+    private var speedPicker: some View {
+        HStack(spacing: 8) {
+            ForEach(TeleprompterSpeedPreset.allCases, id: \.self) { preset in
+                chipButton(
+                    title: preset.rawValue.capitalized,
+                    isSelected: viewModel.speed == preset
+                ) {
+                    viewModel.speed = preset
+                }
+            }
+        }
+    }
+    
+    private var textSizeSlider: some View {
+        Slider(value: $viewModel.textSize, in: 18...48, step: 1)
+            .tint(AppTheme.Colors.cta)
+    }
+    
+    private var alignmentPicker: some View {
+        HStack(spacing: 8) {
+            ForEach(TeleprompterTextAlignment.allCases, id: \.self) { alignment in
+                iconChipButton(
+                    systemImage: alignment.systemImage,
+                    isSelected: viewModel.textAlignment == alignment
+                ) {
+                    viewModel.textAlignment = alignment
+                }
+            }
+        }
+    }
+    
+    private var directionPicker: some View {
+        HStack(spacing: 8) {
+            ForEach(TeleprompterScrollDirection.allCases, id: \.self) { direction in
+                chipButton(
+                    title: direction.displayName,
+                    isSelected: viewModel.scrollDirection == direction
+                ) {
+                    viewModel.scrollDirection = direction
+                }
+            }
+        }
+    }
+    
+    private var countdownPicker: some View {
+        HStack(spacing: 8) {
+            ForEach(SetupCountdownDuration.allCases, id: \.self) { duration in
+                chipButton(
+                    title: "\(duration.rawValue)s",
+                    isSelected: viewModel.setupCountdown == duration
+                ) {
+                    viewModel.setupCountdown = duration
+                }
+            }
+        }
+    }
+    
+    // MARK: - Helper Views
+    
+    private func sectionHeader(_ title: String) -> some View {
+        Text(title)
+            .font(.subheadline.weight(.semibold))
+            .foregroundStyle(AppTheme.Colors.textSecondary)
+            .textCase(.uppercase)
+            .tracking(0.5)
+    }
+    
+    private func settingsRow<Content: View>(
+        title: String,
+        subtitle: String? = nil,
+        @ViewBuilder content: () -> Content
+    ) -> some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(title)
+                        .font(.body)
+                        .foregroundStyle(AppTheme.Colors.textPrimary)
+                    
+                    if let subtitle {
+                        Text(subtitle)
+                            .font(.caption)
+                            .foregroundStyle(AppTheme.Colors.textTertiary)
+                    }
+                }
+                Spacer()
+            }
+            
+            content()
+        }
+        .padding(16)
+    }
+    
+    private func toggleRow(title: String, subtitle: String? = nil, isOn: Binding<Bool>) -> some View {
+        HStack {
+            VStack(alignment: .leading, spacing: 2) {
+                Text(title)
+                    .font(.body)
+                    .foregroundStyle(AppTheme.Colors.textPrimary)
+                
+                if let subtitle {
+                    Text(subtitle)
+                        .font(.caption)
+                        .foregroundStyle(AppTheme.Colors.textTertiary)
+                }
+            }
+            
+            Spacer()
+            
+            Toggle("", isOn: isOn)
+                .labelsHidden()
+                .tint(AppTheme.Colors.cta)
+        }
+        .padding(16)
+    }
+    
+    private var divider: some View {
+        Rectangle()
+            .fill(AppTheme.Colors.border)
+            .frame(height: 1)
+            .padding(.horizontal, 16)
+    }
+    
+    private func chipButton(title: String, isSelected: Bool, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Text(title)
+                .font(.subheadline.weight(.medium))
+                .foregroundStyle(isSelected ? AppTheme.Colors.textPrimary : AppTheme.Colors.textSecondary)
+                .padding(.horizontal, 14)
+                .padding(.vertical, 8)
+                .background(
+                    RoundedRectangle(cornerRadius: 8, style: .continuous)
+                        .fill(isSelected ? AppTheme.Colors.cta.opacity(0.2) : AppTheme.Colors.background)
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 8, style: .continuous)
+                        .stroke(isSelected ? AppTheme.Colors.cta.opacity(0.5) : AppTheme.Colors.border, lineWidth: 1)
+                )
+        }
+        .buttonStyle(.plain)
+    }
+    
+    private func iconChipButton(systemImage: String, isSelected: Bool, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Image(systemName: systemImage)
+                .font(.body.weight(.medium))
+                .foregroundStyle(isSelected ? AppTheme.Colors.textPrimary : AppTheme.Colors.textSecondary)
+                .frame(width: 40, height: 32)
+                .background(
+                    RoundedRectangle(cornerRadius: 8, style: .continuous)
+                        .fill(isSelected ? AppTheme.Colors.cta.opacity(0.2) : AppTheme.Colors.background)
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 8, style: .continuous)
+                        .stroke(isSelected ? AppTheme.Colors.cta.opacity(0.5) : AppTheme.Colors.border, lineWidth: 1)
+                )
+        }
+        .buttonStyle(.plain)
+    }
+}
+
+#Preview {
+    NavigationStack {
+        SettingsView()
+    }
+}

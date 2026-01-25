@@ -24,6 +24,18 @@ struct RecordingSettingsView: View {
                 Section {
                     Toggle("Show Grid", isOn: $showGrid)
                 }
+                
+                Section {
+                    NavigationLink {
+                        SettingsView()
+                    } label: {
+                        HStack {
+                            Image(systemName: "text.justify.left")
+                                .foregroundStyle(AppTheme.Colors.cta)
+                            Text("Teleprompter Settings")
+                        }
+                    }
+                }
             }
             .navigationTitle("Settings")
             .navigationBarTitleDisplayMode(.inline)

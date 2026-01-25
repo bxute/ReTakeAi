@@ -10,6 +10,37 @@ enum TeleprompterScrollDirection: String, Codable, CaseIterable, Hashable, Ident
     case leftToRight
 
     var id: String { rawValue }
+    
+    var displayName: String {
+        switch self {
+        case .rightToLeft: return "→ Left"
+        case .leftToRight: return "← Right"
+        }
+    }
+}
+
+enum TeleprompterTextAlignment: String, Codable, CaseIterable, Hashable, Identifiable {
+    case left
+    case center
+    case right
+    
+    var id: String { rawValue }
+    
+    var displayName: String {
+        switch self {
+        case .left: return "Left"
+        case .center: return "Center"
+        case .right: return "Right"
+        }
+    }
+    
+    var systemImage: String {
+        switch self {
+        case .left: return "text.alignleft"
+        case .center: return "text.aligncenter"
+        case .right: return "text.alignright"
+        }
+    }
 }
 
 enum TeleprompterSpeedPreset: String, Codable, CaseIterable, Hashable, Identifiable {
@@ -41,6 +72,7 @@ struct TeleprompterPreferences: Codable, Hashable {
     var defaultSpeed: TeleprompterSpeedPreset
     var textSize: Double
     var textOpacity: Double
+    var textAlignment: TeleprompterTextAlignment
     var mirrorTextForFrontCamera: Bool
     var setupCountdown: SetupCountdownDuration
     var startBeepEnabled: Bool
@@ -51,6 +83,7 @@ struct TeleprompterPreferences: Codable, Hashable {
         defaultSpeed: TeleprompterSpeedPreset = .normal,
         textSize: Double = 28,
         textOpacity: Double = 0.75,
+        textAlignment: TeleprompterTextAlignment = .center,
         mirrorTextForFrontCamera: Bool = false,
         setupCountdown: SetupCountdownDuration = .s10,
         startBeepEnabled: Bool = true,
@@ -60,6 +93,7 @@ struct TeleprompterPreferences: Codable, Hashable {
         self.defaultSpeed = defaultSpeed
         self.textSize = textSize
         self.textOpacity = textOpacity
+        self.textAlignment = textAlignment
         self.mirrorTextForFrontCamera = mirrorTextForFrontCamera
         self.setupCountdown = setupCountdown
         self.startBeepEnabled = startBeepEnabled

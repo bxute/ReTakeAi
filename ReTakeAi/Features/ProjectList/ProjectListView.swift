@@ -13,6 +13,8 @@ private struct ExportsDestination: Hashable {
     let projectID: UUID
 }
 
+private struct SettingsDestination: Hashable {}
+
 struct ProjectListView: View {
     @State private var viewModel = ProjectListViewModel()
     @State private var showingCreateSheet = false
@@ -39,6 +41,9 @@ struct ProjectListView: View {
             }
             .navigationDestination(for: ExportsDestination.self) { dest in
                 ExportsScreen(projectID: dest.projectID)
+            }
+            .navigationDestination(for: SettingsDestination.self) { _ in
+                SettingsView()
             }
             .sheet(isPresented: $showingCreateSheet) {
                 createProjectSheet
@@ -192,7 +197,7 @@ struct ProjectListView: View {
             Spacer(minLength: 0)
             
             Button {
-                // TODO: Settings screen
+                navigationPath.append(SettingsDestination())
             } label: {
                 Image(systemName: "gearshape")
                     .font(.headline)
