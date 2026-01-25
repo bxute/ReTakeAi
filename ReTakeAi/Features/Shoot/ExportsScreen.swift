@@ -195,7 +195,7 @@ struct ExportsScreen: View {
             if fileExists {
                 HStack(spacing: 12) {
                     // Share button
-                    ShareLink(item: export.fileURL) {
+                    ShareLink(item: url) {
                         HStack(spacing: 6) {
                             Image(systemName: "square.and.arrow.up")
                             Text("Share")
@@ -208,8 +208,8 @@ struct ExportsScreen: View {
                             RoundedRectangle(cornerRadius: 10, style: .continuous)
                                 .stroke(AppTheme.Colors.border, lineWidth: 1)
                         )
-                        .contentShape(Rectangle())
                     }
+                    .buttonStyle(.borderless)
 
                     // Save to Photos button
                     Button {
@@ -227,8 +227,8 @@ struct ExportsScreen: View {
                             RoundedRectangle(cornerRadius: 10, style: .continuous)
                                 .stroke(AppTheme.Colors.border, lineWidth: 1)
                         )
-                        .contentShape(Rectangle())
                     }
+                    .buttonStyle(.borderless)
                 }
             }
 
@@ -243,8 +243,8 @@ struct ExportsScreen: View {
                 .font(.caption)
                 .foregroundStyle(AppTheme.Colors.textTertiary)
                 .padding(.vertical, 8)
-                .contentShape(Rectangle())
             }
+            .buttonStyle(.borderless)
             .padding(.top, 4)
         }
         .padding(16)
