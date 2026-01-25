@@ -308,119 +308,121 @@ struct PreviewScreen: View {
 
     private var aspectSelectionSection: some View {
         VStack(alignment: .leading, spacing: 0) {
-            // Collapsible header
-            Button {
-                withAnimation(.easeInOut(duration: 0.2)) {
-                    isAspectSectionExpanded.toggle()
-                }
-            } label: {
-                HStack {
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("ASPECT RATIO")
-                            .font(.caption.weight(.semibold))
-                            .foregroundStyle(AppTheme.Colors.textTertiary)
-                        Text(selectedAspect.title)
-                            .font(.subheadline.weight(.medium))
-                            .foregroundStyle(AppTheme.Colors.textPrimary)
+            // Section note
+            Text("Choose how your video will be framed")
+                .font(.caption)
+                .foregroundStyle(AppTheme.Colors.textSecondary)
+
+            // Bordered container with all content
+            VStack(spacing: 0) {
+                // Header - tap to expand/collapse
+                Button {
+                    withAnimation(.easeInOut(duration: 0.2)) {
+                        isAspectSectionExpanded.toggle()
                     }
+                } label: {
+                    HStack {
+                        Text("Aspect Ratio")
+                            .font(.subheadline.weight(.semibold))
+                            .foregroundStyle(AppTheme.Colors.textPrimary)
 
-                    Spacer()
+                        Spacer()
 
-                    Image(systemName: isAspectSectionExpanded ? "chevron.up" : "chevron.down")
-                        .font(.caption.weight(.semibold))
-                        .foregroundStyle(AppTheme.Colors.textSecondary)
+                        Text(selectedAspect.title)
+                            .font(.subheadline)
+                            .foregroundStyle(AppTheme.Colors.cta)
+
+                        Image(systemName: isAspectSectionExpanded ? "chevron.up" : "chevron.down")
+                            .font(.caption.weight(.semibold))
+                            .foregroundStyle(AppTheme.Colors.textSecondary)
+                    }
+                    .padding(14)
                 }
-                .padding(14)
-                .background(
-                    RoundedRectangle(cornerRadius: 12, style: .continuous)
-                        .fill(AppTheme.Colors.surface)
-                )
-                .overlay(
-                    RoundedRectangle(cornerRadius: 12, style: .continuous)
-                        .stroke(AppTheme.Colors.border, lineWidth: 1)
-                )
-            }
-            .buttonStyle(.plain)
+                .buttonStyle(.plain)
 
-            // Expanded content
-            if isAspectSectionExpanded {
-                VStack(spacing: 16) {
-                    // Crop preview visualization
-                    cropPreviewSection
+                // Expanded content
+                if isAspectSectionExpanded {
+                    // Divider
+                    Rectangle()
+                        .fill(AppTheme.Colors.border)
+                        .frame(height: 1)
 
-                    // Aspect ratio selector
-                    aspectRatioSelector
+                    VStack(spacing: 14) {
+                        // Crop preview
+                        cropPreviewSection
+
+                        // Aspect ratio selector
+                        aspectRatioSelector
+                    }
+                    .padding(14)
                 }
-                .padding(.top, 12)
             }
+            .background(
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .fill(AppTheme.Colors.surface)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .stroke(AppTheme.Colors.border, lineWidth: 1)
+            )
         }
     }
 
     // MARK: - Crop Preview
 
     private var cropPreviewSection: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("How your video will be cropped")
-                .font(.caption)
-                .foregroundStyle(AppTheme.Colors.textSecondary)
+        let sourceIsPortrait = isSourceVideoPortrait
+        let previewWidth: CGFloat = 100
+        let previewHeight: CGFloat = sourceIsPortrait ? previewWidth * 16 / 9 : previewWidth * 9 / 16
 
-            // Get source video dimensions - scaled to 30% of full width
-            let sourceIsPortrait = isSourceVideoPortrait
-            let fullWidth = UIScreen.main.bounds.width - 32
-            let previewWidth = fullWidth * 0.4 // 40% for better visibility
-            let previewHeight: CGFloat = sourceIsPortrait ? previewWidth * 16 / 9 : previewWidth * 9 / 16
-
-            HStack {
-                ZStack {
-                    // Full thumbnail - no cropping, fill entire bounds
-                    if let take = loadSelectedTakes()?.first {
-                        AsyncThumbnailView(videoURL: take.fileURL)
-                            .frame(width: previewWidth, height: previewHeight)
-                            .clipped()
-                    } else {
-                        // Placeholder
-                        Rectangle()
-                            .fill(AppTheme.Colors.surface)
-                            .frame(width: previewWidth, height: previewHeight)
-                            .overlay(
-                                VStack(spacing: 4) {
-                                    Image(systemName: "video.fill")
-                                        .font(.system(size: 20))
-                                    Text("No video")
-                                        .font(.caption2)
-                                }
+        return HStack(spacing: 14) {
+            // Thumbnail with crop overlay
+            ZStack {
+                if let take = loadSelectedTakes()?.first {
+                    AsyncThumbnailView(videoURL: take.fileURL)
+                        .frame(width: previewWidth, height: previewHeight)
+                        .clipped()
+                } else {
+                    Rectangle()
+                        .fill(AppTheme.Colors.background)
+                        .frame(width: previewWidth, height: previewHeight)
+                        .overlay(
+                            Image(systemName: "video.fill")
+                                .font(.title3)
                                 .foregroundStyle(AppTheme.Colors.textTertiary)
-                            )
-                    }
-
-                    // Crop overlay - dims areas that will be cropped out
-                    CropOverlayView(
-                        containerSize: CGSize(width: previewWidth, height: previewHeight),
-                        targetAspect: selectedAspect.aspectRatio
-                    )
+                        )
                 }
-                .frame(width: previewWidth, height: previewHeight)
-                .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 8, style: .continuous)
-                        .stroke(AppTheme.Colors.border, lineWidth: 1)
-                )
 
-                // Aspect info on the side
-                VStack(alignment: .leading, spacing: 4) {
+                CropOverlayView(
+                    containerSize: CGSize(width: previewWidth, height: previewHeight),
+                    targetAspect: selectedAspect.aspectRatio
+                )
+            }
+            .frame(width: previewWidth, height: previewHeight)
+            .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: 6, style: .continuous)
+                    .stroke(AppTheme.Colors.border, lineWidth: 1)
+            )
+
+            // Info
+            VStack(alignment: .leading, spacing: 2) {
+                HStack(spacing: 6) {
                     Text(selectedAspect.title)
                         .font(.headline)
                         .foregroundStyle(AppTheme.Colors.textPrimary)
-                    Text(selectedAspect.subtitle)
-                        .font(.caption)
-                        .foregroundStyle(AppTheme.Colors.textSecondary)
-                    Text("Shaded area will be cropped")
-                        .font(.caption2)
+                    Text("•")
                         .foregroundStyle(AppTheme.Colors.textTertiary)
+                    Text(selectedAspect.subtitle)
+                        .font(.subheadline)
+                        .foregroundStyle(AppTheme.Colors.textSecondary)
                 }
-
-                Spacer()
+                Text("Shaded area will be cropped out")
+                    .font(.caption)
+                    .foregroundStyle(AppTheme.Colors.textTertiary)
             }
+
+            Spacer()
         }
     }
 
