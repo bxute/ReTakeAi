@@ -9,8 +9,9 @@ struct PreviewScreen: View {
     let projectID: UUID
     @State private var project: Project?
     @State private var selectedAspect: VideoAspect = .portrait9x16
-    @State private var isWorking = false
-    @State private var progressMessage: String?
+
+    @State private var isGenerating = false
+    @State private var isExporting = false
 
     @State private var cachedPreviewURLs: [VideoAspect: URL] = [:]
     @State private var lastMergedURL: URL?
@@ -19,7 +20,6 @@ struct PreviewScreen: View {
     @State private var playingURL: URL?
     @State private var showingExports = false
 
-    @State private var showingExport = false
     @Environment(\.dismiss) private var dismiss
 
     init(projectID: UUID) {
@@ -27,70 +27,70 @@ struct PreviewScreen: View {
     }
 
     var body: some View {
-        ZStack {
+        ZStack(alignment: .bottom) {
+            AppTheme.Colors.background
+                .ignoresSafeArea()
+
             ScrollView {
                 LazyVStack(alignment: .leading, spacing: 20) {
                     informationSection
 
                     aspectSelectionSection
 
-                    optionsSection
-
-                    generatedPreviewSection
-
-                    Button {
-                        Task { await generatePreview(force: true) }
-                    } label: {
-                        Label(hasGeneratedPreviewForSelectedAspect ? "Re-Generate Preview" : "Generate Preview", systemImage: "play.circle.fill")
-                            .frame(maxWidth: .infinity)
+                    // Inline generating state
+                    if isGenerating {
+                        inlineProgressCard(
+                            title: "Generating preview…",
+                            subtitle: "This may take a few seconds."
+                        )
                     }
-                    .buttonStyle(.bordered)
-                    .controlSize(.large)
-                    .disabled(isWorking)
 
-                    if hasGeneratedPreviewForSelectedAspect {
-                        VStack(spacing: 10) {
-                            Button {
-                                Task { await exportVideo() }
-                            } label: {
-                                Label("Export Video", systemImage: "square.and.arrow.up")
-                                    .frame(maxWidth: .infinity)
-                            }
-                            .buttonStyle(.borderedProminent)
-                            .controlSize(.large)
-                            .disabled(isWorking || project == nil)
+                    // Inline exporting state
+                    if isExporting {
+                        inlineProgressCard(
+                            title: "Exporting video…",
+                            subtitle: "You can leave this screen."
+                        )
+                    }
 
-                            HStack(spacing: 10) {
-                                Text(finalDurationText)
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
-                                Text("•")
-                                    .font(.caption)
-                                    .foregroundStyle(.tertiary)
-                                Text(finalSizeText)
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
-                                Spacer()
-                            }
+                    // Generate Preview button (when no preview yet)
+                    if !hasGeneratedPreviewForSelectedAspect && !isGenerating {
+                        Button {
+                            Task { await generatePreview(force: true) }
+                        } label: {
+                            Label("Generate Preview", systemImage: "play.circle.fill")
+                                .font(.body.weight(.semibold))
+                                .frame(maxWidth: .infinity)
                         }
+                        .buttonStyle(AppPrimaryButtonStyle(background: AppTheme.Colors.cta))
+                        .disabled(isGenerating || isExporting)
                     }
                 }
                 .padding(.horizontal)
                 .padding(.vertical, 16)
+                .padding(.bottom, hasGeneratedPreviewForSelectedAspect ? 200 : 20)
             }
 
-            if let progressMessage {
-                ProgressDialog(message: progressMessage)
+            // Sticky Preview Card at bottom
+            if hasGeneratedPreviewForSelectedAspect {
+                stickyPreviewCard
             }
         }
-        .navigationTitle("Preview")
         .navigationBarTitleDisplayMode(.inline)
+        .toolbarBackground(AppTheme.Colors.background, for: .navigationBar)
+        .toolbarBackground(.visible, for: .navigationBar)
         .toolbar {
+            ToolbarItem(placement: .principal) {
+                Text("Preview")
+                    .font(.headline)
+                    .foregroundStyle(AppTheme.Colors.textPrimary)
+            }
             ToolbarItem(placement: .primaryAction) {
                 Button {
                     showingExports = true
                 } label: {
-                    Text("Go to Exports")
+                    Text("Exports")
+                        .foregroundStyle(AppTheme.Colors.cta)
                 }
                 .disabled(project?.exports.isEmpty ?? true)
             }
@@ -110,16 +110,149 @@ struct PreviewScreen: View {
                     Button {
                         showingPlayer = false
                     } label: {
-                        Image(systemName: "xmark.circle.fill")
-                            .font(.title2)
-                            .foregroundStyle(.white, .black.opacity(0.35))
-                            .padding(10)
+                        Text("Done")
+                            .font(.body.weight(.semibold))
+                            .foregroundStyle(.white)
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 8)
+                            .background(.black.opacity(0.5), in: Capsule())
                     }
                     .buttonStyle(.plain)
+                    .padding()
                 }
                 .statusBarHidden(true)
             }
         }
+    }
+
+    // MARK: - Inline Progress Card
+
+    private func inlineProgressCard(title: String, subtitle: String) -> some View {
+        HStack(spacing: 14) {
+            ProgressView()
+                .tint(AppTheme.Colors.cta)
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(title)
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(AppTheme.Colors.textPrimary)
+                Text(subtitle)
+                    .font(.caption)
+                    .foregroundStyle(AppTheme.Colors.textSecondary)
+            }
+
+            Spacer()
+        }
+        .padding(16)
+        .background(
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .fill(AppTheme.Colors.surface)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .stroke(AppTheme.Colors.border, lineWidth: 1)
+        )
+    }
+
+    // MARK: - Sticky Preview Card
+
+    private var stickyPreviewCard: some View {
+        VStack(spacing: 0) {
+            Rectangle()
+                .fill(AppTheme.Colors.border)
+                .frame(height: 1)
+
+            VStack(spacing: 12) {
+                // Header
+                HStack {
+                    Image(systemName: "film.fill")
+                        .foregroundStyle(AppTheme.Colors.success)
+                    Text("Preview Ready")
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(AppTheme.Colors.textPrimary)
+                    Spacer()
+                }
+
+                // Thumbnail + info
+                if let url = cachedPreviewURLs[selectedAspect] {
+                    HStack(spacing: 12) {
+                        VideoThumbnailView(videoURL: url, isPortrait: selectedAspect == .portrait9x16, durationText: nil)
+                            .frame(width: 80, height: 80)
+                            .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(finalDurationText)
+                                .font(.subheadline)
+                                .foregroundStyle(AppTheme.Colors.textPrimary)
+
+                            Text(selectedAspect.title)
+                                .font(.caption)
+                                .foregroundStyle(AppTheme.Colors.textSecondary)
+
+                            Text(finalSizeText)
+                                .font(.caption)
+                                .foregroundStyle(AppTheme.Colors.textTertiary)
+                        }
+
+                        Spacer()
+                    }
+                }
+
+                // Action buttons
+                HStack(spacing: 12) {
+                    Button {
+                        if let url = cachedPreviewURLs[selectedAspect] {
+                            playingURL = url
+                            showingPlayer = true
+                        }
+                    } label: {
+                        Label("Play Preview", systemImage: "play.fill")
+                            .font(.subheadline.weight(.semibold))
+                            .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(AppPrimaryButtonStyle(
+                        background: AppTheme.Colors.surface,
+                        foreground: AppTheme.Colors.textPrimary,
+                        expandsToFullWidth: true,
+                        cornerRadius: 10,
+                        verticalPadding: 12,
+                        horizontalPadding: 12
+                    ))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 10, style: .continuous)
+                            .stroke(AppTheme.Colors.border, lineWidth: 1)
+                    )
+
+                    Button {
+                        Task { await exportVideo() }
+                    } label: {
+                        Label("Export Video", systemImage: "square.and.arrow.up")
+                            .font(.subheadline.weight(.semibold))
+                            .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(AppPrimaryButtonStyle(
+                        background: AppTheme.Colors.cta,
+                        expandsToFullWidth: true,
+                        cornerRadius: 10,
+                        verticalPadding: 12,
+                        horizontalPadding: 12
+                    ))
+                    .disabled(isExporting || project == nil)
+                }
+
+                // Re-generate option
+                Button {
+                    Task { await generatePreview(force: true) }
+                } label: {
+                    Text("Re-generate Preview")
+                        .font(.caption)
+                        .foregroundStyle(AppTheme.Colors.textSecondary)
+                }
+                .disabled(isGenerating)
+            }
+            .padding(16)
+        }
+        .background(AppTheme.Colors.surface)
     }
 
     // MARK: - Aspect Ratio Selector
@@ -130,7 +263,11 @@ struct PreviewScreen: View {
                 aspectButton(for: aspect)
             }
         }
-        .background(Color(.systemGray5), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+        .background(AppTheme.Colors.surface, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                .stroke(AppTheme.Colors.border, lineWidth: 1)
+        )
     }
 
     private func aspectButton(for aspect: VideoAspect) -> some View {
@@ -142,17 +279,17 @@ struct PreviewScreen: View {
                     .font(.subheadline.weight(.semibold))
                 Text(aspect.subtitle)
                     .font(.caption2)
-                    .foregroundStyle(selectedAspect == aspect ? .white.opacity(0.8) : .secondary)
+                    .foregroundStyle(selectedAspect == aspect ? AppTheme.Colors.textPrimary.opacity(0.8) : AppTheme.Colors.textSecondary)
             }
             .frame(maxWidth: .infinity)
             .padding(.vertical, 10)
             .background(
                 selectedAspect == aspect
-                    ? Color.accentColor
+                    ? AppTheme.Colors.cta
                     : Color.clear,
                 in: RoundedRectangle(cornerRadius: 8, style: .continuous)
             )
-            .foregroundStyle(selectedAspect == aspect ? .white : .primary)
+            .foregroundStyle(selectedAspect == aspect ? AppTheme.Colors.textPrimary : AppTheme.Colors.textSecondary)
         }
         .buttonStyle(.plain)
         .padding(2)
@@ -160,60 +297,37 @@ struct PreviewScreen: View {
 
     private var informationSection: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text("Information")
-                .font(.headline)
+            Text("INFORMATION")
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(AppTheme.Colors.textTertiary)
 
             VStack(alignment: .leading, spacing: 6) {
                 Text(project?.title ?? "Project")
                     .font(.subheadline.weight(.semibold))
-                Text("Finalize your export settings, then generate a preview or export.")
+                    .foregroundStyle(AppTheme.Colors.textPrimary)
+                Text("Finalize your export settings, then generate a preview.")
                     .font(.footnote)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(AppTheme.Colors.textSecondary)
             }
             .padding(12)
-            .background(Color(.systemGray6), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .fill(AppTheme.Colors.surface)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .stroke(AppTheme.Colors.border, lineWidth: 1)
+            )
         }
     }
 
     private var aspectSelectionSection: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("Aspect Ratio")
-                .font(.headline)
+            Text("ASPECT RATIO")
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(AppTheme.Colors.textTertiary)
             aspectRatioSelector
-        }
-    }
-
-    private var optionsSection: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            VStack(alignment: .leading, spacing: 10) {
-                Text("Background Music")
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(.secondary)
-                HStack {
-                    Text("Not implemented yet")
-                        .foregroundStyle(.secondary)
-                    Spacer()
-                    Image(systemName: "music.note")
-                        .foregroundStyle(.tertiary)
-                }
-                .padding(12)
-                .background(Color(.systemGray6), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
-            }
-
-            VStack(alignment: .leading, spacing: 10) {
-                Text("Advanced AI Trims")
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(.secondary)
-                HStack {
-                    Text("Not implemented yet")
-                        .foregroundStyle(.secondary)
-                    Spacer()
-                    Image(systemName: "scissors")
-                        .foregroundStyle(.tertiary)
-                }
-                .padding(12)
-                .background(Color(.systemGray6), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
-            }
         }
     }
 
@@ -224,42 +338,7 @@ struct PreviewScreen: View {
         return false
     }
 
-    private var generatedPreviewSection: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Text("Generated Video")
-                .font(.headline)
-
-            if let url = cachedPreviewURLs[selectedAspect], FileManager.default.fileExists(atPath: url.path) {
-                Button {
-                    playingURL = url
-                    showingPlayer = true
-                } label: {
-                    VideoThumbnailView(videoURL: url, isPortrait: false, durationText: nil)
-                        .aspectRatio(16.0 / 9.0, contentMode: .fit)
-                        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                .stroke(Color.secondary.opacity(0.25), lineWidth: 1)
-                        )
-                }
-                .buttonStyle(.plain)
-
-                Text("Duration: \(finalDurationText.replacingOccurrences(of: "Duration: ", with: ""))")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            } else {
-                VStack(alignment: .leading, spacing: 6) {
-                    Text("No preview generated yet.")
-                        .font(.subheadline.weight(.semibold))
-                    Text("Tap “Generate Preview” to create a preview for the selected aspect ratio.")
-                        .font(.footnote)
-                        .foregroundStyle(.secondary)
-                }
-                .padding(12)
-                .background(Color(.systemGray6), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
-            }
-        }
-    }
+    // MARK: - Data Loading
 
     private func load() {
         let projectStore = ProjectStore.shared
@@ -304,24 +383,19 @@ struct PreviewScreen: View {
     }
 
     private func generatePreview(force: Bool) async {
-        guard !isWorking else { return }
+        guard !isGenerating && !isExporting else { return }
         guard let takes = loadSelectedTakes() else { return }
 
         if !force,
            let cached = cachedPreviewURLs[selectedAspect],
            FileManager.default.fileExists(atPath: cached.path) {
+            // Don't auto-play, just use cached
             lastMergedURL = cached
-            playingURL = cached
-            showingPlayer = true
             return
         }
 
-        isWorking = true
-        progressMessage = "Preparing Video Preview…."
-        defer {
-            isWorking = false
-            progressMessage = nil
-        }
+        isGenerating = true
+        defer { isGenerating = false }
 
         do {
             let tmp = FileManager.default.temporaryDirectory
@@ -337,24 +411,19 @@ struct PreviewScreen: View {
 
             cachedPreviewURLs[selectedAspect] = merged
             lastMergedURL = merged
-            playingURL = merged
-            showingPlayer = true
+            // Don't auto-play - user will tap "Play Preview"
         } catch {
             // no-op for now
         }
     }
 
     private func exportVideo() async {
-        guard !isWorking else { return }
+        guard !isGenerating && !isExporting else { return }
         guard var project else { return }
         guard let takes = loadSelectedTakes() else { return }
 
-        isWorking = true
-        progressMessage = "Exporting Video…."
-        defer {
-            isWorking = false
-            progressMessage = nil
-        }
+        isExporting = true
+        defer { isExporting = false }
 
         do {
             project.videoAspect = selectedAspect
@@ -400,28 +469,6 @@ struct PreviewScreen: View {
             showingExports = true
         } catch {
             // no-op for now
-        }
-    }
-}
-
-private struct ProgressDialog: View {
-    let message: String
-
-    var body: some View {
-        ZStack {
-            Color.black.opacity(0.25)
-                .ignoresSafeArea()
-
-            VStack(spacing: 12) {
-                ProgressView()
-                Text(message)
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
-            }
-            .padding(.horizontal, 18)
-            .padding(.vertical, 16)
-            .frame(maxWidth: 320)
-            .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
         }
     }
 }
