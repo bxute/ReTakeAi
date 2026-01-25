@@ -523,7 +523,7 @@ private struct AsyncThumbnailView: View {
     }
 }
 
-
+extension PreviewScreen {
     private var hasGeneratedPreviewForSelectedAspect: Bool {
         if let url = cachedPreviewURLs[selectedAspect] {
             return FileManager.default.fileExists(atPath: url.path)
