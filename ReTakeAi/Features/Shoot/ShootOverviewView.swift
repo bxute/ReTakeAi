@@ -19,6 +19,9 @@ struct ShootOverviewView: View {
 
     var body: some View {
         ZStack(alignment: .bottom) {
+            AppTheme.Colors.background
+                .ignoresSafeArea()
+
             ScrollView {
                 LazyVStack(alignment: .leading, spacing: 16) {
                     if viewModel.project != nil {
@@ -37,14 +40,17 @@ struct ShootOverviewView: View {
         }
         .navigationTitle("Scene Shoot")
         .navigationBarTitleDisplayMode(.inline)
+        .toolbarBackground(AppTheme.Colors.background, for: .navigationBar)
+        .toolbarBackground(.visible, for: .navigationBar)
         .toolbar {
             ToolbarItem(placement: .principal) {
                 VStack(spacing: 2) {
                     Text("Scene Shoot")
                         .font(.headline)
+                        .foregroundStyle(AppTheme.Colors.textPrimary)
                     Text("\(viewModel.scenes.count) scenes • \(viewModel.recordedScenesCount) recorded")
                         .font(.caption)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(AppTheme.Colors.textSecondary)
                 }
             }
         }
@@ -80,33 +86,33 @@ struct ShootOverviewView: View {
 
     private var stickyBottomCTA: some View {
         VStack(spacing: 0) {
-            Divider()
+            Rectangle()
+                .fill(AppTheme.Colors.border)
+                .frame(height: 1)
+
             Group {
                 if let nextScene = viewModel.nextSceneToRecord {
                     Button {
                         selectedSceneForRecording = nextScene
                     } label: {
                         Label("Record Next Scene", systemImage: "video.fill")
-                            .frame(maxWidth: .infinity)
+                            .font(.body.weight(.semibold))
                     }
-                    .buttonStyle(.borderedProminent)
-                    .controlSize(.large)
-                    .tint(.red)
+                    .buttonStyle(AppPrimaryButtonStyle(background: AppTheme.Colors.destructive))
                 } else {
                     NavigationLink {
                         PreviewScreen(projectID: projectID)
                     } label: {
                         Label("Review & Export", systemImage: "square.and.arrow.up")
-                            .frame(maxWidth: .infinity)
+                            .font(.body.weight(.semibold))
                     }
-                    .buttonStyle(.borderedProminent)
-                    .controlSize(.large)
+                    .buttonStyle(AppPrimaryButtonStyle(background: AppTheme.Colors.cta))
                 }
             }
             .padding(.horizontal)
             .padding(.vertical, 12)
         }
-        .background(.regularMaterial)
+        .background(AppTheme.Colors.surface)
     }
 
     // MARK: - Scenes Section
@@ -116,7 +122,7 @@ struct ShootOverviewView: View {
             if viewModel.scenes.isEmpty {
                 Text("Generate scenes to start shooting.")
                     .font(.footnote)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(AppTheme.Colors.textSecondary)
             } else {
                 ForEach(viewModel.scenes.sorted(by: { $0.orderIndex < $1.orderIndex })) { scene in
                     sceneCard(for: scene)
@@ -150,16 +156,17 @@ struct ShootOverviewView: View {
                     HStack(alignment: .firstTextBaseline, spacing: 6) {
                         // Status indicator dot
                         Circle()
-                            .fill(isRecorded ? Color.green : Color.gray)
+                            .fill(isRecorded ? AppTheme.Colors.success : AppTheme.Colors.textTertiary)
                             .frame(width: 8, height: 8)
 
                         Text("Scene \(scene.orderIndex + 1)")
                             .font(.subheadline.weight(.semibold))
+                            .foregroundStyle(AppTheme.Colors.textPrimary)
 
                         if let duration = scene.duration {
                             Text("\(Int(duration))s")
                                 .font(.caption)
-                                .foregroundStyle(.secondary)
+                                .foregroundStyle(AppTheme.Colors.textSecondary)
                         }
 
                         Spacer()
@@ -171,27 +178,37 @@ struct ShootOverviewView: View {
                             } label: {
                                 Text("Retake")
                                     .font(.caption2.weight(.medium))
+                                    .foregroundStyle(AppTheme.Colors.textSecondary)
+                                    .padding(.horizontal, 10)
+                                    .padding(.vertical, 5)
+                                    .background(AppTheme.Colors.surface)
+                                    .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 6, style: .continuous)
+                                            .stroke(AppTheme.Colors.border, lineWidth: 1)
+                                    )
                             }
-                            .buttonStyle(.bordered)
-                            .controlSize(.mini)
-                            .tint(.secondary)
+                            .buttonStyle(.plain)
                         } else {
                             Button {
                                 selectedSceneForRecording = scene
                             } label: {
                                 Text("Record Scene")
                                     .font(.caption.weight(.semibold))
+                                    .foregroundStyle(AppTheme.Colors.textPrimary)
+                                    .padding(.horizontal, 12)
+                                    .padding(.vertical, 6)
+                                    .background(AppTheme.Colors.destructive)
+                                    .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
                             }
-                            .buttonStyle(.borderedProminent)
-                            .controlSize(.small)
-                            .tint(.red)
+                            .buttonStyle(.plain)
                         }
                     }
 
                     // Script preview
                     Text(scene.scriptText)
                         .font(.footnote)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(AppTheme.Colors.textSecondary)
                         .lineLimit(2)
 
                     // Takes info: Only show for recorded scenes
@@ -199,24 +216,24 @@ struct ShootOverviewView: View {
                         HStack(spacing: 6) {
                             Text("Takes: \(takes.count)")
                                 .font(.caption)
-                                .foregroundStyle(.secondary)
+                                .foregroundStyle(AppTheme.Colors.textSecondary)
 
                             if let best {
                                 Text("•")
                                     .font(.caption)
-                                    .foregroundStyle(.tertiary)
+                                    .foregroundStyle(AppTheme.Colors.textTertiary)
 
                                 Text("Best: #\(best.takeNumber)")
                                     .font(.caption)
-                                    .foregroundStyle(.secondary)
+                                    .foregroundStyle(AppTheme.Colors.textSecondary)
 
                                 Text("•")
                                     .font(.caption)
-                                    .foregroundStyle(.tertiary)
+                                    .foregroundStyle(AppTheme.Colors.textTertiary)
 
                                 Text(best.duration.shortDuration)
                                     .font(.caption)
-                                    .foregroundStyle(.secondary)
+                                    .foregroundStyle(AppTheme.Colors.textSecondary)
                             }
 
                             Spacer(minLength: 0)
@@ -228,11 +245,11 @@ struct ShootOverviewView: View {
         .padding(12)
         .background(
             RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .fill(isRecorded ? Color.green.opacity(0.05) : Color.clear)
+                .fill(isRecorded ? AppTheme.Colors.success.opacity(0.08) : AppTheme.Colors.surface)
         )
         .overlay(
             RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .stroke(isRecorded ? Color.green.opacity(0.3) : Color.secondary.opacity(0.25), lineWidth: 1)
+                .stroke(isRecorded ? AppTheme.Colors.success.opacity(0.3) : AppTheme.Colors.border, lineWidth: 1)
         )
         .contentShape(Rectangle())
         .onTapGesture {
