@@ -9,6 +9,10 @@ private struct ShootDestination: Hashable {
     let projectID: UUID
 }
 
+private struct ExportsDestination: Hashable {
+    let projectID: UUID
+}
+
 struct ProjectListView: View {
     @State private var viewModel = ProjectListViewModel()
     @State private var showingCreateSheet = false
@@ -32,6 +36,9 @@ struct ProjectListView: View {
             }
             .navigationDestination(for: ShootDestination.self) { dest in
                 ShootOverviewView(projectID: dest.projectID)
+            }
+            .navigationDestination(for: ExportsDestination.self) { dest in
+                ExportsScreen(projectID: dest.projectID)
             }
             .sheet(isPresented: $showingCreateSheet) {
                 createProjectSheet
@@ -256,7 +263,10 @@ struct ProjectListView: View {
                 NavigationLink(value: project) {
                     ProjectHomeRowView(
                         project: project,
-                        progress: viewModel.progress(for: project)
+                        progress: viewModel.progress(for: project),
+                        onExportsTap: {
+                            navigationPath.append(ExportsDestination(projectID: project.id))
+                        }
                     )
                     .frame(maxWidth: .infinity)
                 }
@@ -302,6 +312,7 @@ struct ProjectListView: View {
 private struct ProjectHomeRowView: View {
     let project: Project
     let progress: ProjectListViewModel.ProjectProgress
+    var onExportsTap: (() -> Void)?
     
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
@@ -323,9 +334,24 @@ private struct ProjectHomeRowView: View {
                     
                     Spacer(minLength: 0)
                     
-                    Text(project.updatedAt.timeAgo)
-                        .font(.caption2)
-                        .foregroundStyle(AppTheme.Colors.textTertiary)
+                    if progress.hasExport {
+                        Button {
+                            onExportsTap?()
+                        } label: {
+                            HStack(spacing: 4) {
+                                Text("Exports")
+                                    .font(.caption2.weight(.medium))
+                                Image(systemName: "chevron.right")
+                                    .font(.caption2.weight(.semibold))
+                            }
+                            .foregroundStyle(AppTheme.Colors.cta)
+                        }
+                        .buttonStyle(.plain)
+                    } else {
+                        Text(project.updatedAt.timeAgo)
+                            .font(.caption2)
+                            .foregroundStyle(AppTheme.Colors.textTertiary)
+                    }
                 }
             }
             .frame(height: 34)
