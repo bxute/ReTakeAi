@@ -11,6 +11,10 @@ struct ShootOverviewView: View {
 
     @State private var selectedSceneForRecording: VideoScene?
     @State private var selectedSceneForDetails: VideoScene?
+    
+    // Reorder mode
+    @State private var isReorderMode = false
+    @State private var reorderedScenes: [VideoScene] = []
 
     init(projectID: UUID) {
         self.projectID = projectID
@@ -22,20 +26,38 @@ struct ShootOverviewView: View {
             AppTheme.Colors.background
                 .ignoresSafeArea()
 
-            ScrollView {
-                LazyVStack(alignment: .leading, spacing: 16) {
-                    if viewModel.project != nil {
-                        scenesSection
+            if isReorderMode {
+                // Reorder mode uses List for drag support
+                List {
+                    ForEach(reorderedScenes) { scene in
+                        reorderableSceneRow(for: scene)
+                            .listRowBackground(Color.clear)
+                            .listRowSeparator(.hidden)
+                            .listRowInsets(EdgeInsets(top: 6, leading: 16, bottom: 6, trailing: 16))
+                    }
+                    .onMove { from, to in
+                        reorderedScenes.move(fromOffsets: from, toOffset: to)
                     }
                 }
-                .padding(.horizontal)
-                .padding(.vertical, 16)
-                .padding(.bottom, 80) // Space for sticky CTA
-            }
-
-            // Sticky bottom CTA
-            if !viewModel.scenes.isEmpty {
-                stickyBottomCTA
+                .listStyle(.plain)
+                .environment(\.editMode, .constant(.active))
+                .scrollContentBackground(.hidden)
+            } else {
+                ScrollView {
+                    LazyVStack(alignment: .leading, spacing: 16) {
+                        if viewModel.project != nil {
+                            scenesSection
+                        }
+                    }
+                    .padding(.horizontal)
+                    .padding(.vertical, 16)
+                    .padding(.bottom, 80) // Space for sticky CTA
+                }
+                
+                // Sticky bottom CTA
+                if !viewModel.scenes.isEmpty {
+                    stickyBottomCTA
+                }
             }
         }
         .navigationTitle("Shoot")
@@ -45,12 +67,44 @@ struct ShootOverviewView: View {
         .toolbar {
             ToolbarItem(placement: .principal) {
                 VStack(spacing: 2) {
-                    Text("Scene Shoot")
+                    Text(isReorderMode ? "Reorder Scenes" : "Scene Shoot")
                         .font(.headline)
                         .foregroundStyle(AppTheme.Colors.textPrimary)
-                    Text("\(viewModel.scenes.count) scenes • \(viewModel.recordedScenesCount) recorded")
-                        .font(.caption)
-                        .foregroundStyle(AppTheme.Colors.textSecondary)
+                    if !isReorderMode {
+                        Text("\(viewModel.scenes.count) scenes • \(viewModel.recordedScenesCount) recorded")
+                            .font(.caption)
+                            .foregroundStyle(AppTheme.Colors.textSecondary)
+                    }
+                }
+            }
+            
+            ToolbarItem(placement: .topBarTrailing) {
+                if isReorderMode {
+                    Button("Done") {
+                        saveReorderedScenes()
+                    }
+                    .font(.body.weight(.semibold))
+                    .foregroundStyle(AppTheme.Colors.cta)
+                } else if viewModel.scenes.count > 1 {
+                    Menu {
+                        Button {
+                            enterReorderMode()
+                        } label: {
+                            Label("Reorder Scenes", systemImage: "arrow.up.arrow.down")
+                        }
+                    } label: {
+                        Image(systemName: "ellipsis.circle")
+                            .foregroundStyle(AppTheme.Colors.textSecondary)
+                    }
+                }
+            }
+            
+            if isReorderMode {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button("Cancel") {
+                        exitReorderMode()
+                    }
+                    .foregroundStyle(AppTheme.Colors.textSecondary)
                 }
             }
         }
@@ -131,6 +185,79 @@ struct ShootOverviewView: View {
                 }
             }
         }
+    }
+    
+    private func reorderableSceneRow(for scene: VideoScene) -> some View {
+        let isRecorded = viewModel.hasTakes(for: scene)
+        
+        return HStack(spacing: 12) {
+            // Drag handle
+            Image(systemName: "line.3.horizontal")
+                .font(.body)
+                .foregroundStyle(AppTheme.Colors.textTertiary)
+            
+            // Status dot
+            Circle()
+                .fill(isRecorded ? AppTheme.Colors.success : AppTheme.Colors.textTertiary)
+                .frame(width: 8, height: 8)
+            
+            // Scene info
+            VStack(alignment: .leading, spacing: 2) {
+                Text("Scene \(scene.orderIndex + 1)")
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(AppTheme.Colors.textPrimary)
+                
+                Text(scene.scriptText)
+                    .font(.caption)
+                    .foregroundStyle(AppTheme.Colors.textSecondary)
+                    .lineLimit(1)
+            }
+            
+            Spacer()
+        }
+        .padding(12)
+        .background(
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .fill(AppTheme.Colors.surface)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .stroke(AppTheme.Colors.border, lineWidth: 1)
+        )
+    }
+    
+    // MARK: - Reorder Actions
+    
+    private func enterReorderMode() {
+        reorderedScenes = viewModel.scenes.sorted { $0.orderIndex < $1.orderIndex }
+        withAnimation(.easeInOut(duration: 0.2)) {
+            isReorderMode = true
+        }
+    }
+    
+    private func exitReorderMode() {
+        withAnimation(.easeInOut(duration: 0.2)) {
+            isReorderMode = false
+        }
+        reorderedScenes = []
+    }
+    
+    private func saveReorderedScenes() {
+        // Update orderIndex for each scene based on new position
+        for (index, scene) in reorderedScenes.enumerated() {
+            if scene.orderIndex != index {
+                var updated = scene
+                updated.orderIndex = index
+                try? SceneStore.shared.updateScene(updated)
+            }
+        }
+        
+        // Exit reorder mode and reload
+        withAnimation(.easeInOut(duration: 0.2)) {
+            isReorderMode = false
+        }
+        reorderedScenes = []
+        viewModel.load()
     }
 
     // MARK: - Scene Card
