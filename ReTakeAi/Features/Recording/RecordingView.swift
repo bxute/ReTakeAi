@@ -50,9 +50,9 @@ struct RecordingView: View {
                             dismiss()
                         } label: {
                             Image(systemName: "xmark")
-                                .font(.system(size: 16, weight: .bold))
+                                .font(.system(size: 12, weight: .bold))
                                 .foregroundStyle(.white)
-                                .frame(width: 44, height: 44)
+                                .frame(width: 32, height: 32)
                                 .background(.black.opacity(0.35), in: Circle())
                         }
                         .buttonStyle(.plain)
@@ -63,9 +63,9 @@ struct RecordingView: View {
                             showingSettings = true
                         } label: {
                             Image(systemName: "gearshape.fill")
-                                .font(.system(size: 16, weight: .bold))
+                                .font(.system(size: 12, weight: .bold))
                                 .foregroundStyle(.white)
-                                .frame(width: 44, height: 44)
+                                .frame(width: 32, height: 32)
                                 .background(.black.opacity(0.35), in: Circle())
                         }
                         .buttonStyle(.plain)
