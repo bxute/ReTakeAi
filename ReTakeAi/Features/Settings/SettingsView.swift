@@ -16,14 +16,13 @@ struct SettingsView: View {
             
             ScrollView {
                 VStack(spacing: 24) {
-                    // Live Preview
+                    // Live Preview (edge-to-edge)
                     previewSection
                     
                     // Teleprompter Settings
                     teleprompterSection
+                        .padding(.horizontal, 16)
                 }
-                .padding(.horizontal, 16)
-                .padding(.top, 8)
                 .padding(.bottom, 32)
             }
             .scrollIndicators(.hidden)
@@ -37,14 +36,10 @@ struct SettingsView: View {
     // MARK: - Preview Section
     
     private var previewSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            sectionHeader("Preview")
-            
-            TeleprompterPreviewView(
-                preferences: viewModel.preferences,
-                restartTrigger: viewModel.previewRestartTrigger
-            )
-        }
+        TeleprompterPreviewView(
+            preferences: viewModel.preferences,
+            restartTrigger: viewModel.previewRestartTrigger
+        )
     }
     
     // MARK: - Teleprompter Section
@@ -68,13 +63,6 @@ struct SettingsView: View {
                 
                 divider
                 
-                // Alignment
-                settingsRow(title: "Alignment") {
-                    alignmentPicker
-                }
-                
-                divider
-                
                 // Direction
                 settingsRow(title: "Direction") {
                     directionPicker
@@ -82,15 +70,15 @@ struct SettingsView: View {
                 
                 divider
                 
+                // Mirror Text
+                toggleRow(title: "Mirror Text", subtitle: "For front camera", isOn: $viewModel.mirrorText)
+                
+                divider
+                
                 // Countdown
                 settingsRow(title: "Countdown") {
                     countdownPicker
                 }
-                
-                divider
-                
-                // Mirror Text
-                toggleRow(title: "Mirror Text", subtitle: "For front camera", isOn: $viewModel.mirrorText)
                 
                 divider
                 
@@ -129,19 +117,6 @@ struct SettingsView: View {
     private var textSizeSlider: some View {
         Slider(value: $viewModel.textSize, in: 18...48, step: 1)
             .tint(AppTheme.Colors.cta)
-    }
-    
-    private var alignmentPicker: some View {
-        HStack(spacing: 8) {
-            ForEach(TeleprompterTextAlignment.allCases, id: \.self) { alignment in
-                iconChipButton(
-                    systemImage: alignment.systemImage,
-                    isSelected: viewModel.textAlignment == alignment
-                ) {
-                    viewModel.textAlignment = alignment
-                }
-            }
-        }
     }
     
     private var directionPicker: some View {
@@ -243,24 +218,6 @@ struct SettingsView: View {
                 .foregroundStyle(isSelected ? AppTheme.Colors.textPrimary : AppTheme.Colors.textSecondary)
                 .padding(.horizontal, 14)
                 .padding(.vertical, 8)
-                .background(
-                    RoundedRectangle(cornerRadius: 8, style: .continuous)
-                        .fill(isSelected ? AppTheme.Colors.cta.opacity(0.2) : AppTheme.Colors.background)
-                )
-                .overlay(
-                    RoundedRectangle(cornerRadius: 8, style: .continuous)
-                        .stroke(isSelected ? AppTheme.Colors.cta.opacity(0.5) : AppTheme.Colors.border, lineWidth: 1)
-                )
-        }
-        .buttonStyle(.plain)
-    }
-    
-    private func iconChipButton(systemImage: String, isSelected: Bool, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
-            Image(systemName: systemImage)
-                .font(.body.weight(.medium))
-                .foregroundStyle(isSelected ? AppTheme.Colors.textPrimary : AppTheme.Colors.textSecondary)
-                .frame(width: 40, height: 32)
                 .background(
                     RoundedRectangle(cornerRadius: 8, style: .continuous)
                         .fill(isSelected ? AppTheme.Colors.cta.opacity(0.2) : AppTheme.Colors.background)

@@ -25,32 +25,32 @@ struct TeleprompterPreviewView: View {
     }
     
     var body: some View {
-        VStack(spacing: 0) {
-            ZStack {
-                AppTheme.Colors.background
-                
-                HorizontalTeleprompterOverlay(
-                    text: Self.sampleText,
-                    isRunning: isRunning,
-                    direction: preferences.scrollDirection,
-                    scrollDuration: scrollDuration,
-                    fontSize: preferences.textSize,
-                    opacity: 1.0,
-                    mirror: preferences.mirrorTextForFrontCamera,
-                    onComplete: {
-                        // Loop: restart after a brief pause
-                        restartPreview()
-                    }
-                )
-                .id(loopID)
-            }
-            .frame(height: 60)
-            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-            .overlay(
-                RoundedRectangle(cornerRadius: 12, style: .continuous)
-                    .stroke(AppTheme.Colors.border, lineWidth: 1)
+        ZStack {
+            AppTheme.Colors.surface
+            
+            HorizontalTeleprompterOverlay(
+                text: Self.sampleText,
+                isRunning: isRunning,
+                direction: preferences.scrollDirection,
+                scrollDuration: scrollDuration,
+                fontSize: preferences.textSize,
+                opacity: 1.0,
+                mirror: preferences.mirrorTextForFrontCamera,
+                onComplete: {
+                    // Loop: restart after a brief pause
+                    restartPreview()
+                }
             )
+            .id(loopID)
+            .padding(.vertical, 14)
         }
+        .frame(maxWidth: .infinity)
+        .overlay(
+            Rectangle()
+                .fill(AppTheme.Colors.border)
+                .frame(height: 1),
+            alignment: .bottom
+        )
         .onAppear {
             startPreview()
         }
