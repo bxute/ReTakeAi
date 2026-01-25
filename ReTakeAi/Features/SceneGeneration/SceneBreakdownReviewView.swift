@@ -14,6 +14,10 @@ struct SceneBreakdownReviewView: View {
     @State private var expandedSceneID: UUID?
     @State private var isDirectionExpanded = false
     @State private var showingShoot = false
+    
+    // Reorder mode
+    @State private var isReorderMode = false
+    @State private var reorderedDrafts: [GeneratedSceneDraft] = []
 
     init(projectID: UUID, mode: SceneBreakdownReviewViewModel.Mode) {
         _viewModel = State(initialValue: SceneBreakdownReviewViewModel(projectID: projectID, mode: mode))
@@ -33,7 +37,7 @@ struct SceneBreakdownReviewView: View {
                 }
             }
         }
-        .navigationTitle("Scenes")
+        .navigationTitle(isReorderMode ? "Reorder Scenes" : "Scenes")
         .navigationBarTitleDisplayMode(.inline)
         .toolbarBackground(AppTheme.Colors.background, for: .navigationBar)
         .toolbarBackground(.visible, for: .navigationBar)
@@ -41,16 +45,39 @@ struct SceneBreakdownReviewView: View {
         .tint(AppTheme.Colors.cta)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
-                Menu {
-                    Button {
-                        showingRegenerateConfirm = true
-                    } label: {
-                        Label("Regenerate Scenes", systemImage: "arrow.triangle.2.circlepath")
+                if isReorderMode {
+                    Button("Done") {
+                        saveReorderedDrafts()
                     }
-                } label: {
-                    Image(systemName: "ellipsis.circle")
-                        .font(.body)
-                        .foregroundStyle(AppTheme.Colors.textSecondary)
+                    .font(.body.weight(.semibold))
+                    .foregroundStyle(AppTheme.Colors.cta)
+                } else {
+                    Menu {
+                        Button {
+                            enterReorderMode()
+                        } label: {
+                            Label("Reorder Scenes", systemImage: "arrow.up.arrow.down")
+                        }
+                        
+                        Button {
+                            showingRegenerateConfirm = true
+                        } label: {
+                            Label("Regenerate Scenes", systemImage: "arrow.triangle.2.circlepath")
+                        }
+                    } label: {
+                        Image(systemName: "ellipsis.circle")
+                            .font(.body)
+                            .foregroundStyle(AppTheme.Colors.textSecondary)
+                    }
+                }
+            }
+            
+            if isReorderMode {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button("Cancel") {
+                        exitReorderMode()
+                    }
+                    .foregroundStyle(AppTheme.Colors.textSecondary)
                 }
             }
         }
@@ -94,38 +121,46 @@ struct SceneBreakdownReviewView: View {
         VStack(spacing: 0) {
             ScrollView {
                 LazyVStack(alignment: .leading, spacing: 16) {
-                    // Header
-                    headerSection
-                    
-                    // Project Direction Card
-                    if let direction = viewModel.projectDirection {
-                        DirectionCard(
-                            direction: direction,
-                            isExpanded: $isDirectionExpanded
-                        )
-                    }
-                    
-                    // Regenerate button (de-emphasized)
-                    regenerateButton
-                    
-                    // Scene Cards
-                    ForEach(sortedDrafts) { draft in
-                        SceneCard(
-                            draft: draft,
-                            isExpanded: expandedSceneID == draft.id,
-                            onTap: {
-                                withAnimation(.easeOut(duration: 0.2)) {
-                                    if expandedSceneID == draft.id {
-                                        expandedSceneID = nil
-                                    } else {
-                                        expandedSceneID = draft.id
+                    if isReorderMode {
+                        // Reorder mode
+                        ForEach(Array(reorderedDrafts.enumerated()), id: \.element.id) { index, draft in
+                            reorderableDraftRow(for: draft, at: index)
+                        }
+                    } else {
+                        // Normal mode
+                        // Header
+                        headerSection
+                        
+                        // Project Direction Card
+                        if let direction = viewModel.projectDirection {
+                            DirectionCard(
+                                direction: direction,
+                                isExpanded: $isDirectionExpanded
+                            )
+                        }
+                        
+                        // Regenerate button (de-emphasized)
+                        regenerateButton
+                        
+                        // Scene Cards
+                        ForEach(sortedDrafts) { draft in
+                            SceneCard(
+                                draft: draft,
+                                isExpanded: expandedSceneID == draft.id,
+                                onTap: {
+                                    withAnimation(.easeOut(duration: 0.2)) {
+                                        if expandedSceneID == draft.id {
+                                            expandedSceneID = nil
+                                        } else {
+                                            expandedSceneID = draft.id
+                                        }
                                     }
+                                },
+                                onEditNarration: {
+                                    editingDraft = draft
                                 }
-                            },
-                            onEditNarration: {
-                                editingDraft = draft
-                            }
-                        )
+                            )
+                        }
                     }
                 }
                 .padding(.horizontal, 16)
@@ -134,8 +169,10 @@ struct SceneBreakdownReviewView: View {
             }
             .scrollIndicators(.hidden)
             
-            // Sticky Bottom CTA
-            stickyBottomCTA
+            // Sticky Bottom CTA (hide in reorder mode)
+            if !isReorderMode {
+                stickyBottomCTA
+            }
         }
     }
     
@@ -281,6 +318,110 @@ struct SceneBreakdownReviewView: View {
     
     private var sortedDrafts: [GeneratedSceneDraft] {
         viewModel.drafts.sorted { $0.orderIndex < $1.orderIndex }
+    }
+    
+    // MARK: - Reorder Mode
+    
+    private func reorderableDraftRow(for draft: GeneratedSceneDraft, at index: Int) -> some View {
+        let isFirst = index == 0
+        let isLast = index == reorderedDrafts.count - 1
+        
+        return HStack(spacing: 12) {
+            // Move buttons
+            VStack(spacing: 0) {
+                Button {
+                    moveDraft(at: index, direction: -1)
+                } label: {
+                    Image(systemName: "chevron.up")
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(isFirst ? AppTheme.Colors.textTertiary.opacity(0.3) : AppTheme.Colors.textSecondary)
+                        .frame(width: 44, height: 36)
+                        .contentShape(Rectangle())
+                }
+                .disabled(isFirst)
+                
+                Button {
+                    moveDraft(at: index, direction: 1)
+                } label: {
+                    Image(systemName: "chevron.down")
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(isLast ? AppTheme.Colors.textTertiary.opacity(0.3) : AppTheme.Colors.textSecondary)
+                        .frame(width: 44, height: 36)
+                        .contentShape(Rectangle())
+                }
+                .disabled(isLast)
+            }
+            
+            // Scene info
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Scene \(index + 1)")
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(AppTheme.Colors.textPrimary)
+                
+                Text(draft.narrationScript)
+                    .font(.caption)
+                    .foregroundStyle(AppTheme.Colors.textSecondary)
+                    .lineLimit(2)
+                
+                Text("~\(draft.expectedDurationSeconds)s")
+                    .font(.caption2)
+                    .foregroundStyle(AppTheme.Colors.textTertiary)
+            }
+            
+            Spacer()
+        }
+        .padding(12)
+        .background(
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .fill(AppTheme.Colors.surface)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .stroke(AppTheme.Colors.border, lineWidth: 1)
+        )
+    }
+    
+    private func moveDraft(at index: Int, direction: Int) {
+        let newIndex = index + direction
+        guard newIndex >= 0 && newIndex < reorderedDrafts.count else { return }
+        
+        withAnimation(.easeInOut(duration: 0.2)) {
+            reorderedDrafts.swapAt(index, newIndex)
+        }
+    }
+    
+    private func enterReorderMode() {
+        reorderedDrafts = sortedDrafts
+        withAnimation(.easeInOut(duration: 0.2)) {
+            isReorderMode = true
+        }
+    }
+    
+    private func exitReorderMode() {
+        withAnimation(.easeInOut(duration: 0.2)) {
+            isReorderMode = false
+        }
+        reorderedDrafts = []
+    }
+    
+    private func saveReorderedDrafts() {
+        // Update orderIndex for each draft based on new position
+        Task {
+            for (index, draft) in reorderedDrafts.enumerated() {
+                if draft.orderIndex != index {
+                    var updated = draft
+                    updated.orderIndex = index
+                    _ = await viewModel.saveEditedDraft(updated)
+                }
+            }
+            
+            await MainActor.run {
+                withAnimation(.easeInOut(duration: 0.2)) {
+                    isReorderMode = false
+                }
+                reorderedDrafts = []
+            }
+        }
     }
 }
 
