@@ -364,60 +364,63 @@ struct PreviewScreen: View {
                 .font(.caption)
                 .foregroundStyle(AppTheme.Colors.textSecondary)
 
-            // Get source video dimensions
+            // Get source video dimensions - scaled to 30% of full width
             let sourceIsPortrait = isSourceVideoPortrait
-            let previewWidth = UIScreen.main.bounds.width - 32
+            let fullWidth = UIScreen.main.bounds.width - 32
+            let previewWidth = fullWidth * 0.4 // 40% for better visibility
             let previewHeight: CGFloat = sourceIsPortrait ? previewWidth * 16 / 9 : previewWidth * 9 / 16
 
-            ZStack {
-                // Full thumbnail - no cropping, fill entire bounds
-                if let take = loadSelectedTakes()?.first {
-                    AsyncThumbnailView(videoURL: take.fileURL)
-                        .frame(width: previewWidth, height: previewHeight)
-                        .clipped()
-                } else {
-                    // Placeholder
-                    Rectangle()
-                        .fill(AppTheme.Colors.surface)
-                        .frame(width: previewWidth, height: previewHeight)
-                        .overlay(
-                            VStack(spacing: 8) {
-                                Image(systemName: "video.fill")
-                                    .font(.system(size: 40))
-                                Text("No video")
-                                    .font(.caption)
-                            }
-                            .foregroundStyle(AppTheme.Colors.textTertiary)
-                        )
-                }
+            HStack {
+                ZStack {
+                    // Full thumbnail - no cropping, fill entire bounds
+                    if let take = loadSelectedTakes()?.first {
+                        AsyncThumbnailView(videoURL: take.fileURL)
+                            .frame(width: previewWidth, height: previewHeight)
+                            .clipped()
+                    } else {
+                        // Placeholder
+                        Rectangle()
+                            .fill(AppTheme.Colors.surface)
+                            .frame(width: previewWidth, height: previewHeight)
+                            .overlay(
+                                VStack(spacing: 4) {
+                                    Image(systemName: "video.fill")
+                                        .font(.system(size: 20))
+                                    Text("No video")
+                                        .font(.caption2)
+                                }
+                                .foregroundStyle(AppTheme.Colors.textTertiary)
+                            )
+                    }
 
-                // Crop overlay - dims areas that will be cropped out
-                CropOverlayView(
-                    containerSize: CGSize(width: previewWidth, height: previewHeight),
-                    targetAspect: selectedAspect.aspectRatio
+                    // Crop overlay - dims areas that will be cropped out
+                    CropOverlayView(
+                        containerSize: CGSize(width: previewWidth, height: previewHeight),
+                        targetAspect: selectedAspect.aspectRatio
+                    )
+                }
+                .frame(width: previewWidth, height: previewHeight)
+                .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 8, style: .continuous)
+                        .stroke(AppTheme.Colors.border, lineWidth: 1)
                 )
 
-                // Aspect ratio label
-                VStack {
-                    Spacer()
-                    HStack {
-                        Spacer()
-                        Text(selectedAspect.title)
-                            .font(.caption.weight(.bold))
-                            .foregroundStyle(.white)
-                            .padding(.horizontal, 10)
-                            .padding(.vertical, 5)
-                            .background(AppTheme.Colors.cta, in: Capsule())
-                            .padding(8)
-                    }
+                // Aspect info on the side
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(selectedAspect.title)
+                        .font(.headline)
+                        .foregroundStyle(AppTheme.Colors.textPrimary)
+                    Text(selectedAspect.subtitle)
+                        .font(.caption)
+                        .foregroundStyle(AppTheme.Colors.textSecondary)
+                    Text("Shaded area will be cropped")
+                        .font(.caption2)
+                        .foregroundStyle(AppTheme.Colors.textTertiary)
                 }
+
+                Spacer()
             }
-            .frame(width: previewWidth, height: previewHeight)
-            .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
-            .overlay(
-                RoundedRectangle(cornerRadius: 10, style: .continuous)
-                    .stroke(AppTheme.Colors.border, lineWidth: 1)
-            )
         }
     }
 
