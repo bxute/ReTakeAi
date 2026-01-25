@@ -333,9 +333,11 @@ struct SceneBreakdownReviewView: View {
                     moveDraft(at: index, direction: -1)
                 } label: {
                     Image(systemName: "chevron.up")
-                        .font(.subheadline.weight(.semibold))
-                        .foregroundStyle(isFirst ? AppTheme.Colors.textTertiary.opacity(0.3) : AppTheme.Colors.textSecondary)
+                        .font(.body.weight(.bold))
+                        .foregroundStyle(isFirst ? AppTheme.Colors.textTertiary.opacity(0.3) : AppTheme.Colors.textPrimary)
                         .frame(width: 44, height: 36)
+                        .background(AppTheme.Colors.background.opacity(0.5))
+                        .cornerRadius(6)
                         .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
@@ -345,9 +347,11 @@ struct SceneBreakdownReviewView: View {
                     moveDraft(at: index, direction: 1)
                 } label: {
                     Image(systemName: "chevron.down")
-                        .font(.subheadline.weight(.semibold))
-                        .foregroundStyle(isLast ? AppTheme.Colors.textTertiary.opacity(0.3) : AppTheme.Colors.textSecondary)
+                        .font(.body.weight(.bold))
+                        .foregroundStyle(isLast ? AppTheme.Colors.textTertiary.opacity(0.3) : AppTheme.Colors.textPrimary)
                         .frame(width: 44, height: 36)
+                        .background(AppTheme.Colors.background.opacity(0.5))
+                        .cornerRadius(6)
                         .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
