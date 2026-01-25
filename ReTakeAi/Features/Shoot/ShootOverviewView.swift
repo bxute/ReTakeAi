@@ -106,8 +106,9 @@ struct ShootOverviewView: View {
                     } label: {
                         Label("Review & Export", systemImage: "square.and.arrow.up")
                             .font(.body.weight(.semibold))
+                            .frame(maxWidth: .infinity)
                     }
-                    .buttonStyle(AppPrimaryButtonStyle(background: AppTheme.Colors.cta))
+                    .buttonStyle(AppPrimaryButtonStyle(background: AppTheme.Colors.cta, expandsToFullWidth: true))
                 }
             }
             .padding(.horizontal)
