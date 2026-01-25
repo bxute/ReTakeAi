@@ -358,7 +358,7 @@ struct SceneBreakdownReviewView: View {
                     .font(.subheadline.weight(.semibold))
                     .foregroundStyle(AppTheme.Colors.textPrimary)
                 
-                Text(draft.narrationScript)
+                Text(draft.scriptText)
                     .font(.caption)
                     .foregroundStyle(AppTheme.Colors.textSecondary)
                     .lineLimit(2)
