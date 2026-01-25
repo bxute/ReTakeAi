@@ -40,15 +40,7 @@ struct PreviewScreen: View {
 
                     aspectSelectionSection
 
-                    // Inline generating state
-                    if isGenerating {
-                        inlineProgressCard(
-                            title: "Generating preview…",
-                            subtitle: "This may take a few seconds."
-                        )
-                    }
-
-                    // Inline exporting state
+                    // Inline exporting state (keep this inline)
                     if isExporting {
                         inlineProgressCard(
                             title: "Exporting video…",
@@ -58,11 +50,13 @@ struct PreviewScreen: View {
                 }
                 .padding(.horizontal)
                 .padding(.vertical, 16)
-                .padding(.bottom, 100)
+                .padding(.bottom, 220)
             }
 
             // Sticky bottom action
-            if hasGeneratedPreviewForSelectedAspect {
+            if isGenerating {
+                stickyPreviewCardLoading
+            } else if hasGeneratedPreviewForSelectedAspect {
                 stickyPreviewCard
             } else {
                 stickyGenerateButton
@@ -85,7 +79,7 @@ struct PreviewScreen: View {
             ExportsScreen(projectID: projectID)
         }
         .fullScreenCover(isPresented: $showingPlayer) {
-            if let playingURL {
+            if let playingURL, FileManager.default.fileExists(atPath: playingURL.path) {
                 ZStack(alignment: .topTrailing) {
                     VideoPlayerView(videoURL: playingURL, autoplay: true) { showingPlayer = false }
                         .ignoresSafeArea()
@@ -104,6 +98,28 @@ struct PreviewScreen: View {
                     .padding()
                 }
                 .statusBarHidden(true)
+            } else {
+                // Fallback if file not found
+                ZStack {
+                    Color.black.ignoresSafeArea()
+                    VStack(spacing: 16) {
+                        Image(systemName: "exclamationmark.triangle")
+                            .font(.largeTitle)
+                            .foregroundStyle(.yellow)
+                        Text("Preview file not found")
+                            .foregroundStyle(.white)
+                        Button("Dismiss") {
+                            showingPlayer = false
+                        }
+                        .buttonStyle(.borderedProminent)
+                    }
+                }
+                .onAppear {
+                    // Auto-dismiss after short delay
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                        showingPlayer = false
+                    }
+                }
             }
         }
     }
@@ -184,9 +200,13 @@ struct PreviewScreen: View {
                 // Action buttons
                 HStack(spacing: 12) {
                     Button {
-                        if let url = cachedPreviewURLs[selectedAspect] {
+                        if let url = cachedPreviewURLs[selectedAspect],
+                           FileManager.default.fileExists(atPath: url.path) {
                             playingURL = url
                             showingPlayer = true
+                        } else {
+                            // File missing - regenerate
+                            Task { await generatePreview(force: true) }
                         }
                     } label: {
                         Label("Play Preview", systemImage: "play.fill")
@@ -238,6 +258,97 @@ struct PreviewScreen: View {
                     }
                     .disabled(isGenerating)
                     .padding(.top, 4)
+                }
+            }
+            .padding(16)
+        }
+        .background(AppTheme.Colors.surface)
+    }
+
+    // MARK: - Sticky Preview Card Loading
+
+    private var stickyPreviewCardLoading: some View {
+        VStack(spacing: 0) {
+            Rectangle()
+                .fill(AppTheme.Colors.border)
+                .frame(height: 1)
+
+            VStack(spacing: 12) {
+                // Header - same as ready state but with spinner
+                HStack {
+                    ProgressView()
+                        .tint(AppTheme.Colors.cta)
+                    Text("Generating Preview…")
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(AppTheme.Colors.textPrimary)
+                    Spacer()
+                }
+
+                // Thumbnail + info - exact same layout as ready state
+                HStack(spacing: 12) {
+                    // Thumbnail shimmer - same size as VideoThumbnailView
+                    RoundedRectangle(cornerRadius: 8, style: .continuous)
+                        .fill(AppTheme.Colors.background)
+                        .frame(width: 80, height: 80)
+                        .shimmer()
+
+                    // Info - same VStack structure as ready state
+                    VStack(alignment: .leading, spacing: 4) {
+                        RoundedRectangle(cornerRadius: 4)
+                            .fill(AppTheme.Colors.background)
+                            .frame(width: 80, height: 16)
+                            .shimmer()
+
+                        RoundedRectangle(cornerRadius: 4)
+                            .fill(AppTheme.Colors.background)
+                            .frame(width: 50, height: 14)
+                            .shimmer()
+
+                        RoundedRectangle(cornerRadius: 4)
+                            .fill(AppTheme.Colors.background)
+                            .frame(width: 60, height: 14)
+                            .shimmer()
+                    }
+
+                    Spacer()
+                }
+
+                // Action buttons - same styling as ready state but disabled
+                HStack(spacing: 12) {
+                    Button {} label: {
+                        Label("Play Preview", systemImage: "play.fill")
+                            .font(.subheadline.weight(.semibold))
+                            .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(AppPrimaryButtonStyle(
+                        background: AppTheme.Colors.surface,
+                        foreground: AppTheme.Colors.textPrimary,
+                        expandsToFullWidth: true,
+                        cornerRadius: 10,
+                        verticalPadding: 12,
+                        horizontalPadding: 12
+                    ))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 10, style: .continuous)
+                            .stroke(AppTheme.Colors.border, lineWidth: 1)
+                    )
+                    .disabled(true)
+                    .opacity(0.5)
+
+                    Button {} label: {
+                        Label("Export Video", systemImage: "square.and.arrow.up")
+                            .font(.subheadline.weight(.semibold))
+                            .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(AppPrimaryButtonStyle(
+                        background: AppTheme.Colors.cta,
+                        expandsToFullWidth: true,
+                        cornerRadius: 10,
+                        verticalPadding: 12,
+                        horizontalPadding: 12
+                    ))
+                    .disabled(true)
+                    .opacity(0.5)
                 }
             }
             .padding(16)
@@ -680,6 +791,43 @@ extension PreviewScreen {
         } catch {
             // no-op for now
         }
+    }
+}
+
+// MARK: - Shimmer Effect
+
+private struct ShimmerModifier: ViewModifier {
+    @State private var phase: CGFloat = 0
+
+    func body(content: Content) -> some View {
+        content
+            .overlay(
+                GeometryReader { geo in
+                    LinearGradient(
+                        colors: [
+                            Color.white.opacity(0),
+                            Color.white.opacity(0.3),
+                            Color.white.opacity(0)
+                        ],
+                        startPoint: .leading,
+                        endPoint: .trailing
+                    )
+                    .frame(width: geo.size.width * 2)
+                    .offset(x: -geo.size.width + (phase * geo.size.width * 2))
+                }
+            )
+            .clipped()
+            .onAppear {
+                withAnimation(.linear(duration: 1.5).repeatForever(autoreverses: false)) {
+                    phase = 1
+                }
+            }
+    }
+}
+
+private extension View {
+    func shimmer() -> some View {
+        modifier(ShimmerModifier())
     }
 }
 
