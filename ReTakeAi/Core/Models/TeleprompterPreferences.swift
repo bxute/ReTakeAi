@@ -52,9 +52,9 @@ enum TeleprompterSpeedPreset: String, Codable, CaseIterable, Hashable, Identifia
 
     var multiplier: Double {
         switch self {
-        case .slow: return 0.8
-        case .normal: return 1.0
-        case .fast: return 1.25
+        case .slow: return 0.6
+        case .normal: return 0.8
+        case .fast: return 1.0
         }
     }
 }

@@ -196,7 +196,13 @@ struct ProjectListView: View {
             
             Spacer(minLength: 0)
             
-            NavigationLink(value: SettingsDestination()) {
+            Menu {
+                Button {
+                    navigationPath.append(SettingsDestination())
+                } label: {
+                    Label("Settings", systemImage: "gearshape")
+                }
+            } label: {
                 Image(systemName: "ellipsis")
                     .font(.headline)
                     .foregroundStyle(AppTheme.Colors.textSecondary)
@@ -206,8 +212,7 @@ struct ProjectListView: View {
                         Circle().stroke(AppTheme.Colors.border, lineWidth: 1)
                     )
             }
-            .buttonStyle(.plain)
-            .accessibilityLabel("Settings")
+            .accessibilityLabel("More options")
         }
         .padding(.top, 6)
     }
