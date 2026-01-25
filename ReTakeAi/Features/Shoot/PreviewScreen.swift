@@ -75,16 +75,6 @@ struct PreviewScreen: View {
                     .font(.headline)
                     .foregroundStyle(AppTheme.Colors.textPrimary)
             }
-            ToolbarItem(placement: .primaryAction) {
-                if let project, !project.exports.isEmpty {
-                    Button {
-                        showingExports = true
-                    } label: {
-                        Text("Exports")
-                            .foregroundStyle(AppTheme.Colors.cta)
-                    }
-                }
-            }
         }
         .task {
             load()
