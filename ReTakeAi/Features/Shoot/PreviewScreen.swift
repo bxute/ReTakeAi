@@ -13,8 +13,6 @@ struct PreviewScreen: View {
 
     @State private var isGenerating = false
     @State private var isExporting = false
-    @State private var exportProgress: Double = 0
-    @State private var exportStartTime: Date?
 
     @State private var cachedPreviewURLs: [VideoAspect: URL] = [:]
     @State private var lastMergedURL: URL?
@@ -307,73 +305,17 @@ struct PreviewScreen: View {
                 .fill(AppTheme.Colors.border)
                 .frame(height: 1)
 
-            VStack(spacing: 12) {
-                // Header
-                HStack {
-                    ProgressView()
-                        .tint(AppTheme.Colors.cta)
-                    Text("Exporting Video…")
-                        .font(.subheadline.weight(.semibold))
-                        .foregroundStyle(AppTheme.Colors.textPrimary)
-                    Spacer()
-                    Text("\(Int(exportProgress * 100))%")
-                        .font(.subheadline.monospacedDigit())
-                        .foregroundStyle(AppTheme.Colors.textSecondary)
-                }
-
-                // Progress bar
-                GeometryReader { geo in
-                    ZStack(alignment: .leading) {
-                        RoundedRectangle(cornerRadius: 4)
-                            .fill(AppTheme.Colors.background)
-                            .frame(height: 8)
-
-                        RoundedRectangle(cornerRadius: 4)
-                            .fill(AppTheme.Colors.cta)
-                            .frame(width: geo.size.width * exportProgress, height: 8)
-                            .animation(.easeInOut(duration: 0.2), value: exportProgress)
-                    }
-                }
-                .frame(height: 8)
-
-                // Time estimate
-                HStack {
-                    Image(systemName: "clock")
-                        .font(.caption)
-                        .foregroundStyle(AppTheme.Colors.textTertiary)
-                    Text(exportTimeEstimate)
-                        .font(.caption)
-                        .foregroundStyle(AppTheme.Colors.textTertiary)
-                    Spacer()
-                }
-
-                // Note
-                Text("Please keep the app open until export completes")
-                    .font(.caption)
-                    .foregroundStyle(AppTheme.Colors.textTertiary)
-                    .frame(maxWidth: .infinity, alignment: .leading)
+            HStack(spacing: 12) {
+                ProgressView()
+                    .tint(AppTheme.Colors.cta)
+                Text("Saving export…")
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(AppTheme.Colors.textPrimary)
+                Spacer()
             }
             .padding(16)
         }
         .background(AppTheme.Colors.surface)
-    }
-
-    private var exportTimeEstimate: String {
-        guard let startTime = exportStartTime, exportProgress > 0.05 else {
-            return "Estimating…"
-        }
-        let elapsed = Date().timeIntervalSince(startTime)
-        let estimatedTotal = elapsed / exportProgress
-        let remaining = estimatedTotal - elapsed
-        
-        if remaining < 5 {
-            return "Almost done"
-        } else if remaining < 60 {
-            return "About \(Int(remaining))s remaining"
-        } else {
-            let minutes = Int(remaining / 60)
-            return "About \(minutes)m remaining"
-        }
     }
 
     private var stickyGenerateButton: some View {
@@ -765,49 +707,40 @@ extension PreviewScreen {
         guard var project else { return }
         guard let takes = loadSelectedTakes() else { return }
 
-        isExporting = true
-        exportProgress = 0
-        exportStartTime = Date()
-        defer {
-            isExporting = false
-            exportProgress = 0
-            exportStartTime = nil
+        // Check if we have a cached preview to copy (instant export)
+        guard let previewURL = cachedPreviewURLs[selectedAspect],
+              FileManager.default.fileExists(atPath: previewURL.path) else {
+            // No preview - shouldn't happen but generate if needed
+            await generatePreview(force: true)
+            return
         }
+
+        isExporting = true
+        defer { isExporting = false }
 
         do {
             project.videoAspect = selectedAspect
             try ProjectStore.shared.updateProject(project)
 
             let exportDir = FileStorageManager.shared.exportsDirectory(for: projectID)
-            // Ensure exports directory exists
             try FileManager.default.createDirectory(at: exportDir, withIntermediateDirectories: true)
             
             let fileName = "export_\(Int(Date().timeIntervalSince1970)).mov"
             let outputURL = exportDir.appendingPathComponent(fileName)
 
-            let mergedURL = try await VideoMerger.shared.mergeScenes(
-                takes,
-                outputURL: outputURL,
-                targetAspect: selectedAspect,
-                progress: { @Sendable [weak self] progress in
-                    Task { @MainActor in
-                        self?.exportProgress = progress
-                    }
-                }
-            )
+            // Copy the preview file instead of re-encoding
+            try FileManager.default.copyItem(at: previewURL, to: outputURL)
 
-            // Verify file was written
-            guard FileManager.default.fileExists(atPath: mergedURL.path) else {
+            guard FileManager.default.fileExists(atPath: outputURL.path) else {
                 throw NSError(domain: "Export", code: -1, userInfo: [NSLocalizedDescriptionKey: "Export file not created"])
             }
 
             let totalDuration = takes.reduce(0) { $0 + $1.duration }
-            let fileSize = FileStorageManager.shared.fileSize(at: mergedURL)
+            let fileSize = FileStorageManager.shared.fileSize(at: outputURL)
 
-            // Store export with the actual output URL's filename
             let exportedVideo = ExportedVideo(
                 projectID: projectID,
-                fileURL: outputURL,  // Use outputURL to ensure consistency
+                fileURL: outputURL,
                 aspect: selectedAspect,
                 duration: totalDuration,
                 fileSize: fileSize
