@@ -13,6 +13,7 @@ struct ExportedVideo: Identifiable, Codable, Hashable {
     let aspect: VideoAspect
     let duration: TimeInterval
     let fileSize: Int64
+    let previewID: UUID?  // Links to specific preview generation
 
     /// Reconstructs the full file URL using the current exports directory.
     /// This ensures the path is always valid even if iOS changes the app container.
@@ -28,7 +29,8 @@ struct ExportedVideo: Identifiable, Codable, Hashable {
         exportedAt: Date = Date(),
         aspect: VideoAspect,
         duration: TimeInterval,
-        fileSize: Int64
+        fileSize: Int64,
+        previewID: UUID? = nil
     ) {
         self.id = id
         self.projectID = projectID
@@ -37,11 +39,12 @@ struct ExportedVideo: Identifiable, Codable, Hashable {
         self.aspect = aspect
         self.duration = duration
         self.fileSize = fileSize
+        self.previewID = previewID
     }
 
     // Support decoding old exports that stored full fileURL
     private enum CodingKeys: String, CodingKey {
-        case id, projectID, fileName, fileURL, exportedAt, aspect, duration, fileSize
+        case id, projectID, fileName, fileURL, exportedAt, aspect, duration, fileSize, previewID
     }
 
     init(from decoder: Decoder) throws {
@@ -51,6 +54,7 @@ struct ExportedVideo: Identifiable, Codable, Hashable {
         aspect = try container.decode(VideoAspect.self, forKey: .aspect)
         duration = try container.decode(TimeInterval.self, forKey: .duration)
         fileSize = try container.decode(Int64.self, forKey: .fileSize)
+        previewID = try container.decodeIfPresent(UUID.self, forKey: .previewID)
 
         // Try new format first (projectID + fileName)
         if let pid = try? container.decode(UUID.self, forKey: .projectID),
@@ -83,6 +87,7 @@ struct ExportedVideo: Identifiable, Codable, Hashable {
         try container.encode(aspect, forKey: .aspect)
         try container.encode(duration, forKey: .duration)
         try container.encode(fileSize, forKey: .fileSize)
+        try container.encodeIfPresent(previewID, forKey: .previewID)
     }
     
     var formattedDate: String {

@@ -15,6 +15,7 @@ struct PreviewScreen: View {
     @State private var isExporting = false
 
     @State private var cachedPreviewURLs: [VideoAspect: URL] = [:]
+    @State private var cachedPreviewIDs: [VideoAspect: UUID] = [:]  // Unique ID per preview generation
     @State private var lastMergedURL: URL?
 
     @State private var playerItem: PlayerItem?
@@ -165,7 +166,7 @@ struct PreviewScreen: View {
                             .stroke(AppTheme.Colors.border, lineWidth: 1)
                     )
 
-                    if hasExportedSelectedAspect {
+                    if hasExportedCurrentPreview {
                         Button {
                             showingExports = true
                         } label: {
@@ -635,9 +636,10 @@ extension PreviewScreen {
         return false
     }
 
-    private var hasExportedSelectedAspect: Bool {
+    private var hasExportedCurrentPreview: Bool {
         guard let project else { return false }
-        return project.exports.contains { $0.aspect == selectedAspect }
+        guard let currentPreviewID = cachedPreviewIDs[selectedAspect] else { return false }
+        return project.exports.contains { $0.previewID == currentPreviewID }
     }
 
     // MARK: - Data Loading
@@ -716,6 +718,7 @@ extension PreviewScreen {
             )
 
             cachedPreviewURLs[selectedAspect] = merged
+            cachedPreviewIDs[selectedAspect] = UUID()  // New unique ID for this preview
             lastMergedURL = merged
             lastGeneratedAspect = selectedAspect
             // Don't auto-play - user will tap "Play Preview"
@@ -765,7 +768,8 @@ extension PreviewScreen {
                 fileURL: outputURL,
                 aspect: selectedAspect,
                 duration: totalDuration,
-                fileSize: fileSize
+                fileSize: fileSize,
+                previewID: cachedPreviewIDs[selectedAspect]
             )
 
             var updated = ProjectStore.shared.getProject(by: projectID) ?? project
