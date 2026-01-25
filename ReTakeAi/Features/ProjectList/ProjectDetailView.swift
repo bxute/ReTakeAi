@@ -278,63 +278,74 @@ struct ProjectDetailView: View {
     // MARK: - Project Summary Row
     
     private var projectSummaryRow: some View {
-        HStack(spacing: 12) {
-            metadataChipButton(
+        VStack(spacing: 0) {
+            metadataRow(
                 icon: "scope",
-                text: currentProject.scriptIntent.map { intentShortLabel($0) } ?? "Intent"
+                label: "Intent",
+                value: currentProject.scriptIntent?.displayTitle ?? "Not set"
             ) {
                 showingIntentSheet = true
             }
             
-            metadataChipButton(
+            Divider()
+                .background(AppTheme.Colors.border)
+            
+            metadataRow(
                 icon: "clock",
-                text: currentProject.expectedDurationSeconds.map { durationLabel($0) } ?? "Duration"
+                label: "Duration",
+                value: currentProject.expectedDurationSeconds.map { durationLabel($0) } ?? "Not set"
             ) {
                 showingDurationSheet = true
             }
             
-            metadataChipButton(
+            Divider()
+                .background(AppTheme.Colors.border)
+            
+            metadataRow(
                 icon: "theatermasks",
-                text: currentProject.toneMood?.displayTitle ?? "Tone"
+                label: "Tone",
+                value: currentProject.toneMood?.displayTitle ?? "Not set"
             ) {
                 showingToneSheet = true
             }
-            
-            Spacer(minLength: 0)
         }
-        .padding(.vertical, 4)
+        .background(
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .fill(AppTheme.Colors.surface)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .stroke(AppTheme.Colors.border, lineWidth: 1)
+        )
     }
     
-    private func metadataChipButton(icon: String, text: String, action: @escaping () -> Void) -> some View {
+    private func metadataRow(icon: String, label: String, value: String, action: @escaping () -> Void) -> some View {
         Button(action: action) {
-            HStack(spacing: 6) {
+            HStack(spacing: 12) {
                 Image(systemName: icon)
-                    .font(.caption)
+                    .font(.subheadline)
                     .foregroundStyle(AppTheme.Colors.textTertiary)
+                    .frame(width: 20)
                 
-                Text(text)
+                Text(label)
                     .font(.subheadline)
                     .foregroundStyle(AppTheme.Colors.textSecondary)
+                
+                Spacer()
+                
+                Text(value)
+                    .font(.subheadline)
+                    .foregroundStyle(AppTheme.Colors.textPrimary)
+                
+                Image(systemName: "chevron.right")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(AppTheme.Colors.textTertiary)
             }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 8)
-            .background(AppTheme.Colors.surface, in: Capsule())
-            .overlay(
-                Capsule().stroke(AppTheme.Colors.border, lineWidth: 1)
-            )
+            .padding(.horizontal, 14)
+            .padding(.vertical, 12)
+            .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-    }
-    
-    private func intentShortLabel(_ intent: ScriptIntent) -> String {
-        switch intent {
-        case .explain: return "Explain"
-        case .promote: return "Promote"
-        case .storytelling: return "Storytelling"
-        case .educate: return "Educate"
-        case .entertainment: return "Entertainment"
-        case .corporate: return "Corporate"
-        }
     }
     
     private func durationLabel(_ seconds: Int) -> String {
