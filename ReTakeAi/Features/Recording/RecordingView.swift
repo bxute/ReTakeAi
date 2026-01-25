@@ -19,6 +19,7 @@ struct RecordingView: View {
     @State private var placeholderHideScheduled = false
     @State private var placeholderHideTask: Task<Void, Never>?
     @State private var showingSettings = false
+    @AppStorage("recording_showGrid") private var showGrid: Bool = false
 
     private var isShowingError: Binding<Bool> {
         Binding(
@@ -35,6 +36,11 @@ struct RecordingView: View {
             
             if viewModel.isSetupComplete, let session = viewModel.captureSession {
                 cameraPreview(session: session)
+                
+                // Grid overlay
+                if showGrid {
+                    gridOverlay
+                }
             } else {
                 LoadingView(message: "Setting up camera...")
                     .foregroundStyle(.white)
@@ -152,6 +158,30 @@ struct RecordingView: View {
     private func cameraPreview(session: AVCaptureSession) -> some View {
         CameraPreviewView(session: session)
             .ignoresSafeArea()
+    }
+    
+    private var gridOverlay: some View {
+        GeometryReader { geometry in
+            let width = geometry.size.width
+            let height = geometry.size.height
+            
+            Path { path in
+                // Vertical lines (rule of thirds)
+                path.move(to: CGPoint(x: width / 3, y: 0))
+                path.addLine(to: CGPoint(x: width / 3, y: height))
+                path.move(to: CGPoint(x: 2 * width / 3, y: 0))
+                path.addLine(to: CGPoint(x: 2 * width / 3, y: height))
+                
+                // Horizontal lines (rule of thirds)
+                path.move(to: CGPoint(x: 0, y: height / 3))
+                path.addLine(to: CGPoint(x: width, y: height / 3))
+                path.move(to: CGPoint(x: 0, y: 2 * height / 3))
+                path.addLine(to: CGPoint(x: width, y: 2 * height / 3))
+            }
+            .stroke(Color.white.opacity(0.5), lineWidth: 0.5)
+        }
+        .ignoresSafeArea()
+        .allowsHitTesting(false)
     }
     
     private var teleprompterOverlayRegion: some View {

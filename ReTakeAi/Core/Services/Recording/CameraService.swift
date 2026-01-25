@@ -45,18 +45,85 @@ class CameraService: NSObject, ObservableObject {
         let session = AVCaptureSession()
         session.beginConfiguration()
         
-        session.sessionPreset = .high
-        
+        // Configure video input first to know which camera we're using
         try configureVideoInput(for: session)
+        
+        // Apply resolution from settings with fallback
+        let resolution = UserDefaults.standard.string(forKey: "recording_resolution") ?? "1080p"
+        let preset = bestAvailablePreset(for: resolution, session: session)
+        session.sessionPreset = preset
+        
         try configureAudioInput(for: session)
         try configureMovieOutput(for: session)
+        
+        // Apply frame rate from settings
+        let frameRate = UserDefaults.standard.integer(forKey: "recording_frameRate")
+        if frameRate > 0 {
+            applyFrameRate(frameRate, to: videoInput?.device)
+        }
         
         session.commitConfiguration()
         
         self.captureSession = session
         self.isSessionConfigured = true
         
-        AppLogger.recording.info("Camera session configured successfully")
+        AppLogger.recording.info("Camera session configured with preset: \(preset.rawValue) @ \(frameRate)fps")
+    }
+    
+    private func bestAvailablePreset(for resolution: String, session: AVCaptureSession) -> AVCaptureSession.Preset {
+        let preferred = sessionPreset(for: resolution)
+        
+        // Check if preferred preset is supported
+        if session.canSetSessionPreset(preferred) {
+            return preferred
+        }
+        
+        // Fallback chain: 4K → 1080p → 720p → high
+        let fallbacks: [AVCaptureSession.Preset] = [.hd1920x1080, .hd1280x720, .high]
+        for fallback in fallbacks {
+            if session.canSetSessionPreset(fallback) {
+                AppLogger.recording.warning("Requested \(resolution) not supported, falling back to \(fallback.rawValue)")
+                return fallback
+            }
+        }
+        
+        return .high
+    }
+    
+    private func sessionPreset(for resolution: String) -> AVCaptureSession.Preset {
+        switch resolution {
+        case "720p": return .hd1280x720
+        case "4K": return .hd4K3840x2160
+        default: return .hd1920x1080 // 1080p
+        }
+    }
+    
+    private func applyFrameRate(_ fps: Int, to device: AVCaptureDevice?) {
+        guard let device = device else { return }
+        
+        do {
+            try device.lockForConfiguration()
+            
+            // Find a format that supports the desired frame rate
+            let desiredFrameRate = CMTimeMake(value: 1, timescale: Int32(fps))
+            for format in device.formats {
+                for range in format.videoSupportedFrameRateRanges {
+                    if range.minFrameDuration <= desiredFrameRate && range.maxFrameDuration >= desiredFrameRate {
+                        device.activeFormat = format
+                        device.activeVideoMinFrameDuration = desiredFrameRate
+                        device.activeVideoMaxFrameDuration = desiredFrameRate
+                        device.unlockForConfiguration()
+                        AppLogger.recording.info("Applied frame rate: \(fps) fps")
+                        return
+                    }
+                }
+            }
+            
+            device.unlockForConfiguration()
+            AppLogger.recording.warning("Could not find format supporting \(fps) fps")
+        } catch {
+            AppLogger.recording.error("Failed to set frame rate: \(error.localizedDescription)")
+        }
     }
     
     private func configureVideoInput(for session: AVCaptureSession) throws {
@@ -161,13 +228,26 @@ class CameraService: NSObject, ObservableObject {
         session.addInput(newInput)
         self.videoInput = newInput
         
+        // Reapply resolution (may need fallback for front camera)
+        let resolution = UserDefaults.standard.string(forKey: "recording_resolution") ?? "1080p"
+        let preset = bestAvailablePreset(for: resolution, session: session)
+        if session.canSetSessionPreset(preset) {
+            session.sessionPreset = preset
+        }
+        
+        // Reapply frame rate
+        let frameRate = UserDefaults.standard.integer(forKey: "recording_frameRate")
+        if frameRate > 0 {
+            applyFrameRate(frameRate, to: newCamera)
+        }
+        
         if let connection = movieOutput?.connection(with: .video) {
             connection.isVideoMirrored = (newPosition == .front)
         }
         
         session.commitConfiguration()
         
-        AppLogger.recording.info("Switched to \(newPosition == .front ? "front" : "back") camera")
+        AppLogger.recording.info("Switched to \(newPosition == .front ? "front" : "back") camera with preset: \(preset.rawValue)")
     }
     
     func cleanup() {
