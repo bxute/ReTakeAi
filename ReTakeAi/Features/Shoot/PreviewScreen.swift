@@ -797,29 +797,14 @@ extension PreviewScreen {
 // MARK: - Shimmer Effect
 
 private struct ShimmerModifier: ViewModifier {
-    @State private var phase: CGFloat = 0
+    @State private var opacity: Double = 0.4
 
     func body(content: Content) -> some View {
         content
-            .overlay(
-                GeometryReader { geo in
-                    LinearGradient(
-                        colors: [
-                            Color.white.opacity(0),
-                            Color.white.opacity(0.3),
-                            Color.white.opacity(0)
-                        ],
-                        startPoint: .leading,
-                        endPoint: .trailing
-                    )
-                    .frame(width: geo.size.width * 2)
-                    .offset(x: -geo.size.width + (phase * geo.size.width * 2))
-                }
-            )
-            .clipped()
+            .opacity(opacity)
             .onAppear {
-                withAnimation(.linear(duration: 1.5).repeatForever(autoreverses: false)) {
-                    phase = 1
+                withAnimation(.easeInOut(duration: 0.8).repeatForever(autoreverses: true)) {
+                    opacity = 1.0
                 }
             }
     }
