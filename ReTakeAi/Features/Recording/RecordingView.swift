@@ -50,9 +50,9 @@ struct RecordingView: View {
                             dismiss()
                         } label: {
                             Image(systemName: "xmark")
-                                .font(.system(size: 14, weight: .bold))
+                                .font(.system(size: 16, weight: .bold))
                                 .foregroundStyle(.white)
-                                .frame(width: 32, height: 32)
+                                .frame(width: 44, height: 44)
                                 .background(.black.opacity(0.35), in: Circle())
                         }
                         .buttonStyle(.plain)
@@ -63,9 +63,9 @@ struct RecordingView: View {
                             showingSettings = true
                         } label: {
                             Image(systemName: "gearshape.fill")
-                                .font(.system(size: 14, weight: .bold))
+                                .font(.system(size: 16, weight: .bold))
                                 .foregroundStyle(.white)
-                                .frame(width: 32, height: 32)
+                                .frame(width: 44, height: 44)
                                 .background(.black.opacity(0.35), in: Circle())
                         }
                         .buttonStyle(.plain)
@@ -214,59 +214,59 @@ struct RecordingView: View {
     private var readyOverlay: some View {
         Group {
             if viewModel.phase == .ready {
-                VStack(spacing: 12) {
-                    Spacer()
+                GeometryReader { geometry in
+                    let screenWidth = geometry.size.width
+                    // Center between record button (center) and right edge: (0.5 + 1.0) / 2 = 0.75
+                    let flipButtonX = screenWidth * 0.75
                     
-                    // Record button (centered) with camera flip on right
-                    ZStack {
-                        // Record button - always centered
-                        Button {
-                            viewModel.beginRecordingTimer()
-                        } label: {
-                            Circle()
-                                .fill(.red)
-                                .frame(width: 72, height: 72)
-                                .overlay(
-                                    Circle()
-                                        .stroke(.white.opacity(0.2), lineWidth: 6)
-                                )
-                        }
-                        .buttonStyle(.plain)
-                        .disabled(!viewModel.isSetupComplete || viewModel.captureSession == nil)
-                        .accessibilityLabel("Start")
+                    VStack(spacing: 12) {
+                        Spacer()
                         
-                        // Camera flip - right side, auto-hideable
-                        if showingCloseButton {
-                            HStack {
-                                Spacer()
-                                Spacer()
-                                Spacer()
-                                
+                        // Record button (centered) with camera flip on right
+                        ZStack {
+                            // Record button - always centered
+                            Button {
+                                viewModel.beginRecordingTimer()
+                            } label: {
+                                Circle()
+                                    .fill(.red)
+                                    .frame(width: 72, height: 72)
+                                    .overlay(
+                                        Circle()
+                                            .stroke(.white.opacity(0.2), lineWidth: 6)
+                                    )
+                            }
+                            .buttonStyle(.plain)
+                            .disabled(!viewModel.isSetupComplete || viewModel.captureSession == nil)
+                            .accessibilityLabel("Start")
+                            
+                            // Camera flip - centered between record button and right edge, auto-hideable
+                            if showingCloseButton {
                                 Button {
                                     Task { await viewModel.switchCamera() }
                                 } label: {
                                     Image(systemName: "camera.rotate")
-                                        .font(.title2)
+                                        .font(.system(size: 16, weight: .bold))
                                         .foregroundStyle(.white)
                                         .frame(width: 44, height: 44)
                                         .background(.black.opacity(0.35), in: Circle())
                                 }
                                 .buttonStyle(.plain)
                                 .accessibilityLabel("Switch Camera")
-                                
-                                Spacer()
+                                .position(x: flipButtonX, y: 36) // 36 = half of 72 (record button height)
+                                .transition(.opacity)
                             }
-                            .transition(.opacity)
                         }
+                        .frame(height: 72)
+                        
+                        Text("Tap Start to begin the countdown.")
+                            .font(.footnote)
+                            .foregroundStyle(.white.opacity(0.85))
+                        
+                        Spacer().frame(height: 38)
                     }
-                    
-                    Text("Tap Start to begin the countdown.")
-                        .font(.footnote)
-                        .foregroundStyle(.white.opacity(0.85))
-                    
-                    Spacer().frame(height: 38)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
                 }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .transition(.opacity)
             }
         }
