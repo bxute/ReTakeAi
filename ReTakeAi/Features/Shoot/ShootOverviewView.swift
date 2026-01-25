@@ -247,7 +247,7 @@ struct ShootOverviewView: View {
         .padding(12)
         .background(
             RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .fill(isRecorded ? AppTheme.Colors.success.opacity(0.08) : AppTheme.Colors.surface)
+                .fill(AppTheme.Colors.surface)
         )
         .overlay(
             RoundedRectangle(cornerRadius: 14, style: .continuous)
