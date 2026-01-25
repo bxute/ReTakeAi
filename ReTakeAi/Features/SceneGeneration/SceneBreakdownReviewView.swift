@@ -13,7 +13,6 @@ struct SceneBreakdownReviewView: View {
     @State private var showingRegenerateConfirm = false
     @State private var expandedSceneID: UUID?
     @State private var isDirectionExpanded = false
-    @State private var reviewedSceneIDs: Set<UUID> = []
 
     init(projectID: UUID, mode: SceneBreakdownReviewViewModel.Mode) {
         _viewModel = State(initialValue: SceneBreakdownReviewViewModel(projectID: projectID, mode: mode))
@@ -63,7 +62,6 @@ struct SceneBreakdownReviewView: View {
                 onSave: { updated in
                     Task {
                         _ = await viewModel.saveEditedDraft(updated)
-                        reviewedSceneIDs.insert(updated.id)
                     }
                 }
             )
@@ -77,7 +75,6 @@ struct SceneBreakdownReviewView: View {
             Button("Cancel", role: .cancel) {}
             Button("Regenerate", role: .destructive) {
                 Task {
-                    reviewedSceneIDs.removeAll()
                     expandedSceneID = nil
                     await viewModel.regenerateScenesReplacingScriptAndScenes()
                 }
@@ -96,11 +93,6 @@ struct SceneBreakdownReviewView: View {
                     // Header
                     headerSection
                     
-                    // Progress pills
-                    if !viewModel.drafts.isEmpty {
-                        progressPills
-                    }
-                    
                     // Project Direction Card
                     if let direction = viewModel.projectDirection {
                         DirectionCard(
@@ -117,7 +109,6 @@ struct SceneBreakdownReviewView: View {
                         SceneCard(
                             draft: draft,
                             isExpanded: expandedSceneID == draft.id,
-                            isReviewed: reviewedSceneIDs.contains(draft.id),
                             onTap: {
                                 withAnimation(.easeOut(duration: 0.2)) {
                                     if expandedSceneID == draft.id {
@@ -128,9 +119,6 @@ struct SceneBreakdownReviewView: View {
                                 }
                             },
                             onEditNarration: {
-                                editingDraft = draft
-                            },
-                            onEditTone: {
                                 editingDraft = draft
                             }
                         )
@@ -166,25 +154,6 @@ struct SceneBreakdownReviewView: View {
         let totalDuration = viewModel.drafts.reduce(0) { $0 + $1.expectedDurationSeconds }
         let toneText = viewModel.projectDirection?.tone.rawValue ?? "Professional"
         return "\(count) scenes • ~\(totalDuration)s • \(toneText)"
-    }
-    
-    // MARK: - Progress Pills
-    
-    private var progressPills: some View {
-        HStack(spacing: 6) {
-            ForEach(sortedDrafts) { draft in
-                Circle()
-                    .fill(reviewedSceneIDs.contains(draft.id) ? AppTheme.Colors.cta : AppTheme.Colors.border)
-                    .frame(width: 8, height: 8)
-                    .onTapGesture {
-                        withAnimation {
-                            expandedSceneID = draft.id
-                        }
-                    }
-            }
-            Spacer()
-        }
-        .padding(.vertical, 4)
     }
     
     // MARK: - Regenerate Button
@@ -416,29 +385,23 @@ private struct DirectionCard: View {
 private struct SceneCard: View {
     let draft: GeneratedSceneDraft
     let isExpanded: Bool
-    let isReviewed: Bool
     let onTap: () -> Void
     let onEditNarration: () -> Void
-    let onEditTone: () -> Void
     
     var body: some View {
         Button(action: onTap) {
             VStack(alignment: .leading, spacing: 0) {
                 // Header row
                 HStack {
-                    HStack(spacing: 8) {
-                        Text("Scene \(draft.orderIndex + 1)")
-                            .font(.headline)
-                            .foregroundStyle(AppTheme.Colors.textPrimary)
-                        
-                        if isReviewed {
-                            Image(systemName: "checkmark.circle.fill")
-                                .font(.caption)
-                                .foregroundStyle(AppTheme.Colors.success)
-                        }
-                    }
+                    Text("Scene \(draft.orderIndex + 1)")
+                        .font(.headline)
+                        .foregroundStyle(AppTheme.Colors.textPrimary)
                     
                     Spacer()
+                    
+                    Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(AppTheme.Colors.textTertiary)
                     
                     Text("\(draft.expectedDurationSeconds)s")
                         .font(.caption.weight(.semibold))
@@ -525,23 +488,6 @@ private struct SceneCard: View {
                         .padding(.vertical, 10)
                         .background(AppTheme.Colors.cta.opacity(0.15))
                         .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
-                }
-                .buttonStyle(.plain)
-                
-                Button {
-                    onEditTone()
-                } label: {
-                    Text("Edit Tone")
-                        .font(.subheadline.weight(.medium))
-                        .foregroundStyle(AppTheme.Colors.textSecondary)
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 10)
-                        .background(AppTheme.Colors.surface)
-                        .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 8, style: .continuous)
-                                .stroke(AppTheme.Colors.border, lineWidth: 1)
-                        )
                 }
                 .buttonStyle(.plain)
                 
