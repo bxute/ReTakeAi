@@ -40,15 +40,20 @@ struct RecordingView: View {
                     .foregroundStyle(.white)
             }
             
+            teleprompterOverlayRegion
+            
+            // Top bar (close + settings) - positioned above teleprompter
             if shouldShowCloseButton {
                 VStack {
                     HStack {
                         Button {
                             dismiss()
                         } label: {
-                            Image(systemName: "xmark.circle.fill")
-                                .font(.title2)
-                                .foregroundStyle(.white, .black.opacity(0.35))
+                            Image(systemName: "xmark")
+                                .font(.system(size: 14, weight: .bold))
+                                .foregroundStyle(.white)
+                                .frame(width: 32, height: 32)
+                                .background(.black.opacity(0.35), in: Circle())
                         }
                         .buttonStyle(.plain)
 
@@ -58,20 +63,20 @@ struct RecordingView: View {
                             showingSettings = true
                         } label: {
                             Image(systemName: "gearshape.fill")
-                                .font(.title2)
-                                .foregroundStyle(.white, .black.opacity(0.35))
+                                .font(.system(size: 14, weight: .bold))
+                                .foregroundStyle(.white)
+                                .frame(width: 32, height: 32)
+                                .background(.black.opacity(0.35), in: Circle())
                         }
                         .buttonStyle(.plain)
                     }
                     .padding(.horizontal, 14)
-                    .padding(.top, 10)
+                    .padding(.top, 4)
 
                     Spacer()
                 }
                 .transition(.opacity)
             }
-
-            teleprompterOverlayRegion
 
             readyOverlay
             countdownOverlay
@@ -194,8 +199,8 @@ struct RecordingView: View {
                     }
                     .frame(height: 120)
                 }
-                // Keep the teleprompter bar in the same vertical position as before adding the dot.
-                .padding(.top, 28 - (indicatorSize + indicatorSpacing))
+                // Position below top bar (close/settings buttons)
+                .padding(.top, 44)
             }
             Spacer()
         }
@@ -211,11 +216,10 @@ struct RecordingView: View {
             if viewModel.phase == .ready {
                 VStack(spacing: 12) {
                     Spacer()
-
-                    HStack(spacing: 32) {
-                        // Spacer for symmetry
-                        Color.clear.frame(width: 44, height: 44)
-                        
+                    
+                    // Record button (centered) with camera flip on right
+                    ZStack {
+                        // Record button - always centered
                         Button {
                             viewModel.beginRecordingTimer()
                         } label: {
@@ -231,24 +235,35 @@ struct RecordingView: View {
                         .disabled(!viewModel.isSetupComplete || viewModel.captureSession == nil)
                         .accessibilityLabel("Start")
                         
-                        // Camera flip button
-                        Button {
-                            Task { await viewModel.switchCamera() }
-                        } label: {
-                            Image(systemName: "camera.rotate")
-                                .font(.title2)
-                                .foregroundStyle(.white)
-                                .frame(width: 44, height: 44)
-                                .background(.black.opacity(0.35), in: Circle())
+                        // Camera flip - right side, auto-hideable
+                        if showingCloseButton {
+                            HStack {
+                                Spacer()
+                                Spacer()
+                                Spacer()
+                                
+                                Button {
+                                    Task { await viewModel.switchCamera() }
+                                } label: {
+                                    Image(systemName: "camera.rotate")
+                                        .font(.title2)
+                                        .foregroundStyle(.white)
+                                        .frame(width: 44, height: 44)
+                                        .background(.black.opacity(0.35), in: Circle())
+                                }
+                                .buttonStyle(.plain)
+                                .accessibilityLabel("Switch Camera")
+                                
+                                Spacer()
+                            }
+                            .transition(.opacity)
                         }
-                        .buttonStyle(.plain)
-                        .accessibilityLabel("Switch Camera")
                     }
-
+                    
                     Text("Tap Start to begin the countdown.")
                         .font(.footnote)
                         .foregroundStyle(.white.opacity(0.85))
-
+                    
                     Spacer().frame(height: 38)
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
