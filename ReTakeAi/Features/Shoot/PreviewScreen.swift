@@ -718,8 +718,12 @@ extension PreviewScreen {
         defer { isGenerating = false }
 
         do {
-            let tmp = FileManager.default.temporaryDirectory
-            let url = tmp.appendingPathComponent("preview_\(projectID.uuidString)_\(selectedAspect.rawValue)_\(Int(Date().timeIntervalSince1970)).mov")
+            // Use caches directory instead of temp (temp gets cleaned too aggressively)
+            let caches = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first!
+            let previewDir = caches.appendingPathComponent("Previews", isDirectory: true)
+            try? FileManager.default.createDirectory(at: previewDir, withIntermediateDirectories: true)
+            
+            let url = previewDir.appendingPathComponent("preview_\(projectID.uuidString)_\(selectedAspect.rawValue).mov")
             try? FileManager.default.removeItem(at: url)
 
             let merged = try await VideoMerger.shared.mergeScenes(
