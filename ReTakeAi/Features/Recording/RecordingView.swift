@@ -185,7 +185,8 @@ struct RecordingView: View {
     
     private var teleprompterOverlayRegion: some View {
         VStack {
-            if viewModel.isSetupComplete {
+            // Hide teleprompter when close/settings buttons are visible
+            if viewModel.isSetupComplete && !shouldShowCloseButton {
                 // Single container — no extra layers
                 let indicatorSize: CGFloat = 8
                 let indicatorSpacing: CGFloat = 8
@@ -229,11 +230,13 @@ struct RecordingView: View {
                     }
                     .frame(height: 120)
                 }
-                // Position below top bar (close/settings buttons)
-                .padding(.top, 32)
+                // Position just below dynamic island (minimal top padding)
+                .padding(.top, 4)
+                .transition(.opacity)
             }
             Spacer()
         }
+        .animation(.easeInOut(duration: 0.25), value: shouldShowCloseButton)
         .allowsHitTesting(false)
     }
 
