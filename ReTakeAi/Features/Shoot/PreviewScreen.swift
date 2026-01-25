@@ -19,6 +19,7 @@ struct PreviewScreen: View {
     @State private var showingPlayer = false
     @State private var playingURL: URL?
     @State private var showingExports = false
+    @State private var isAspectSectionExpanded = false
 
     @Environment(\.dismiss) private var dismiss
 
@@ -52,28 +53,17 @@ struct PreviewScreen: View {
                             subtitle: "You can leave this screen."
                         )
                     }
-
-                    // Generate Preview button (when no preview yet)
-                    if !hasGeneratedPreviewForSelectedAspect && !isGenerating {
-                        Button {
-                            Task { await generatePreview(force: true) }
-                        } label: {
-                            Label("Generate Preview", systemImage: "play.circle.fill")
-                                .font(.body.weight(.semibold))
-                                .frame(maxWidth: .infinity)
-                        }
-                        .buttonStyle(AppPrimaryButtonStyle(background: AppTheme.Colors.cta))
-                        .disabled(isGenerating || isExporting)
-                    }
                 }
                 .padding(.horizontal)
                 .padding(.vertical, 16)
-                .padding(.bottom, hasGeneratedPreviewForSelectedAspect ? 200 : 20)
+                .padding(.bottom, 100)
             }
 
-            // Sticky Preview Card at bottom
+            // Sticky bottom action
             if hasGeneratedPreviewForSelectedAspect {
                 stickyPreviewCard
+            } else {
+                stickyGenerateButton
             }
         }
         .navigationBarTitleDisplayMode(.inline)
@@ -86,13 +76,14 @@ struct PreviewScreen: View {
                     .foregroundStyle(AppTheme.Colors.textPrimary)
             }
             ToolbarItem(placement: .primaryAction) {
-                Button {
-                    showingExports = true
-                } label: {
-                    Text("Exports")
-                        .foregroundStyle(AppTheme.Colors.cta)
+                if let project, !project.exports.isEmpty {
+                    Button {
+                        showingExports = true
+                    } label: {
+                        Text("Exports")
+                            .foregroundStyle(AppTheme.Colors.cta)
+                    }
                 }
-                .disabled(project?.exports.isEmpty ?? true)
             }
         }
         .task {
@@ -255,6 +246,29 @@ struct PreviewScreen: View {
         .background(AppTheme.Colors.surface)
     }
 
+    // MARK: - Sticky Generate Button
+
+    private var stickyGenerateButton: some View {
+        VStack(spacing: 0) {
+            Rectangle()
+                .fill(AppTheme.Colors.border)
+                .frame(height: 1)
+
+            Button {
+                Task { await generatePreview(force: true) }
+            } label: {
+                Label("Generate Preview", systemImage: "play.circle.fill")
+                    .font(.body.weight(.semibold))
+                    .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(AppPrimaryButtonStyle(background: AppTheme.Colors.cta, expandsToFullWidth: true))
+            .disabled(isGenerating || isExporting)
+            .padding(.horizontal)
+            .padding(.vertical, 12)
+        }
+        .background(AppTheme.Colors.surface)
+    }
+
     // MARK: - Aspect Ratio Selector
 
     private var aspectRatioSelector: some View {
@@ -296,23 +310,145 @@ struct PreviewScreen: View {
     }
 
     private var informationSection: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text(project?.title ?? "Project")
-                .font(.title3.weight(.semibold))
-                .foregroundStyle(AppTheme.Colors.textPrimary)
-
-            Text("Finalize your export settings, then generate a preview.")
-                .font(.footnote)
-                .foregroundStyle(AppTheme.Colors.textSecondary)
-        }
+        Text(project?.title ?? "Project")
+            .font(.title2.weight(.semibold))
+            .foregroundStyle(AppTheme.Colors.textPrimary)
     }
 
     private var aspectSelectionSection: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            // Collapsible header
+            Button {
+                withAnimation(.easeInOut(duration: 0.2)) {
+                    isAspectSectionExpanded.toggle()
+                }
+            } label: {
+                HStack {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("ASPECT RATIO")
+                            .font(.caption.weight(.semibold))
+                            .foregroundStyle(AppTheme.Colors.textTertiary)
+                        Text(selectedAspect.title)
+                            .font(.subheadline.weight(.medium))
+                            .foregroundStyle(AppTheme.Colors.textPrimary)
+                    }
+
+                    Spacer()
+
+                    Image(systemName: isAspectSectionExpanded ? "chevron.up" : "chevron.down")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(AppTheme.Colors.textSecondary)
+                }
+                .padding(14)
+                .background(
+                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                        .fill(AppTheme.Colors.surface)
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                        .stroke(AppTheme.Colors.border, lineWidth: 1)
+                )
+            }
+            .buttonStyle(.plain)
+
+            // Expanded content
+            if isAspectSectionExpanded {
+                VStack(spacing: 16) {
+                    // Crop preview visualization
+                    cropPreviewSection
+
+                    // Aspect ratio selector
+                    aspectRatioSelector
+                }
+                .padding(.top, 12)
+            }
+        }
+    }
+
+    // MARK: - Crop Preview
+
+    private var cropPreviewSection: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("ASPECT RATIO")
-                .font(.caption.weight(.semibold))
-                .foregroundStyle(AppTheme.Colors.textTertiary)
-            aspectRatioSelector
+            Text("How your video will be cropped")
+                .font(.caption)
+                .foregroundStyle(AppTheme.Colors.textSecondary)
+
+            // Show a thumbnail with crop overlay
+            let previewWidth = UIScreen.main.bounds.width - 32
+            let previewHeight = previewWidth * 9 / 16 // Assume 16:9 source
+
+            ZStack {
+                // Background thumbnail or placeholder
+                if let take = loadSelectedTakes()?.first {
+                    VideoThumbnailView(videoURL: take.fileURL, isPortrait: false, durationText: nil)
+                        .frame(width: previewWidth, height: previewHeight)
+                        .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+                        .overlay(
+                            // Dimmed overlay
+                            RoundedRectangle(cornerRadius: 8, style: .continuous)
+                                .fill(Color.black.opacity(0.5))
+                        )
+                } else {
+                    RoundedRectangle(cornerRadius: 8, style: .continuous)
+                        .fill(AppTheme.Colors.surface)
+                        .frame(width: previewWidth, height: previewHeight)
+                        .overlay(
+                            Image(systemName: "video.fill")
+                                .font(.largeTitle)
+                                .foregroundStyle(AppTheme.Colors.textTertiary)
+                        )
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 8, style: .continuous)
+                                .fill(Color.black.opacity(0.3))
+                        )
+                }
+
+                // Crop area visualization
+                let cropSize = calculateCropSize(in: CGSize(width: previewWidth, height: previewHeight))
+
+                VStack(spacing: 4) {
+                    RoundedRectangle(cornerRadius: 4, style: .continuous)
+                        .stroke(AppTheme.Colors.cta, lineWidth: 2)
+                        .background(
+                            RoundedRectangle(cornerRadius: 4, style: .continuous)
+                                .fill(Color.white.opacity(0.1))
+                        )
+                        .frame(width: cropSize.width, height: cropSize.height)
+
+                    Text(selectedAspect.title)
+                        .font(.caption2.weight(.semibold))
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 3)
+                        .background(AppTheme.Colors.cta, in: Capsule())
+                }
+            }
+            .frame(width: previewWidth, height: previewHeight)
+            .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: 8, style: .continuous)
+                    .stroke(AppTheme.Colors.border, lineWidth: 1)
+            )
+        }
+    }
+
+    private func calculateCropSize(in containerSize: CGSize) -> CGSize {
+        let targetAspect = selectedAspect.aspectRatio
+        let containerAspect = containerSize.width / containerSize.height
+
+        let maxWidth = containerSize.width * 0.7
+        let maxHeight = containerSize.height * 0.7
+
+        if targetAspect > containerAspect {
+            // Wider than container - constrain by width
+            let width = maxWidth
+            let height = width / targetAspect
+            return CGSize(width: width, height: height)
+        } else {
+            // Taller than container - constrain by height
+            let height = maxHeight
+            let width = height * targetAspect
+            return CGSize(width: width, height: height)
         }
     }
 
