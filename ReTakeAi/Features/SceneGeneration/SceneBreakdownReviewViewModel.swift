@@ -289,6 +289,7 @@ final class SceneBreakdownReviewViewModel {
             scene.scriptText = trimmed
             scene.duration = TimeInterval(draft.expectedDurationSeconds)
             scene.aiDirection = draft.direction
+            scene.orderIndex = draft.orderIndex
             do {
                 try sceneStore.updateScene(scene)
                 // Refresh draft list from storage to keep IDs consistent.
@@ -304,6 +305,24 @@ final class SceneBreakdownReviewViewModel {
         // Otherwise, it's an unsaved draft list (shouldn't happen after auto-save).
         // Fall back to replacing scenes without deleting old ones.
         return await saveReplacingScenes()
+    }
+    
+    /// Update only the order index of a scene (works for empty scenes too)
+    func updateSceneOrder(_ draft: GeneratedSceneDraft, newIndex: Int) {
+        guard let project = projectStore.getProject(by: projectID),
+              let sceneID = draft.sourceSceneID,
+              var scene = sceneStore.getScene(sceneID: sceneID, projectID: project.id) else {
+            return
+        }
+        
+        scene.orderIndex = newIndex
+        try? sceneStore.updateScene(scene)
+    }
+    
+    /// Reload drafts from storage
+    func reloadDrafts() {
+        guard let project = projectStore.getProject(by: projectID) else { return }
+        loadExisting(project: project)
     }
     
     /// Delete a scene and reorder remaining scenes

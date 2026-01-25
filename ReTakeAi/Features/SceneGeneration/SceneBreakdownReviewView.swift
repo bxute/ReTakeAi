@@ -380,22 +380,17 @@ struct SceneBreakdownReviewView: View {
     
     private func saveReorderedDrafts() {
         // Update orderIndex for each draft based on new position
-        Task {
-            for (index, draft) in reorderedDrafts.enumerated() {
-                if draft.orderIndex != index {
-                    var updated = draft
-                    updated.orderIndex = index
-                    _ = await viewModel.saveEditedDraft(updated)
-                }
-            }
-            
-            await MainActor.run {
-                withAnimation(.easeInOut(duration: 0.2)) {
-                    isReorderMode = false
-                }
-                reorderedDrafts = []
-            }
+        for (index, draft) in reorderedDrafts.enumerated() {
+            viewModel.updateSceneOrder(draft, newIndex: index)
         }
+        
+        // Reload and exit reorder mode
+        viewModel.reloadDrafts()
+        
+        withAnimation(.easeInOut(duration: 0.2)) {
+            isReorderMode = false
+        }
+        reorderedDrafts = []
     }
 }
 
