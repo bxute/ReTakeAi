@@ -296,29 +296,14 @@ struct PreviewScreen: View {
     }
 
     private var informationSection: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Text("INFORMATION")
-                .font(.caption.weight(.semibold))
-                .foregroundStyle(AppTheme.Colors.textTertiary)
+        VStack(alignment: .leading, spacing: 4) {
+            Text(project?.title ?? "Project")
+                .font(.title3.weight(.semibold))
+                .foregroundStyle(AppTheme.Colors.textPrimary)
 
-            VStack(alignment: .leading, spacing: 6) {
-                Text(project?.title ?? "Project")
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(AppTheme.Colors.textPrimary)
-                Text("Finalize your export settings, then generate a preview.")
-                    .font(.footnote)
-                    .foregroundStyle(AppTheme.Colors.textSecondary)
-            }
-            .padding(12)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(
-                RoundedRectangle(cornerRadius: 12, style: .continuous)
-                    .fill(AppTheme.Colors.surface)
-            )
-            .overlay(
-                RoundedRectangle(cornerRadius: 12, style: .continuous)
-                    .stroke(AppTheme.Colors.border, lineWidth: 1)
-            )
+            Text("Finalize your export settings, then generate a preview.")
+                .font(.footnote)
+                .foregroundStyle(AppTheme.Colors.textSecondary)
         }
     }
 
