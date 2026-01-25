@@ -11,6 +11,7 @@ struct ShootSceneDetailView: View {
 
     @State private var viewModel: ShootSceneDetailViewModel
     @State private var playingTake: Take?
+    @State private var showRecording = false
 
     init(projectID: UUID, sceneID: UUID) {
         self.projectID = projectID
@@ -19,26 +20,69 @@ struct ShootSceneDetailView: View {
     }
 
     var body: some View {
-        List {
-            if let scene = viewModel.scene {
-                Section("Script") {
-                    Text(scene.scriptText)
-                        .font(.body)
-                        .padding(.vertical, 6)
+        ZStack(alignment: .bottom) {
+            AppTheme.Colors.background
+                .ignoresSafeArea()
+
+            ScrollView {
+                VStack(alignment: .leading, spacing: 20) {
+                    // Script Section
+                    if let scene = viewModel.scene {
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("SCRIPT")
+                                .font(.caption.weight(.semibold))
+                                .foregroundStyle(AppTheme.Colors.textTertiary)
+
+                            Text(scene.scriptText)
+                                .font(.body)
+                                .foregroundStyle(AppTheme.Colors.textPrimary)
+                        }
+                        .padding(16)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .background(
+                            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                .fill(AppTheme.Colors.surface)
+                        )
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                .stroke(AppTheme.Colors.border, lineWidth: 1)
+                        )
+                    }
+
+                    // Takes Section
+                    takesSections
                 }
+                .padding(.horizontal)
+                .padding(.vertical, 16)
+                .padding(.bottom, 80) // Space for sticky CTA
             }
 
-            takesSections
+            // Sticky bottom CTA
+            stickyBottomCTA
         }
         .navigationTitle(titleText)
         .navigationBarTitleDisplayMode(.inline)
+        .toolbarBackground(AppTheme.Colors.background, for: .navigationBar)
+        .toolbarBackground(.visible, for: .navigationBar)
         .onAppear {
+            viewModel.load()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .sceneDidUpdate)) { _ in
             viewModel.load()
         }
         .alert("Error", isPresented: .constant(viewModel.errorMessage != nil)) {
             Button("OK") { viewModel.errorMessage = nil }
         } message: {
             if let msg = viewModel.errorMessage { Text(msg) }
+        }
+        .fullScreenCover(isPresented: $showRecording, onDismiss: {
+            viewModel.load()
+        }) {
+            if let project = viewModel.project, let scene = viewModel.scene {
+                NavigationStack {
+                    RecordingView(project: project, scene: scene)
+                }
+            }
         }
         .fullScreenCover(item: $playingTake) { take in
             ZStack(alignment: .topTrailing) {
@@ -66,58 +110,83 @@ struct ShootSceneDetailView: View {
         return "Scene"
     }
 
+    // MARK: - Sticky Bottom CTA
+
+    private var stickyBottomCTA: some View {
+        VStack(spacing: 0) {
+            Rectangle()
+                .fill(AppTheme.Colors.border)
+                .frame(height: 1)
+
+            Button {
+                showRecording = true
+            } label: {
+                Label(
+                    viewModel.takes.isEmpty ? "Record First Take" : "Retake",
+                    systemImage: "video.fill"
+                )
+                .font(.body.weight(.semibold))
+                .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(AppPrimaryButtonStyle(background: AppTheme.Colors.cta, expandsToFullWidth: true))
+            .padding(.horizontal)
+            .padding(.vertical, 12)
+        }
+        .background(AppTheme.Colors.surface)
+    }
+
+    // MARK: - Takes Sections
+
     @ViewBuilder
     private var takesSections: some View {
         if viewModel.takes.isEmpty {
-            Section {
-                ContentUnavailableView(
-                    "No Takes Yet",
-                    systemImage: "video.slash",
-                    description: Text("Record your first take to get started")
-                )
-            }
+            // No takes - just show script (already shown above) with clear action
+            EmptyView()
         } else {
             let preferredID = viewModel.scene?.selectedTakeID
             let preferred = viewModel.takes.first(where: { $0.id == preferredID })
-            let others = viewModel.takes.filter { $0.id != preferredID }
+                ?? viewModel.takes.max(by: { $0.takeNumber < $1.takeNumber })
+            let others = viewModel.takes.filter { $0.id != preferred?.id }
 
-            if let preferred {
-                Section("Preferred Take") {
-                    ShootSceneTakeRowView(
-                        take: preferred,
-                        isPreferred: true,
-                        onPlay: {
-                            playingTake = preferred
-                        },
-                        onMarkPreferred: {}
-                    )
-                    .swipeActions(edge: .trailing, allowsFullSwipe: false) {
-                        Button(role: .destructive) {
-                            viewModel.deleteTake(preferred)
-                            if playingTake?.id == preferred.id { playingTake = nil }
-                        } label: {
-                            Label("Delete", systemImage: "trash")
-                        }
+            VStack(alignment: .leading, spacing: 16) {
+                // Preferred Take
+                if let preferred {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("PREFERRED TAKE")
+                            .font(.caption.weight(.semibold))
+                            .foregroundStyle(AppTheme.Colors.textTertiary)
+
+                        ShootSceneTakeRowView(
+                            take: preferred,
+                            isPreferred: true,
+                            onPlay: { playingTake = preferred },
+                            onMarkPreferred: {},
+                            onDelete: {
+                                viewModel.deleteTake(preferred)
+                                if playingTake?.id == preferred.id { playingTake = nil }
+                            }
+                        )
                     }
                 }
-            }
 
-            Section("Other Takes") {
-                ForEach(others) { take in
-                    ShootSceneTakeRowView(
-                        take: take,
-                        isPreferred: false,
-                        onPlay: {
-                            playingTake = take
-                        },
-                        onMarkPreferred: { viewModel.markPreferred(take) }
-                    )
-                    .swipeActions(edge: .trailing, allowsFullSwipe: false) {
-                        Button(role: .destructive) {
-                            viewModel.deleteTake(take)
-                            if playingTake?.id == take.id { playingTake = nil }
-                        } label: {
-                            Label("Delete", systemImage: "trash")
+                // Other Takes - only show if >1 take total
+                if !others.isEmpty {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("OTHER TAKES")
+                            .font(.caption.weight(.semibold))
+                            .foregroundStyle(AppTheme.Colors.textTertiary)
+
+                        ForEach(others) { take in
+                            ShootSceneTakeRowView(
+                                take: take,
+                                isPreferred: false,
+                                onPlay: { playingTake = take },
+                                onMarkPreferred: { viewModel.markPreferred(take) },
+                                onDelete: {
+                                    viewModel.deleteTake(take)
+                                    if playingTake?.id == take.id { playingTake = nil }
+                                }
+                            )
                         }
                     }
                 }
@@ -131,6 +200,7 @@ private struct ShootSceneTakeRowView: View {
     let isPreferred: Bool
     let onPlay: () -> Void
     let onMarkPreferred: () -> Void
+    let onDelete: () -> Void
 
     var body: some View {
         HStack(spacing: 12) {
@@ -154,12 +224,29 @@ private struct ShootSceneTakeRowView: View {
                     }
 
                     VStack(alignment: .leading, spacing: 4) {
-                        Text("Take \(take.takeNumber)")
-                            .font(.headline)
+                        HStack(spacing: 6) {
+                            Text("Take \(take.takeNumber)")
+                                .font(.headline)
+                                .foregroundStyle(AppTheme.Colors.textPrimary)
 
-                        Text("\(take.duration.shortDuration) • \(take.recordedAt.timeAgo)")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+                            Text("•")
+                                .font(.caption)
+                                .foregroundStyle(AppTheme.Colors.textTertiary)
+
+                            Text(take.duration.shortDuration)
+                                .font(.subheadline)
+                                .foregroundStyle(AppTheme.Colors.textSecondary)
+
+                            if isPreferred {
+                                Image(systemName: "hand.thumbsup.fill")
+                                    .font(.caption)
+                                    .foregroundStyle(AppTheme.Colors.success)
+                            }
+                        }
+
+                        Text(take.recordedAt.timeAgo)
+                            .font(.caption)
+                            .foregroundStyle(AppTheme.Colors.textTertiary)
                     }
                 }
             }
@@ -167,14 +254,33 @@ private struct ShootSceneTakeRowView: View {
 
             Spacer(minLength: 0)
 
-            Button(action: onMarkPreferred) {
-                Image(systemName: isPreferred ? "hand.thumbsup.fill" : "hand.thumbsup")
-                    .font(.title3)
-                    .foregroundStyle(isPreferred ? .green : .secondary)
+            // Mark as preferred button (only for non-preferred takes)
+            if !isPreferred {
+                Button(action: onMarkPreferred) {
+                    Image(systemName: "hand.thumbsup")
+                        .font(.title3)
+                        .foregroundStyle(AppTheme.Colors.textSecondary)
+                }
+                .buttonStyle(.plain)
             }
-            .buttonStyle(.borderless)
-            .disabled(isPreferred)
+
+            // Delete button
+            Button(action: onDelete) {
+                Image(systemName: "trash")
+                    .font(.body)
+                    .foregroundStyle(AppTheme.Colors.destructive)
+            }
+            .buttonStyle(.plain)
         }
+        .padding(12)
+        .background(
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .fill(AppTheme.Colors.surface)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .stroke(isPreferred ? AppTheme.Colors.success.opacity(0.3) : AppTheme.Colors.border, lineWidth: 1)
+        )
     }
 }
 
