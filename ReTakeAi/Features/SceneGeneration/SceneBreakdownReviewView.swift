@@ -13,6 +13,7 @@ struct SceneBreakdownReviewView: View {
     @State private var showingRegenerateConfirm = false
     @State private var expandedSceneID: UUID?
     @State private var isDirectionExpanded = false
+    @State private var showingShoot = false
 
     init(projectID: UUID, mode: SceneBreakdownReviewViewModel.Mode) {
         _viewModel = State(initialValue: SceneBreakdownReviewViewModel(projectID: projectID, mode: mode))
@@ -81,6 +82,9 @@ struct SceneBreakdownReviewView: View {
             }
         } message: {
             Text("This will replace all current scenes. Your edits will be lost.")
+        }
+        .navigationDestination(isPresented: $showingShoot) {
+            ShootOverviewView(projectID: viewModel.projectID)
         }
     }
     
@@ -182,9 +186,7 @@ struct SceneBreakdownReviewView: View {
                 .background(AppTheme.Colors.border)
             
             Button {
-                // Navigate to shoot
-                NotificationCenter.default.post(name: .navigateToShoot, object: viewModel.projectID)
-                dismiss()
+                showingShoot = true
             } label: {
                 HStack(spacing: 8) {
                     Text("Continue to Shoot")
