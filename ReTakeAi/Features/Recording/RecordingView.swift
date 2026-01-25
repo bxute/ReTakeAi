@@ -18,6 +18,7 @@ struct RecordingView: View {
     @State private var placeholderVisible = true
     @State private var placeholderHideScheduled = false
     @State private var placeholderHideTask: Task<Void, Never>?
+    @State private var showingSettings = false
 
     private var isShowingError: Binding<Bool> {
         Binding(
@@ -52,8 +53,17 @@ struct RecordingView: View {
                         .buttonStyle(.plain)
 
                         Spacer()
+                        
+                        Button {
+                            showingSettings = true
+                        } label: {
+                            Image(systemName: "gearshape.fill")
+                                .font(.title2)
+                                .foregroundStyle(.white, .black.opacity(0.35))
+                        }
+                        .buttonStyle(.plain)
                     }
-                    .padding(.leading, 14)
+                    .padding(.horizontal, 14)
                     .padding(.top, 10)
 
                     Spacer()
@@ -129,6 +139,9 @@ struct RecordingView: View {
         } message: {
             Text(viewModel.errorMessage ?? "Unknown error")
         }
+        .sheet(isPresented: $showingSettings) {
+            RecordingSettingsView()
+        }
     }
     
     private func cameraPreview(session: AVCaptureSession) -> some View {
@@ -199,20 +212,38 @@ struct RecordingView: View {
                 VStack(spacing: 12) {
                     Spacer()
 
-                    Button {
-                        viewModel.beginRecordingTimer()
-                    } label: {
-                        Circle()
-                            .fill(.red)
-                            .frame(width: 72, height: 72)
-                            .overlay(
-                                Circle()
-                                    .stroke(.white.opacity(0.2), lineWidth: 6)
-                            )
+                    HStack(spacing: 32) {
+                        // Spacer for symmetry
+                        Color.clear.frame(width: 44, height: 44)
+                        
+                        Button {
+                            viewModel.beginRecordingTimer()
+                        } label: {
+                            Circle()
+                                .fill(.red)
+                                .frame(width: 72, height: 72)
+                                .overlay(
+                                    Circle()
+                                        .stroke(.white.opacity(0.2), lineWidth: 6)
+                                )
+                        }
+                        .buttonStyle(.plain)
+                        .disabled(!viewModel.isSetupComplete || viewModel.captureSession == nil)
+                        .accessibilityLabel("Start")
+                        
+                        // Camera flip button
+                        Button {
+                            Task { await viewModel.switchCamera() }
+                        } label: {
+                            Image(systemName: "camera.rotate")
+                                .font(.title2)
+                                .foregroundStyle(.white)
+                                .frame(width: 44, height: 44)
+                                .background(.black.opacity(0.35), in: Circle())
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityLabel("Switch Camera")
                     }
-                    .buttonStyle(.plain)
-                    .disabled(!viewModel.isSetupComplete || viewModel.captureSession == nil)
-                    .accessibilityLabel("Start")
 
                     Text("Tap Start to begin the countdown.")
                         .font(.footnote)
