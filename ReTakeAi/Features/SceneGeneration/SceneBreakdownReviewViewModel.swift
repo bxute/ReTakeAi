@@ -53,15 +53,6 @@ final class SceneBreakdownReviewViewModel {
         }
     }
 
-    func regenerateScenesReplacingScriptAndScenes() async {
-        errorMessage = nil
-        guard let project = projectStore.getProject(by: projectID) else {
-            errorMessage = "Project not found"
-            return
-        }
-        await generateFromScript(project: project, replaceExisting: true)
-    }
-
     private func loadExisting(project: Project) {
         let scenes = sceneStore.getScenes(for: project)
         drafts = scenes.sorted(by: { $0.orderIndex < $1.orderIndex }).map { scene in
@@ -196,15 +187,44 @@ final class SceneBreakdownReviewViewModel {
 #endif
     }
 
+    /// At least one non-empty scene is required
     var canSave: Bool {
-        !drafts.isEmpty && drafts.allSatisfy { !$0.scriptText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && $0.expectedDurationSeconds > 0 }
+        let nonEmptyDrafts = drafts.filter { !$0.scriptText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
+        return !nonEmptyDrafts.isEmpty && nonEmptyDrafts.allSatisfy { $0.expectedDurationSeconds > 0 }
+    }
+    
+    /// Add a new empty scene at the end
+    func addNewEmptyScene() async {
+        let newOrderIndex = (drafts.map { $0.orderIndex }.max() ?? -1) + 1
+        let newDraft = GeneratedSceneDraft(
+            orderIndex: newOrderIndex,
+            scriptText: "",
+            expectedDurationSeconds: 10
+        )
+        
+        // Persist immediately
+        guard var project = projectStore.getProject(by: projectID) else { return }
+        
+        do {
+            var created = try sceneStore.createScene(projectID: project.id, orderIndex: newOrderIndex, scriptText: "")
+            created.duration = 10
+            try sceneStore.updateScene(created)
+            project.sceneIDs.append(created.id)
+            try await projectStore.updateProjectAsync(project)
+            
+            // Reload to get the new scene with proper sourceSceneID
+            loadExisting(project: project)
+        } catch {
+            // Fallback: just add to local drafts
+            drafts.append(newDraft)
+        }
     }
 
     func saveReplacingScenes() async -> Bool {
         errorMessage = nil
 
         guard canSave else {
-            errorMessage = "Please fix empty scenes before saving."
+            errorMessage = "Please add at least one scene with narration."
             return false
         }
 
@@ -221,12 +241,15 @@ final class SceneBreakdownReviewViewModel {
             // We only detach them from the project by rewriting `sceneIDs`.
             project.sceneIDs.removeAll()
 
-            // Create new scenes.
-            let sortedDrafts = drafts.sorted(by: { $0.orderIndex < $1.orderIndex })
+            // Filter out empty scenes and re-index
+            let nonEmptyDrafts = drafts
+                .filter { !$0.scriptText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
+                .sorted(by: { $0.orderIndex < $1.orderIndex })
+            
             var newSceneIDs: [UUID] = []
-            newSceneIDs.reserveCapacity(sortedDrafts.count)
+            newSceneIDs.reserveCapacity(nonEmptyDrafts.count)
 
-            for (idx, draft) in sortedDrafts.enumerated() {
+            for (idx, draft) in nonEmptyDrafts.enumerated() {
                 var created = try sceneStore.createScene(projectID: project.id, orderIndex: idx, scriptText: draft.scriptText)
                 created.duration = TimeInterval(draft.expectedDurationSeconds)
                 created.aiDirection = draft.direction
@@ -281,6 +304,44 @@ final class SceneBreakdownReviewViewModel {
         // Otherwise, it's an unsaved draft list (shouldn't happen after auto-save).
         // Fall back to replacing scenes without deleting old ones.
         return await saveReplacingScenes()
+    }
+    
+    /// Delete a scene and reorder remaining scenes
+    func deleteScene(_ draft: GeneratedSceneDraft) async {
+        errorMessage = nil
+        
+        guard var project = projectStore.getProject(by: projectID) else {
+            errorMessage = "Project not found"
+            return
+        }
+        
+        // If this draft has a source scene, delete it from storage
+        if let sceneID = draft.sourceSceneID,
+           let scene = sceneStore.getScene(sceneID: sceneID, projectID: project.id) {
+            // Remove from project's sceneIDs
+            project.sceneIDs.removeAll { $0 == sceneID }
+            
+            // Delete the scene from store
+            try? sceneStore.deleteScene(scene)
+        }
+        
+        // Update project first
+        try? await projectStore.updateProjectAsync(project)
+        
+        // Reload project to get updated sceneIDs
+        guard let updatedProject = projectStore.getProject(by: projectID) else { return }
+        
+        // Reorder remaining scenes
+        let remainingScenes = sceneStore.getScenes(for: updatedProject).sorted(by: { $0.orderIndex < $1.orderIndex })
+        for (idx, var scene) in remainingScenes.enumerated() {
+            if scene.orderIndex != idx {
+                scene.orderIndex = idx
+                try? sceneStore.updateScene(scene)
+            }
+        }
+        
+        // Reload drafts
+        loadExisting(project: updatedProject)
     }
 }
 

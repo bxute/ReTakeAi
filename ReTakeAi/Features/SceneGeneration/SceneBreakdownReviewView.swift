@@ -10,7 +10,6 @@ struct SceneBreakdownReviewView: View {
     @Environment(\.dismiss) private var dismiss
 
     @State private var editingDraft: GeneratedSceneDraft?
-    @State private var showingRegenerateConfirm = false
     @State private var expandedSceneID: UUID?
     @State private var isDirectionExpanded = false
     @State private var showingShoot = false
@@ -53,18 +52,20 @@ struct SceneBreakdownReviewView: View {
                     .foregroundStyle(AppTheme.Colors.cta)
                 } else {
                     Menu {
+                        Button {
+                            Task {
+                                await viewModel.addNewEmptyScene()
+                            }
+                        } label: {
+                            Label("Add New Scene", systemImage: "plus.circle")
+                        }
+                        
                         if viewModel.drafts.count > 1 {
                             Button {
                                 enterReorderMode()
                             } label: {
                                 Label("Reorder Scenes", systemImage: "arrow.up.arrow.down")
                             }
-                        }
-                        
-                        Button {
-                            showingRegenerateConfirm = true
-                        } label: {
-                            Label("Regenerate Scenes", systemImage: "arrow.triangle.2.circlepath")
                         }
                     } label: {
                         Image(systemName: "ellipsis.circle")
@@ -101,17 +102,6 @@ struct SceneBreakdownReviewView: View {
         } message: {
             if let msg = viewModel.errorMessage { Text(msg) }
         }
-        .alert("Regenerate Scenes?", isPresented: $showingRegenerateConfirm) {
-            Button("Cancel", role: .cancel) {}
-            Button("Regenerate", role: .destructive) {
-                Task {
-                    expandedSceneID = nil
-                    await viewModel.regenerateScenesReplacingScriptAndScenes()
-                }
-            }
-        } message: {
-            Text("This will replace all current scenes. Your edits will be lost.")
-        }
         .navigationDestination(isPresented: $showingShoot) {
             ShootOverviewView(projectID: viewModel.projectID)
         }
@@ -141,9 +131,6 @@ struct SceneBreakdownReviewView: View {
                             )
                         }
                         
-                        // Regenerate button (de-emphasized)
-                        regenerateButton
-                        
                         // Scene Cards
                         ForEach(sortedDrafts) { draft in
                             SceneCard(
@@ -160,6 +147,11 @@ struct SceneBreakdownReviewView: View {
                                 },
                                 onEditNarration: {
                                     editingDraft = draft
+                                },
+                                onDelete: {
+                                    Task {
+                                        await viewModel.deleteScene(draft)
+                                    }
                                 }
                             )
                         }
@@ -197,24 +189,6 @@ struct SceneBreakdownReviewView: View {
         let totalDuration = viewModel.drafts.reduce(0) { $0 + $1.expectedDurationSeconds }
         let toneText = viewModel.projectDirection?.tone.rawValue ?? "Professional"
         return "\(count) scenes • ~\(totalDuration)s • \(toneText)"
-    }
-    
-    // MARK: - Regenerate Button
-    
-    private var regenerateButton: some View {
-        Button {
-            showingRegenerateConfirm = true
-        } label: {
-            HStack(spacing: 6) {
-                Image(systemName: "arrow.triangle.2.circlepath")
-                    .font(.subheadline)
-                Text("Regenerate all scenes")
-                    .font(.subheadline)
-            }
-            .foregroundStyle(AppTheme.Colors.textTertiary)
-        }
-        .buttonStyle(.plain)
-        .padding(.vertical, 4)
     }
     
     // MARK: - Sticky Bottom CTA
@@ -530,6 +504,9 @@ private struct SceneCard: View {
     let isExpanded: Bool
     let onTap: () -> Void
     let onEditNarration: () -> Void
+    let onDelete: () -> Void
+    
+    @State private var showingDeleteConfirm = false
     
     var body: some View {
         Button(action: onTap) {
@@ -635,9 +612,29 @@ private struct SceneCard: View {
                 .buttonStyle(.plain)
                 
                 Spacer()
+                
+                Button {
+                    showingDeleteConfirm = true
+                } label: {
+                    Image(systemName: "trash")
+                        .font(.body)
+                        .foregroundStyle(AppTheme.Colors.destructive)
+                        .padding(10)
+                        .background(AppTheme.Colors.destructive.opacity(0.1))
+                        .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+                }
+                .buttonStyle(.plain)
             }
             .padding(.horizontal, 16)
             .padding(.bottom, 16)
+        }
+        .alert("Delete Scene?", isPresented: $showingDeleteConfirm) {
+            Button("Cancel", role: .cancel) {}
+            Button("Delete", role: .destructive) {
+                onDelete()
+            }
+        } message: {
+            Text("This scene will be removed and remaining scenes will be renumbered.")
         }
     }
 }
