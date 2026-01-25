@@ -1,49 +1,68 @@
-← Back                Script Draft            Save
+# Script Draft Edit Screen
 
-Raw Script Draft
-Paste or write freely — we’ll break this into scenes later.
+Minimal distraction-free editor for writing or pasting script content.
 
-[ Large, readable text area with generous spacing ]
+---
 
-(Start typing or paste your script here…)
+## Navigation Bar
 
------------------------------------------
-Clear draft                 Format later
+```
+← Back              Script Draft              Save
+```
 
+- **Back**: Returns to Project Details
+- **Save**: Right-aligned, always visible
 
+---
 
-Rules:
-- **Save** is always visible
-- Save is **disabled until text changes**
-- No secondary icons or actions
-- Focus is only on writing
+## Hint Banner
+Small hint text below nav bar:
 
+`Paste or write freely — we'll break this into scenes later.`
 
-### Readability Improvements
-- Line height: `1.4–1.6`
-- Slightly lighter font weight
-- Generous horizontal padding
-- Clear paragraph spacing
+---
 
+## Text Editor Area
 
-## Empty State Placeholder
-When editor is empty, show:
+Large, full-width text area with generous spacing
+
+**Placeholder (when empty):**
+```
 Start typing or paste your script here…
 You can write rough notes, full paragraphs,
 or unstructured thoughts.
+```
 
+---
 
-## Save Interaction Model
-- First tap → Save
-- After first save → auto-save silently
-- Button state changes:
-  - `Save` → `Saved`
+## Helper Actions (Sticky above keyboard)
 
-Optional one-time feedback:
-Saved. You can refine this later.
+```
+[Clear draft]       
+```
 
+- Appear as subtle text button
+- Sticky positioned above keyboard when editing
 
-## Helper Actions (Optional)
-Sticky row above keyboard:
+---
 
-[Clear draft]      [Format later]
+## Rules
+
+### Save Button Behavior
+- Always visible in nav bar
+- **Disabled** until text changes (greyed out)
+- First tap → Saves and shows `Saved`
+- After first save → Auto-save silently on changes
+- Optional toast: `Saved. You can refine this later.`
+
+### Focus & Simplicity
+- No secondary icons or actions in nav
+- Focus is purely on writing
+- Keyboard-first experience
+
+### Readability
+- Line height: `1.4–1.6`
+- Slightly lighter font weight (regular, not bold)
+- Generous horizontal padding (`16–20pt`)
+- Clear paragraph spacing
+- Large readable font size (`17–18pt`)

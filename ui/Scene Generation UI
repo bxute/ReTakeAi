@@ -1,81 +1,283 @@
-← Review Scenes
-Project: [Project Title] 
-Subtext (small, optional):
-7 scenes • ~90 seconds total
+# Scene Generation Screen
 
+Review and refine AI-generated scenes before recording.
 
-## Project Direction (Collapsed by Default)
-🎭 Project Direction Fun
-upbeat conversational
-Tap to expand:
-`
-Speak with energy and warmth.
-Keep pacing friendly and relaxed.
-`
+---
 
-## Regenerate Action (De-emphasized)
-↻ Regenerate scenes
+## Navigation Bar
+
+```
+←                    Review Scenes                    ⋮
+```
+
+- **Back**: Returns to Project Details
+- **Overflow menu (⋮)**: Regenerate scenes, Export script
+
+---
+
+## Header Section
+
+**Project Title** (large, bold)  
+`My LinkedIn Video`
+
+**Metadata Row** (muted, smaller)  
+`7 scenes • ~90 seconds • Professional`
+
+---
+
+## Project Direction Card
+
+Collapsible card showing delivery guidance.
+
+### Collapsed State (Default)
+```
+┌─────────────────────────────────────┐
+│ 🎭 Delivery Direction          ▾    │
+│    Upbeat, conversational           │
+└─────────────────────────────────────┘
+```
+
+### Expanded State (On Tap)
+```
+┌─────────────────────────────────────┐
+│ 🎭 Delivery Direction          ▴    │
+│                                     │
+│ Speak with energy and warmth.       │
+│ Keep pacing friendly and relaxed.   │
+│ Smile naturally — like talking      │
+│ to a friend, not a camera.          │
+│                                     │
+│                      [ Edit ]       │
+└─────────────────────────────────────┘
+```
 
 Rules:
-- Text button, not filled
-- Place **below direction**, not above scenes
-- Add confirmation:
-  > Regenerating will replace current scenes
+- Collapsed by default to reduce cognitive load
+- Shows 1-line preview when collapsed
+- Subtle background (surface variant)
+- Edit button only visible when expanded
 
+---
 
-## Scene Card (Redesigned)
+## Scene List
 
-### Scene Card — Default (Collapsed)
-Scene 1 10s
-Hey there! Need something done fast and well?
+### Scene Card — Collapsed (Default)
+
+```
+┌─────────────────────────────────────┐
+│ Scene 1                        10s  │
+│ "Hey there! Need something done     │
+│ fast and well?"                     │
+└─────────────────────────────────────┘
+```
 
 Rules:
-- Show **only narration preview**
-- 1–2 lines max
-- Entire card tappable
+- Show narration preview (1-2 lines, truncated)
+- Duration badge right-aligned
+- Entire card tappable to expand
+- Subtle divider between cards (or 8dp gap)
 
 ### Scene Card — Expanded (On Tap)
 
-Scene 1 10s
-
-🗣️ Narration
-Hey there! Need something done fast and well?
-I'm your go-to gig pro.
-
-🎬 Direction
-Fun • energetic • conversational
-Be upbeat and friendly, like greeting a neighbor.
-
-[ Edit narration ] [ Edit direction ]
-
-Rules:
-- Narration first (primary)
-- Direction secondary and visually lighter
-- No “Tap to edit” copy — buttons are clearer
-
-
-
-## Bottom Action (Very Important)
-
-Add a **sticky bottom CTA**:
-[ Continue to Shoot ]
+```
+┌─────────────────────────────────────┐
+│ Scene 1                        10s  │
+├─────────────────────────────────────┤
+│                                     │
+│ 🗣️ NARRATION                        │
+│ "Hey there! Need something done     │
+│ fast and well? I'm your go-to       │
+│ gig pro."                           │
+│                                     │
+│ 🎬 DIRECTION                        │
+│ Fun • Energetic                     │
+│ Be upbeat and friendly, like        │
+│ greeting a neighbor.                │
+│                                     │
+├─────────────────────────────────────┤
+│  [ Edit Narration ]  [ Edit Tone ]  │
+└─────────────────────────────────────┘
+```
 
 Rules:
-- Primary action on this screen
-- Always visible
-- Reinforces next step
+- Narration section first (primary content)
+- Direction section secondary (lighter text weight)
+- Section labels uppercase, smaller, muted
+- Action buttons at bottom of expanded card
+- Only one card expanded at a time (accordion behavior)
 
+### Swipe Actions (Optional Enhancement)
+- Swipe left: Quick edit
+- Swipe right: Mark as reviewed ✓
 
+---
 
-## Loading State (When Generating Scenes)
+## Scene Progress Indicator
 
-Replace spinner with guided reassurance:
-Breaking your script into scenes…
-This usually takes a few seconds.
+Horizontal pill indicators below header:
 
-Optional progress hints:
-- Analyzing script
-- Structuring scenes
-- Adding delivery guidance
+```
+● ● ● ○ ○ ○ ○
+```
 
-(No percentages, no AI jargon)
+Rules:
+- Filled = reviewed/edited
+- Empty = unreviewed
+- Tapping a pill scrolls to that scene
+- Optional: show current position during scroll
+
+---
+
+## Regenerate Action
+
+Text button, de-emphasized, below direction card:
+
+```
+↻ Regenerate all scenes
+```
+
+Rules:
+- Muted text color (not primary)
+- Confirmation dialog before action:
+  ```
+  ┌─────────────────────────────────┐
+  │     Regenerate Scenes?          │
+  │                                 │
+  │ This will replace all current   │
+  │ scenes. Your edits will be      │
+  │ lost.                           │
+  │                                 │
+  │   [ Cancel ]    [ Regenerate ]  │
+  └─────────────────────────────────┘
+  ```
+
+---
+
+## Sticky Bottom CTA
+
+Always visible at bottom of screen:
+
+```
+┌─────────────────────────────────────┐
+│                                     │
+│       [ Continue to Shoot → ]       │
+│                                     │
+└─────────────────────────────────────┘
+```
+
+Rules:
+- Primary filled button
+- Full width with horizontal padding
+- Safe area padding at bottom
+- Subtle top shadow/border to separate from content
+- Arrow indicates forward progression
+
+---
+
+## Loading State (Scene Generation)
+
+Replace spinner with progressive feedback:
+
+```
+┌─────────────────────────────────────┐
+│                                     │
+│         ✨ Creating scenes...       │
+│                                     │
+│    ✓ Analyzing your script          │
+│    ✓ Structuring into scenes        │
+│    ◐ Adding delivery guidance       │
+│    ○ Finalizing                     │
+│                                     │
+│    Usually takes a few seconds      │
+│                                     │
+└─────────────────────────────────────┘
+```
+
+Rules:
+- Checklist-style progress (not percentages)
+- ✓ = complete, ◐ = in progress, ○ = pending
+- Calm, reassuring copy
+- No AI/technical jargon
+- Subtle pulse animation on current step
+
+### Skeleton Loading (After Generation)
+Show card skeletons while content hydrates:
+```
+┌─────────────────────────────────────┐
+│ ████████                    ██      │
+│ ████████████████████████████        │
+│ ██████████████████                  │
+└─────────────────────────────────────┘
+```
+
+---
+
+## Empty State (No Script)
+
+If user arrives without a script:
+
+```
+┌─────────────────────────────────────┐
+│                                     │
+│            📝                       │
+│                                     │
+│    Add a script to generate         │
+│    scenes                           │
+│                                     │
+│       [ Write Script ]              │
+│                                     │
+└─────────────────────────────────────┘
+```
+
+---
+
+## Error State
+
+```
+┌─────────────────────────────────────┐
+│                                     │
+│            ⚠️                       │
+│                                     │
+│   Couldn't generate scenes          │
+│   Please try again                  │
+│                                     │
+│         [ Retry ]                   │
+│                                     │
+└─────────────────────────────────────┘
+```
+
+---
+
+## Micro-interactions
+
+1. **Card expansion**: Smooth height animation (200ms ease-out)
+2. **Scene scroll**: Snap to card edges
+3. **Direction toggle**: Rotate chevron icon
+4. **Button press**: Subtle scale (0.98) + haptic feedback
+5. **Progress pills**: Gentle pulse when scene is edited
+
+---
+
+## Accessibility
+
+- All cards reachable via keyboard/swipe
+- Clear focus indicators
+- Screen reader: "Scene 1 of 7, 10 seconds, Hey there..."
+- Minimum touch target: 44×44pt
+- Sufficient color contrast (4.5:1 minimum)
+
+---
+
+## Visual Specs
+
+| Element              | Value                    |
+|----------------------|--------------------------|
+| Card corner radius   | 12dp                     |
+| Card padding         | 16dp                     |
+| Card gap             | 8dp                      |
+| Section label size   | 11sp, uppercase, 500wt   |
+| Narration text       | 16sp, 400wt              |
+| Direction text       | 14sp, 400wt, muted       |
+| Duration badge       | 13sp, 500wt, pill shape  |
+| Bottom CTA height    | 56dp                     |
+| Safe area bottom     | 34dp (iOS) / 16dp (Android) |

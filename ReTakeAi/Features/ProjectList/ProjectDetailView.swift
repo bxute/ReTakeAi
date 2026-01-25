@@ -153,6 +153,11 @@ struct ProjectDetailView: View {
         .refreshable {
             loadProjectAndScenes()
         }
+        .onReceive(NotificationCenter.default.publisher(for: .navigateToShoot)) { notification in
+            if let projectID = notification.object as? UUID, projectID == currentProject.id {
+                showingShoot = true
+            }
+        }
     }
     
     // MARK: - Header Section

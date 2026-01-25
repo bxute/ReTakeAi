@@ -20,6 +20,7 @@ final class SceneBreakdownReviewViewModel {
     var drafts: [GeneratedSceneDraft] = []
     var promptUsed: String?
     var projectDirection: AIDirection?
+    var projectTitle: String = "Project"
 
     let projectID: UUID
     let mode: Mode
@@ -41,6 +42,7 @@ final class SceneBreakdownReviewViewModel {
             return
         }
         
+        projectTitle = project.title
         projectDirection = project.aiDirection
 
         switch mode {

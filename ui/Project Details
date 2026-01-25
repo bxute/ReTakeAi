@@ -1,46 +1,78 @@
-Manage Storage
-• Used in final video: 2m 40s
-• Unused takes: 6m 10s
-
-[ Delete unused takes ]
-[ Delete all recordings & restart project ]
-
-
---
-
 # Project Details Screen
 
-nav bar: Project Overview
-**intro 2**  
-3 of 7 scenes recorded  
+Main hub for a single project. Shows progress, script preview, and actions.
 
-[Script]
-Hey there! Need something done fast and well?  
-I'm your go-to gig pro...
+---
 
-*Tap to edit →*
+## Navigation Bar
+**Title:** Project Overview
 
-Remove “Edit your draft” copy
-Make the whole card tappable
-Add chevron or “Tap to edit”
+---
 
-[Project Summary]
-🎯 Storytelling  ⏱ 90s  🎭 Professional  
+## Header Section
+**Project Name** (editable on tap)  
+`intro 2`
 
+**Progress Badge**  
+- If scenes generated: `3 of 7 scenes recorded`
+- If no scenes: `Script ready` or hidden
 
-[Buttons]
-## Primary Action
+---
+
+## Script Preview Card
+Tappable card showing script snippet
+
+```
+"Hey there! Need something done fast and well?
+I'm your go-to gig pro..."
+```
+
+**Tap to edit →** (chevron icon)
+
+- Whole card is tappable
+- Navigates to script editor
+
+---
+
+## Project Summary Row
+Shows metadata set during project creation
+
+🎯 Storytelling  ⏱ 90s  🎭 Professional
+
+- Tappable to edit intent/duration/tone (open bottom sheet with some selector options)
+- Single row, horizontal layout with icons
+
+---
+
+## Actions
+
+### State: No Scenes Generated (script exists but no scenes)
+**Primary Button (Filled)**  
+✨ **Generate Scenes** — navigates to scene generation page
+
+### State: Scenes Generated
+**Primary Button (Filled)**  
 🔴 **Go to Shoot**
 
-## Secondary Actions
-◻️ **Review Script**  
+**Secondary Button (Outline)**  
+◻️ **Review Scenes** — navigates to scene generation page
 
-View Exports →
+### Tertiary Link (show only if exports exist)
+`View Exports →` — text link, navigates to exports list
 
-Keep Go to Shoot as the only filled button
-Make Review Script an outline button
-Convert Go to Exports to a text link or small row
+---
 
-[Tip Area]
-## Tip / Value
-💡 Record scene-by-scene to avoid full re-records.
+## Tip at the bottom, centered horizontally
+(take from the list of tips)
+
+
+
+There is a change:
+We have to show metadata set during project creation
+
+🎯 Storytelling  ⏱ 90s  🎭 Professional
+When item is tapped among these 3, then for that particular item,
+ we have to show a bottom sheet with the options related to that item.
+
+
+
