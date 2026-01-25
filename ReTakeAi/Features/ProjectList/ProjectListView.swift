@@ -197,10 +197,16 @@ struct ProjectListView: View {
             Spacer(minLength: 0)
             
             NavigationLink(value: SettingsDestination()) {
-                Image(systemName: "ellipsis.circle")
-                    .font(.title2)
+                Image(systemName: "ellipsis")
+                    .font(.headline)
                     .foregroundStyle(AppTheme.Colors.textSecondary)
+                    .padding(8)
+                    .background(AppTheme.Colors.surface, in: Circle())
+                    .overlay(
+                        Circle().stroke(AppTheme.Colors.border, lineWidth: 1)
+                    )
             }
+            .buttonStyle(.plain)
             .accessibilityLabel("Settings")
         }
         .padding(.top, 6)
