@@ -97,8 +97,9 @@ struct ShootOverviewView: View {
                     } label: {
                         Label("Record Next Scene", systemImage: "video.fill")
                             .font(.body.weight(.semibold))
+                            .frame(maxWidth: .infinity)
                     }
-                    .buttonStyle(AppPrimaryButtonStyle(background: AppTheme.Colors.cta))
+                    .buttonStyle(AppPrimaryButtonStyle(background: AppTheme.Colors.cta, expandsToFullWidth: true))
                 } else {
                     NavigationLink {
                         PreviewScreen(projectID: projectID)
