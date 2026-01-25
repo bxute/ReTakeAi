@@ -60,10 +60,16 @@ struct ShootSceneDetailView: View {
             // Sticky bottom CTA
             stickyBottomCTA
         }
-        .navigationTitle(titleText)
         .navigationBarTitleDisplayMode(.inline)
         .toolbarBackground(AppTheme.Colors.background, for: .navigationBar)
         .toolbarBackground(.visible, for: .navigationBar)
+        .toolbar {
+            ToolbarItem(placement: .principal) {
+                Text(titleText)
+                    .font(.headline)
+                    .foregroundStyle(AppTheme.Colors.textPrimary)
+            }
+        }
         .onAppear {
             viewModel.load()
         }
