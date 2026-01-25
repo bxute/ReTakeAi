@@ -104,23 +104,22 @@ class CameraService: NSObject, ObservableObject {
         do {
             try device.lockForConfiguration()
             
-            // Find a format that supports the desired frame rate
-            let desiredFrameRate = CMTimeMake(value: 1, timescale: Int32(fps))
-            for format in device.formats {
-                for range in format.videoSupportedFrameRateRanges {
-                    if range.minFrameDuration <= desiredFrameRate && range.maxFrameDuration >= desiredFrameRate {
-                        device.activeFormat = format
-                        device.activeVideoMinFrameDuration = desiredFrameRate
-                        device.activeVideoMaxFrameDuration = desiredFrameRate
-                        device.unlockForConfiguration()
-                        AppLogger.recording.info("Applied frame rate: \(fps) fps")
-                        return
-                    }
+            // Only apply frame rate if current format supports it (don't change format)
+            let desiredFrameDuration = CMTimeMake(value: 1, timescale: Int32(fps))
+            let currentFormat = device.activeFormat
+            
+            for range in currentFormat.videoSupportedFrameRateRanges {
+                if range.minFrameRate <= Double(fps) && range.maxFrameRate >= Double(fps) {
+                    device.activeVideoMinFrameDuration = desiredFrameDuration
+                    device.activeVideoMaxFrameDuration = desiredFrameDuration
+                    device.unlockForConfiguration()
+                    AppLogger.recording.info("Applied frame rate: \(fps) fps")
+                    return
                 }
             }
             
             device.unlockForConfiguration()
-            AppLogger.recording.warning("Could not find format supporting \(fps) fps")
+            AppLogger.recording.warning("Current format doesn't support \(fps) fps, using default")
         } catch {
             AppLogger.recording.error("Failed to set frame rate: \(error.localizedDescription)")
         }
