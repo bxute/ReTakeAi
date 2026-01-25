@@ -189,10 +189,10 @@ struct SceneBreakdownReviewView: View {
                 showingShoot = true
             } label: {
                 HStack(spacing: 8) {
-                    Text("Continue to Shoot")
-                        .font(.headline)
-                    Image(systemName: "arrow.right")
+                    Image(systemName: "camera.fill")
                         .font(.body.weight(.semibold))
+                    Text("Go to Shoot")
+                        .font(.headline)
                 }
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 16)
