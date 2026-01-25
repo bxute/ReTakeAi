@@ -79,6 +79,8 @@ struct ProjectDetailView: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbarBackground(AppTheme.Colors.background, for: .navigationBar)
         .toolbarBackground(.visible, for: .navigationBar)
+        .toolbarColorScheme(.dark, for: .navigationBar)
+        .tint(AppTheme.Colors.cta)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Menu {

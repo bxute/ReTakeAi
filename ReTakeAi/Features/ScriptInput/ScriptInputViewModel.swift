@@ -47,6 +47,32 @@ class ScriptInputViewModel {
             return false
         }
     }
+
+    func autoSaveIfNeeded() async -> Bool {
+        let trimmed = scriptText.trimmingCharacters(in: .whitespacesAndNewlines)
+        let lastTrimmed = lastAutosavedText.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard trimmed != lastTrimmed else { return false }
+
+        do {
+            guard var latestProject = projectStore.getProject(by: projectID) else {
+                errorMessage = "Project not found"
+                return false
+            }
+            latestProject.script = scriptText
+            try await projectStore.updateProjectAsync(latestProject)
+            lastAutosavedText = scriptText
+            return true
+        } catch {
+            errorMessage = "Failed to autosave script: \(error.localizedDescription)"
+            return false
+        }
+    }
+
+    var isDirty: Bool {
+        let trimmed = scriptText.trimmingCharacters(in: .whitespacesAndNewlines)
+        let lastTrimmed = lastAutosavedText.trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmed != lastTrimmed
+    }
     
     func scheduleAutoSave(after seconds: TimeInterval = 2.0) {
         autosaveDebounceTask?.cancel()
