@@ -13,6 +13,8 @@ struct PreviewScreen: View {
 
     @State private var isGenerating = false
     @State private var isExporting = false
+    @State private var exportProgress: Double = 0
+    @State private var exportStartTime: Date?
 
     @State private var cachedPreviewURLs: [VideoAspect: URL] = [:]
     @State private var lastMergedURL: URL?
@@ -38,14 +40,6 @@ struct PreviewScreen: View {
                     informationSection
 
                     aspectSelectionSection
-
-                    // Inline exporting state (keep this inline)
-                    if isExporting {
-                        inlineProgressCard(
-                            title: "Exporting video…",
-                            subtitle: "You can leave this screen."
-                        )
-                    }
                 }
                 .padding(.horizontal)
                 .padding(.vertical, 16)
@@ -53,7 +47,9 @@ struct PreviewScreen: View {
             }
 
             // Sticky bottom action
-            if isGenerating {
+            if isExporting {
+                stickyExportingCard
+            } else if isGenerating {
                 stickyPreviewCardLoading
             } else if hasGeneratedPreviewForSelectedAspect {
                 stickyPreviewCard
@@ -97,35 +93,6 @@ struct PreviewScreen: View {
             }
             .statusBarHidden(true)
         }
-    }
-
-    // MARK: - Inline Progress Card
-
-    private func inlineProgressCard(title: String, subtitle: String) -> some View {
-        HStack(spacing: 14) {
-            ProgressView()
-                .tint(AppTheme.Colors.cta)
-
-            VStack(alignment: .leading, spacing: 2) {
-                Text(title)
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(AppTheme.Colors.textPrimary)
-                Text(subtitle)
-                    .font(.caption)
-                    .foregroundStyle(AppTheme.Colors.textSecondary)
-            }
-
-            Spacer()
-        }
-        .padding(16)
-        .background(
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .fill(AppTheme.Colors.surface)
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .stroke(AppTheme.Colors.border, lineWidth: 1)
-        )
     }
 
     // MARK: - Sticky Preview Card
@@ -331,6 +298,83 @@ struct PreviewScreen: View {
     }
 
     // MARK: - Sticky Generate Button
+
+    // MARK: - Sticky Exporting Card
+
+    private var stickyExportingCard: some View {
+        VStack(spacing: 0) {
+            Rectangle()
+                .fill(AppTheme.Colors.border)
+                .frame(height: 1)
+
+            VStack(spacing: 12) {
+                // Header
+                HStack {
+                    ProgressView()
+                        .tint(AppTheme.Colors.cta)
+                    Text("Exporting Video…")
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(AppTheme.Colors.textPrimary)
+                    Spacer()
+                    Text("\(Int(exportProgress * 100))%")
+                        .font(.subheadline.monospacedDigit())
+                        .foregroundStyle(AppTheme.Colors.textSecondary)
+                }
+
+                // Progress bar
+                GeometryReader { geo in
+                    ZStack(alignment: .leading) {
+                        RoundedRectangle(cornerRadius: 4)
+                            .fill(AppTheme.Colors.background)
+                            .frame(height: 8)
+
+                        RoundedRectangle(cornerRadius: 4)
+                            .fill(AppTheme.Colors.cta)
+                            .frame(width: geo.size.width * exportProgress, height: 8)
+                            .animation(.easeInOut(duration: 0.2), value: exportProgress)
+                    }
+                }
+                .frame(height: 8)
+
+                // Time estimate
+                HStack {
+                    Image(systemName: "clock")
+                        .font(.caption)
+                        .foregroundStyle(AppTheme.Colors.textTertiary)
+                    Text(exportTimeEstimate)
+                        .font(.caption)
+                        .foregroundStyle(AppTheme.Colors.textTertiary)
+                    Spacer()
+                }
+
+                // Note
+                Text("Please keep the app open until export completes")
+                    .font(.caption)
+                    .foregroundStyle(AppTheme.Colors.textTertiary)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            .padding(16)
+        }
+        .background(AppTheme.Colors.surface)
+    }
+
+    private var exportTimeEstimate: String {
+        guard let startTime = exportStartTime, exportProgress > 0.05 else {
+            return "Estimating…"
+        }
+        let elapsed = Date().timeIntervalSince(startTime)
+        let estimatedTotal = elapsed / exportProgress
+        let remaining = estimatedTotal - elapsed
+        
+        if remaining < 5 {
+            return "Almost done"
+        } else if remaining < 60 {
+            return "About \(Int(remaining))s remaining"
+        } else {
+            let minutes = Int(remaining / 60)
+            return "About \(minutes)m remaining"
+        }
+    }
 
     private var stickyGenerateButton: some View {
         VStack(spacing: 0) {
@@ -722,7 +766,13 @@ extension PreviewScreen {
         guard let takes = loadSelectedTakes() else { return }
 
         isExporting = true
-        defer { isExporting = false }
+        exportProgress = 0
+        exportStartTime = Date()
+        defer {
+            isExporting = false
+            exportProgress = 0
+            exportStartTime = nil
+        }
 
         do {
             project.videoAspect = selectedAspect
@@ -739,7 +789,11 @@ extension PreviewScreen {
                 takes,
                 outputURL: outputURL,
                 targetAspect: selectedAspect,
-                progress: nil
+                progress: { @Sendable [weak self] progress in
+                    Task { @MainActor in
+                        self?.exportProgress = progress
+                    }
+                }
             )
 
             // Verify file was written
