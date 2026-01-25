@@ -165,21 +165,38 @@ struct PreviewScreen: View {
                             .stroke(AppTheme.Colors.border, lineWidth: 1)
                     )
 
-                    Button {
-                        Task { await exportVideo() }
-                    } label: {
-                        Label("Export Video", systemImage: "square.and.arrow.up")
-                            .font(.subheadline.weight(.semibold))
-                            .frame(maxWidth: .infinity)
+                    if hasExportedSelectedAspect {
+                        Button {
+                            showingExports = true
+                        } label: {
+                            Label("View Exports", systemImage: "folder")
+                                .font(.subheadline.weight(.semibold))
+                                .frame(maxWidth: .infinity)
+                        }
+                        .buttonStyle(AppPrimaryButtonStyle(
+                            background: AppTheme.Colors.cta,
+                            expandsToFullWidth: true,
+                            cornerRadius: 10,
+                            verticalPadding: 12,
+                            horizontalPadding: 12
+                        ))
+                    } else {
+                        Button {
+                            Task { await exportVideo() }
+                        } label: {
+                            Label("Export Video", systemImage: "square.and.arrow.up")
+                                .font(.subheadline.weight(.semibold))
+                                .frame(maxWidth: .infinity)
+                        }
+                        .buttonStyle(AppPrimaryButtonStyle(
+                            background: AppTheme.Colors.cta,
+                            expandsToFullWidth: true,
+                            cornerRadius: 10,
+                            verticalPadding: 12,
+                            horizontalPadding: 12
+                        ))
+                        .disabled(isExporting || project == nil)
                     }
-                    .buttonStyle(AppPrimaryButtonStyle(
-                        background: AppTheme.Colors.cta,
-                        expandsToFullWidth: true,
-                        cornerRadius: 10,
-                        verticalPadding: 12,
-                        horizontalPadding: 12
-                    ))
-                    .disabled(isExporting || project == nil)
                 }
 
                 // Re-generate option - only show when aspect changed
@@ -616,6 +633,11 @@ extension PreviewScreen {
             return FileManager.default.fileExists(atPath: url.path)
         }
         return false
+    }
+
+    private var hasExportedSelectedAspect: Bool {
+        guard let project else { return false }
+        return project.exports.contains { $0.aspect == selectedAspect }
     }
 
     // MARK: - Data Loading
