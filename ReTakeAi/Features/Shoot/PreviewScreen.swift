@@ -21,6 +21,7 @@ struct PreviewScreen: View {
     @State private var playingURL: URL?
     @State private var showingExports = false
     @State private var isAspectSectionExpanded = false
+    @State private var lastGeneratedAspect: VideoAspect?
 
     @Environment(\.dismiss) private var dismiss
 
@@ -222,15 +223,22 @@ struct PreviewScreen: View {
                     .disabled(isExporting || project == nil)
                 }
 
-                // Re-generate option
-                Button {
-                    Task { await generatePreview(force: true) }
-                } label: {
-                    Text("Re-generate Preview")
-                        .font(.caption)
-                        .foregroundStyle(AppTheme.Colors.textSecondary)
+                // Re-generate option - only show when aspect changed
+                if let lastAspect = lastGeneratedAspect, lastAspect != selectedAspect {
+                    Button {
+                        Task { await generatePreview(force: true) }
+                    } label: {
+                        HStack(spacing: 4) {
+                            Image(systemName: "arrow.triangle.2.circlepath")
+                                .font(.caption2)
+                            Text("Re-generate for \(selectedAspect.title)")
+                                .font(.caption)
+                        }
+                        .foregroundStyle(AppTheme.Colors.cta)
+                    }
+                    .disabled(isGenerating)
+                    .padding(.top, 4)
                 }
-                .disabled(isGenerating)
             }
             .padding(16)
         }
@@ -246,6 +254,9 @@ struct PreviewScreen: View {
                 .frame(height: 1)
 
             Button {
+                withAnimation(.easeInOut(duration: 0.2)) {
+                    isAspectSectionExpanded = false
+                }
                 Task { await generatePreview(force: true) }
             } label: {
                 Label("Generate Preview", systemImage: "play.circle.fill")
@@ -609,6 +620,7 @@ extension PreviewScreen {
 
             cachedPreviewURLs[selectedAspect] = merged
             lastMergedURL = merged
+            lastGeneratedAspect = selectedAspect
             // Don't auto-play - user will tap "Play Preview"
         } catch {
             // no-op for now
