@@ -333,11 +333,9 @@ struct SceneBreakdownReviewView: View {
                     moveDraft(at: index, direction: -1)
                 } label: {
                     Image(systemName: "chevron.up")
-                        .font(.body.weight(.bold))
-                        .foregroundStyle(isFirst ? AppTheme.Colors.textTertiary.opacity(0.3) : AppTheme.Colors.textPrimary)
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(isFirst ? AppTheme.Colors.textTertiary.opacity(0.3) : AppTheme.Colors.textSecondary)
                         .frame(width: 44, height: 36)
-                        .background(AppTheme.Colors.background.opacity(0.5))
-                        .cornerRadius(6)
                         .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
@@ -347,11 +345,9 @@ struct SceneBreakdownReviewView: View {
                     moveDraft(at: index, direction: 1)
                 } label: {
                     Image(systemName: "chevron.down")
-                        .font(.body.weight(.bold))
-                        .foregroundStyle(isLast ? AppTheme.Colors.textTertiary.opacity(0.3) : AppTheme.Colors.textPrimary)
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(isLast ? AppTheme.Colors.textTertiary.opacity(0.3) : AppTheme.Colors.textSecondary)
                         .frame(width: 44, height: 36)
-                        .background(AppTheme.Colors.background.opacity(0.5))
-                        .cornerRadius(6)
                         .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
@@ -359,7 +355,7 @@ struct SceneBreakdownReviewView: View {
             }
             
             // Scene info
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: 2) {
                 Text("Scene \(index + 1)")
                     .font(.subheadline.weight(.semibold))
                     .foregroundStyle(AppTheme.Colors.textPrimary)
@@ -367,11 +363,7 @@ struct SceneBreakdownReviewView: View {
                 Text(draft.scriptText)
                     .font(.caption)
                     .foregroundStyle(AppTheme.Colors.textSecondary)
-                    .lineLimit(2)
-                
-                Text("~\(draft.expectedDurationSeconds)s")
-                    .font(.caption2)
-                    .foregroundStyle(AppTheme.Colors.textTertiary)
+                    .lineLimit(1)
             }
             
             Spacer()
