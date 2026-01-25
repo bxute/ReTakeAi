@@ -307,7 +307,7 @@ struct PreviewScreen: View {
     }
 
     private var aspectSelectionSection: some View {
-        VStack(alignment: .leading, spacing: 0) {
+        VStack(alignment: .leading, spacing: 10) {
             // Section note
             Text("Choose how your video will be framed")
                 .font(.caption)
