@@ -17,8 +17,7 @@ struct PreviewScreen: View {
     @State private var cachedPreviewURLs: [VideoAspect: URL] = [:]
     @State private var lastMergedURL: URL?
 
-    @State private var showingPlayer = false
-    @State private var playingURL: URL?
+    @State private var playerItem: PlayerItem?
     @State private var showingExports = false
     @State private var isAspectSectionExpanded = false
     @State private var lastGeneratedAspect: VideoAspect?
@@ -78,49 +77,25 @@ struct PreviewScreen: View {
         .navigationDestination(isPresented: $showingExports) {
             ExportsScreen(projectID: projectID)
         }
-        .fullScreenCover(isPresented: $showingPlayer) {
-            if let playingURL, FileManager.default.fileExists(atPath: playingURL.path) {
-                ZStack(alignment: .topTrailing) {
-                    VideoPlayerView(videoURL: playingURL, autoplay: true) { showingPlayer = false }
-                        .ignoresSafeArea()
+        .fullScreenCover(item: $playerItem) { item in
+            ZStack(alignment: .topTrailing) {
+                VideoPlayerView(videoURL: item.url, autoplay: true) { playerItem = nil }
+                    .ignoresSafeArea()
 
-                    Button {
-                        showingPlayer = false
-                    } label: {
-                        Text("Done")
-                            .font(.body.weight(.semibold))
-                            .foregroundStyle(.white)
-                            .padding(.horizontal, 16)
-                            .padding(.vertical, 8)
-                            .background(.black.opacity(0.5), in: Capsule())
-                    }
-                    .buttonStyle(.plain)
-                    .padding()
+                Button {
+                    playerItem = nil
+                } label: {
+                    Text("Done")
+                        .font(.body.weight(.semibold))
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 8)
+                        .background(.black.opacity(0.5), in: Capsule())
                 }
-                .statusBarHidden(true)
-            } else {
-                // Fallback if file not found
-                ZStack {
-                    Color.black.ignoresSafeArea()
-                    VStack(spacing: 16) {
-                        Image(systemName: "exclamationmark.triangle")
-                            .font(.largeTitle)
-                            .foregroundStyle(.yellow)
-                        Text("Preview file not found")
-                            .foregroundStyle(.white)
-                        Button("Dismiss") {
-                            showingPlayer = false
-                        }
-                        .buttonStyle(.borderedProminent)
-                    }
-                }
-                .onAppear {
-                    // Auto-dismiss after short delay
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                        showingPlayer = false
-                    }
-                }
+                .buttonStyle(.plain)
+                .padding()
             }
+            .statusBarHidden(true)
         }
     }
 
@@ -202,8 +177,7 @@ struct PreviewScreen: View {
                     Button {
                         if let url = cachedPreviewURLs[selectedAspect],
                            FileManager.default.fileExists(atPath: url.path) {
-                            playingURL = url
-                            showingPlayer = true
+                            playerItem = PlayerItem(url: url)
                         } else {
                             // File missing - regenerate
                             Task { await generatePreview(force: true) }
@@ -796,6 +770,13 @@ extension PreviewScreen {
             // no-op for now
         }
     }
+}
+
+// MARK: - Player Item
+
+private struct PlayerItem: Identifiable {
+    let id = UUID()
+    let url: URL
 }
 
 // MARK: - Shimmer Effect
