@@ -41,6 +41,7 @@ struct TeleprompterPreviewView: View {
                 fontSize: preferences.textSize,
                 opacity: 1.0,
                 mirror: preferences.mirrorTextForFrontCamera,
+                textColorHex: preferences.textColor.hexValue,
                 onComplete: {
                     // Loop: restart after a brief pause
                     restartPreview()
@@ -69,6 +70,9 @@ struct TeleprompterPreviewView: View {
             restartPreview()
         }
         .onChange(of: preferences.mirrorTextForFrontCamera) { _, _ in
+            restartPreview()
+        }
+        .onChange(of: preferences.textColor) { _, _ in
             restartPreview()
         }
     }

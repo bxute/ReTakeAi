@@ -42,6 +42,16 @@ final class SettingsViewModel {
         "\(Int(textSize))pt"
     }
     
+    // MARK: - Text Color
+    
+    var textColor: TeleprompterTextColor {
+        get { preferences.textColor }
+        set {
+            preferences.textColor = newValue
+            save()
+        }
+    }
+    
     // MARK: - Text Alignment
     
     var textAlignment: TeleprompterTextAlignment {

@@ -63,6 +63,13 @@ struct SettingsView: View {
                 
                 divider
                 
+                // Font Color
+                settingsRow(title: "Font Color") {
+                    fontColorPicker
+                }
+                
+                divider
+                
                 // Direction
                 settingsRow(title: "Direction") {
                     directionPicker
@@ -117,6 +124,19 @@ struct SettingsView: View {
     private var textSizeSlider: some View {
         Slider(value: $viewModel.textSize, in: 18...48, step: 1)
             .tint(AppTheme.Colors.cta)
+    }
+    
+    private var fontColorPicker: some View {
+        HStack(spacing: 10) {
+            ForEach(TeleprompterTextColor.allCases, id: \.self) { color in
+                colorCircleButton(
+                    hexColor: color.hexValue,
+                    isSelected: viewModel.textColor == color
+                ) {
+                    viewModel.textColor = color
+                }
+            }
+        }
     }
     
     private var directionPicker: some View {
@@ -225,6 +245,24 @@ struct SettingsView: View {
                 .overlay(
                     RoundedRectangle(cornerRadius: 8, style: .continuous)
                         .stroke(isSelected ? AppTheme.Colors.cta.opacity(0.5) : AppTheme.Colors.border, lineWidth: 1)
+                )
+        }
+        .buttonStyle(.plain)
+    }
+    
+    private func colorCircleButton(hexColor: String, isSelected: Bool, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Circle()
+                .fill(Color(hex: hexColor) ?? .white)
+                .frame(width: 32, height: 32)
+                .overlay(
+                    Circle()
+                        .stroke(isSelected ? AppTheme.Colors.cta : AppTheme.Colors.border, lineWidth: isSelected ? 3 : 1)
+                )
+                .overlay(
+                    Circle()
+                        .stroke(AppTheme.Colors.background, lineWidth: isSelected ? 2 : 0)
+                        .padding(2)
                 )
         }
         .buttonStyle(.plain)

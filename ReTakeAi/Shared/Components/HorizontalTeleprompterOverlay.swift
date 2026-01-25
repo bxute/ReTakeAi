@@ -23,6 +23,7 @@ struct HorizontalTeleprompterOverlay: View {
     let fontSize: Double
     let opacity: Double
     let mirror: Bool
+    var textColorHex: String = "#FFFFFF"
     var onComplete: (() -> Void)? = nil
 
     @State private var contentWidth: CGFloat = 0
@@ -165,9 +166,10 @@ struct HorizontalTeleprompterOverlay: View {
         let sentenceSpacing = fontSize * 1.4
         
         // Base attributes for all text
+        let textUIColor = UIColor(Color(hex: textColorHex) ?? .white)
         let baseAttributes = AttributeContainer([
             .font: UIFont.systemFont(ofSize: fontSize, weight: .semibold),
-            .foregroundColor: UIColor.white.withAlphaComponent(opacity)
+            .foregroundColor: textUIColor.withAlphaComponent(opacity)
         ])
         
         // Process text character by character to add spacing after sentence endings

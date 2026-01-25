@@ -67,11 +67,42 @@ enum SetupCountdownDuration: Int, Codable, CaseIterable, Hashable, Identifiable 
     var id: Int { rawValue }
 }
 
+enum TeleprompterTextColor: String, Codable, CaseIterable, Hashable, Identifiable {
+    case white
+    case yellow
+    case cyan
+    case green
+    case orange
+    
+    var id: String { rawValue }
+    
+    var displayName: String {
+        switch self {
+        case .white: return "White"
+        case .yellow: return "Yellow"
+        case .cyan: return "Cyan"
+        case .green: return "Green"
+        case .orange: return "Orange"
+        }
+    }
+    
+    var hexValue: String {
+        switch self {
+        case .white: return "#FFFFFF"
+        case .yellow: return "#FFEB3B"
+        case .cyan: return "#00BCD4"
+        case .green: return "#4CAF50"
+        case .orange: return "#FF9800"
+        }
+    }
+}
+
 struct TeleprompterPreferences: Codable, Hashable {
     var scrollDirection: TeleprompterScrollDirection
     var defaultSpeed: TeleprompterSpeedPreset
     var textSize: Double
     var textOpacity: Double
+    var textColor: TeleprompterTextColor
     var textAlignment: TeleprompterTextAlignment
     var mirrorTextForFrontCamera: Bool
     var setupCountdown: SetupCountdownDuration
@@ -83,6 +114,7 @@ struct TeleprompterPreferences: Codable, Hashable {
         defaultSpeed: TeleprompterSpeedPreset = .normal,
         textSize: Double = 28,
         textOpacity: Double = 0.75,
+        textColor: TeleprompterTextColor = .white,
         textAlignment: TeleprompterTextAlignment = .center,
         mirrorTextForFrontCamera: Bool = false,
         setupCountdown: SetupCountdownDuration = .s10,
@@ -93,6 +125,7 @@ struct TeleprompterPreferences: Codable, Hashable {
         self.defaultSpeed = defaultSpeed
         self.textSize = textSize
         self.textOpacity = textOpacity
+        self.textColor = textColor
         self.textAlignment = textAlignment
         self.mirrorTextForFrontCamera = mirrorTextForFrontCamera
         self.setupCountdown = setupCountdown
