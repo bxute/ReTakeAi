@@ -98,7 +98,7 @@ struct ShootOverviewView: View {
                         Label("Record Next Scene", systemImage: "video.fill")
                             .font(.body.weight(.semibold))
                     }
-                    .buttonStyle(AppPrimaryButtonStyle(background: AppTheme.Colors.destructive))
+                    .buttonStyle(AppPrimaryButtonStyle(background: AppTheme.Colors.cta))
                 } else {
                     NavigationLink {
                         PreviewScreen(projectID: projectID)
@@ -198,7 +198,7 @@ struct ShootOverviewView: View {
                                     .foregroundStyle(AppTheme.Colors.textPrimary)
                                     .padding(.horizontal, 12)
                                     .padding(.vertical, 6)
-                                    .background(AppTheme.Colors.destructive)
+                                    .background(AppTheme.Colors.cta)
                                     .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
                             }
                             .buttonStyle(.plain)
