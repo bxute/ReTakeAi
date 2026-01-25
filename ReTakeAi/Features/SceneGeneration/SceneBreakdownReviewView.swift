@@ -33,7 +33,7 @@ struct SceneBreakdownReviewView: View {
                 }
             }
         }
-        .navigationTitle("Review Scenes")
+        .navigationTitle("Scenes")
         .navigationBarTitleDisplayMode(.inline)
         .toolbarBackground(AppTheme.Colors.background, for: .navigationBar)
         .toolbarBackground(.visible, for: .navigationBar)

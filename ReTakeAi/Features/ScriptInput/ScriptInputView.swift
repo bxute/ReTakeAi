@@ -30,7 +30,7 @@ struct ScriptInputView: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }
-        .navigationTitle("Edit Script")
+        .navigationTitle("Script")
         .navigationBarTitleDisplayMode(.inline)
         .toolbarBackground(AppTheme.Colors.background, for: .navigationBar)
         .toolbarBackground(.visible, for: .navigationBar)
