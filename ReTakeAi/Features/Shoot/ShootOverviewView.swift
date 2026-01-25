@@ -189,14 +189,15 @@ struct ShootOverviewView: View {
         
         return HStack(spacing: 12) {
             // Move buttons
-            VStack(spacing: 4) {
+            VStack(spacing: 0) {
                 Button {
                     moveScene(at: index, direction: -1)
                 } label: {
                     Image(systemName: "chevron.up")
-                        .font(.caption.weight(.semibold))
+                        .font(.subheadline.weight(.semibold))
                         .foregroundStyle(isFirst ? AppTheme.Colors.textTertiary.opacity(0.3) : AppTheme.Colors.textSecondary)
-                        .frame(width: 28, height: 24)
+                        .frame(width: 44, height: 36)
+                        .contentShape(Rectangle())
                 }
                 .disabled(isFirst)
                 
@@ -204,9 +205,10 @@ struct ShootOverviewView: View {
                     moveScene(at: index, direction: 1)
                 } label: {
                     Image(systemName: "chevron.down")
-                        .font(.caption.weight(.semibold))
+                        .font(.subheadline.weight(.semibold))
                         .foregroundStyle(isLast ? AppTheme.Colors.textTertiary.opacity(0.3) : AppTheme.Colors.textSecondary)
-                        .frame(width: 28, height: 24)
+                        .frame(width: 44, height: 36)
+                        .contentShape(Rectangle())
                 }
                 .disabled(isLast)
             }
