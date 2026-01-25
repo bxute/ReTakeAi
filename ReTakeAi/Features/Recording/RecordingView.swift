@@ -205,7 +205,7 @@ struct RecordingView: View {
                         if placeholderVisible && !isTeleprompterScrolling {
                             Text("Your script will appear here…")
                                 .font(.system(size: viewModel.preferences.textSize * 0.88, weight: .semibold))
-                                .foregroundStyle(.white.opacity(0.7))
+                                .foregroundStyle((Color(hex: viewModel.preferences.textColor.hexValue) ?? .white).opacity(0.7))
                                 .multilineTextAlignment(.center)
                                 .padding(.horizontal, 20)
                         }
@@ -220,6 +220,7 @@ struct RecordingView: View {
                                 fontSize: viewModel.preferences.textSize * 1.2,
                                 opacity: viewModel.preferences.textOpacity,
                                 mirror: viewModel.preferences.mirrorTextForFrontCamera,
+                                textColorHex: viewModel.preferences.textColor.hexValue,
                                 onComplete: {
                                     viewModel.signalTeleprompterComplete()
                                 }
