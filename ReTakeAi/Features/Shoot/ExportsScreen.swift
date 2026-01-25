@@ -134,23 +134,21 @@ struct ExportsScreen: View {
 
         VStack(alignment: .leading, spacing: 12) {
             // Thumbnail with play overlay
-            Button {
+            ZStack {
                 if fileExists {
-                    playingExport = export
-                }
-            } label: {
-                ZStack {
-                    if fileExists {
-                        VideoThumbnailView(
-                            videoURL: export.fileURL,
-                            isPortrait: export.aspect == .portrait9x16,
-                            durationText: nil
-                        )
-                        .frame(height: 180)
-                        .frame(maxWidth: .infinity)
-                        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                    VideoThumbnailView(
+                        videoURL: url,
+                        isPortrait: export.aspect == .portrait9x16,
+                        durationText: nil
+                    )
+                    .frame(height: 180)
+                    .frame(maxWidth: .infinity)
+                    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
 
-                        // Play overlay
+                    // Play button overlay
+                    Button {
+                        playingExport = export
+                    } label: {
                         Circle()
                             .fill(.black.opacity(0.5))
                             .frame(width: 56, height: 56)
@@ -160,25 +158,24 @@ struct ExportsScreen: View {
                                     .foregroundStyle(.white)
                                     .offset(x: 2)
                             }
-                    } else {
-                        RoundedRectangle(cornerRadius: 12, style: .continuous)
-                            .fill(AppTheme.Colors.surface)
-                            .frame(height: 180)
-                            .overlay {
-                                VStack(spacing: 8) {
-                                    Image(systemName: "exclamationmark.triangle")
-                                        .font(.title)
-                                        .foregroundStyle(AppTheme.Colors.textTertiary)
-                                    Text("File missing")
-                                        .font(.caption)
-                                        .foregroundStyle(AppTheme.Colors.textTertiary)
-                                }
-                            }
                     }
+                    .buttonStyle(.plain)
+                } else {
+                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                        .fill(AppTheme.Colors.surface)
+                        .frame(height: 180)
+                        .overlay {
+                            VStack(spacing: 8) {
+                                Image(systemName: "exclamationmark.triangle")
+                                    .font(.title)
+                                    .foregroundStyle(AppTheme.Colors.textTertiary)
+                                Text("File missing")
+                                    .font(.caption)
+                                    .foregroundStyle(AppTheme.Colors.textTertiary)
+                            }
+                        }
                 }
             }
-            .buttonStyle(.plain)
-            .disabled(!fileExists)
 
             // Info
             VStack(alignment: .leading, spacing: 4) {
@@ -239,13 +236,15 @@ struct ExportsScreen: View {
                 HStack(spacing: 4) {
                     Image(systemName: "trash")
                     Text("Delete Export")
+                    Spacer()
                 }
                 .font(.caption)
                 .foregroundStyle(AppTheme.Colors.textTertiary)
-                .padding(.vertical, 8)
+                .padding(.top, 14)
+                .padding(.bottom, 10)
+                .contentShape(Rectangle())
             }
             .buttonStyle(.borderless)
-            .padding(.top, 4)
         }
         .padding(16)
         .background(
