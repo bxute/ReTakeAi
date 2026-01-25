@@ -14,6 +14,7 @@ struct ExportsScreen: View {
     @State private var showingSaveSuccess = false
     @State private var showingSaveError = false
     @State private var saveErrorMessage = ""
+    @State private var exportToDelete: ExportedVideo?
 
     private var sortedExports: [ExportedVideo] {
         (project?.exports ?? []).sorted { $0.exportedAt > $1.exportedAt }
@@ -84,6 +85,22 @@ struct ExportsScreen: View {
         }
         .animation(.easeInOut(duration: 0.25), value: showingSaveSuccess)
         .animation(.easeInOut(duration: 0.25), value: showingSaveError)
+        .alert("Delete Export?", isPresented: .init(
+            get: { exportToDelete != nil },
+            set: { if !$0 { exportToDelete = nil } }
+        )) {
+            Button("Cancel", role: .cancel) {
+                exportToDelete = nil
+            }
+            Button("Delete", role: .destructive) {
+                if let export = exportToDelete {
+                    deleteExport(export)
+                }
+                exportToDelete = nil
+            }
+        } message: {
+            Text("This export will be permanently deleted.")
+        }
     }
 
     // MARK: - Empty State
@@ -165,17 +182,13 @@ struct ExportsScreen: View {
 
             // Info
             VStack(alignment: .leading, spacing: 4) {
-                Text("Final Export")
+                Text(export.formattedDate)
                     .font(.subheadline.weight(.semibold))
                     .foregroundStyle(AppTheme.Colors.textPrimary)
 
-                Text(export.formattedDate)
-                    .font(.caption)
-                    .foregroundStyle(AppTheme.Colors.textSecondary)
-
                 Text("\(export.aspect.title) • \(export.formattedDuration) • \(export.formattedSize)")
                     .font(.caption)
-                    .foregroundStyle(AppTheme.Colors.textTertiary)
+                    .foregroundStyle(AppTheme.Colors.textSecondary)
             }
 
             // Action buttons
@@ -183,45 +196,56 @@ struct ExportsScreen: View {
                 HStack(spacing: 12) {
                     // Share button
                     ShareLink(item: export.fileURL) {
-                        Label("Share", systemImage: "square.and.arrow.up")
-                            .font(.subheadline.weight(.medium))
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 10)
+                        HStack(spacing: 6) {
+                            Image(systemName: "square.and.arrow.up")
+                            Text("Share")
+                        }
+                        .font(.subheadline.weight(.medium))
+                        .foregroundStyle(AppTheme.Colors.textPrimary)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 12)
+                        .background(
+                            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                                .stroke(AppTheme.Colors.border, lineWidth: 1)
+                        )
+                        .contentShape(Rectangle())
                     }
-                    .buttonStyle(.plain)
-                    .foregroundStyle(AppTheme.Colors.textPrimary)
-                    .background(
-                        RoundedRectangle(cornerRadius: 10, style: .continuous)
-                            .stroke(AppTheme.Colors.border, lineWidth: 1)
-                    )
 
                     // Save to Photos button
                     Button {
                         saveToPhotos(export)
                     } label: {
-                        Label("Save to Photos", systemImage: "photo.on.rectangle")
-                            .font(.subheadline.weight(.medium))
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 10)
+                        HStack(spacing: 6) {
+                            Image(systemName: "photo.on.rectangle")
+                            Text("Save to Photos")
+                        }
+                        .font(.subheadline.weight(.medium))
+                        .foregroundStyle(AppTheme.Colors.textPrimary)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 12)
+                        .background(
+                            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                                .stroke(AppTheme.Colors.border, lineWidth: 1)
+                        )
+                        .contentShape(Rectangle())
                     }
-                    .buttonStyle(.plain)
-                    .foregroundStyle(AppTheme.Colors.textPrimary)
-                    .background(
-                        RoundedRectangle(cornerRadius: 10, style: .continuous)
-                            .stroke(AppTheme.Colors.border, lineWidth: 1)
-                    )
                 }
             }
 
             // Delete option
-            Button(role: .destructive) {
-                deleteExport(export)
+            Button {
+                exportToDelete = export
             } label: {
-                Label("Delete Export", systemImage: "trash")
-                    .font(.caption)
-                    .foregroundStyle(AppTheme.Colors.textTertiary)
+                HStack(spacing: 4) {
+                    Image(systemName: "trash")
+                    Text("Delete Export")
+                }
+                .font(.caption)
+                .foregroundStyle(AppTheme.Colors.textTertiary)
+                .padding(.vertical, 8)
+                .contentShape(Rectangle())
             }
-            .buttonStyle(.plain)
+            .padding(.top, 4)
         }
         .padding(16)
         .background(
@@ -257,34 +281,37 @@ struct ExportsScreen: View {
     }
 
     private func saveToPhotos(_ export: ExportedVideo) {
-        PHPhotoLibrary.requestAuthorization(for: .addOnly) { status in
-            DispatchQueue.main.async {
-                guard status == .authorized || status == .limited else {
+        Task {
+            let status = await PHPhotoLibrary.requestAuthorization(for: .addOnly)
+            
+            guard status == .authorized || status == .limited else {
+                await MainActor.run {
                     saveErrorMessage = "Photo access denied"
                     showingSaveError = true
                     hideSaveErrorAfterDelay()
-                    return
                 }
-
-                PHPhotoLibrary.shared().performChanges {
+                return
+            }
+            
+            do {
+                try await PHPhotoLibrary.shared().performChanges {
                     PHAssetCreationRequest.forAsset().addResource(
                         with: .video,
                         fileURL: export.fileURL,
                         options: nil
                     )
-                } completionHandler: { success, error in
-                    DispatchQueue.main.async {
-                        if success {
-                            showingSaveSuccess = true
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-                                showingSaveSuccess = false
-                            }
-                        } else {
-                            saveErrorMessage = error?.localizedDescription ?? "Save failed"
-                            showingSaveError = true
-                            hideSaveErrorAfterDelay()
-                        }
+                }
+                await MainActor.run {
+                    showingSaveSuccess = true
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                        showingSaveSuccess = false
                     }
+                }
+            } catch {
+                await MainActor.run {
+                    saveErrorMessage = error.localizedDescription
+                    showingSaveError = true
+                    hideSaveErrorAfterDelay()
                 }
             }
         }

@@ -38,7 +38,7 @@ struct ShootOverviewView: View {
                 stickyBottomCTA
             }
         }
-        .navigationTitle("Scene Shoot")
+        .navigationTitle("Shoot")
         .navigationBarTitleDisplayMode(.inline)
         .toolbarBackground(AppTheme.Colors.background, for: .navigationBar)
         .toolbarBackground(.visible, for: .navigationBar)

@@ -75,7 +75,7 @@ struct ProjectDetailView: View {
                     .padding(.bottom, 16)
             }
         }
-        .navigationTitle("Project Overview")
+        .navigationTitle("Project")
         .navigationBarTitleDisplayMode(.inline)
         .toolbarBackground(AppTheme.Colors.background, for: .navigationBar)
         .toolbarBackground(.visible, for: .navigationBar)
