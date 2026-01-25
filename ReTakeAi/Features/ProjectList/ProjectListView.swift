@@ -14,9 +14,10 @@ struct ProjectListView: View {
     @State private var resumeRecordingProject: Project?
     @State private var resumeRecordingScene: VideoScene?
     @State private var isKeyboardVisible = false
+    @State private var navigationPath = NavigationPath()
     
     var body: some View {
-        NavigationStack {
+        NavigationStack(path: $navigationPath) {
             Group {
                 if viewModel.hasProjects {
                     homeWithProjects
@@ -578,14 +579,17 @@ extension ProjectListView {
             },
             onCreate: { title, intent, durationSeconds, toneMood in
                 viewModel.errorMessage = nil
-                viewModel.createProject(
+                if let newProject = viewModel.createProject(
                     title: title,
                     scriptIntent: intent,
                     expectedDurationSeconds: durationSeconds,
                     toneMood: toneMood
-                )
-                guard viewModel.errorMessage == nil else { return }
-                showingCreateSheet = false
+                ) {
+                    showingCreateSheet = false
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                        navigationPath.append(newProject)
+                    }
+                }
             }
         )
     }

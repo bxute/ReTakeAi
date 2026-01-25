@@ -384,8 +384,8 @@ struct ProjectDetailView: View {
                     )
                 }
                 .buttonStyle(.plain)
-            } else {
-                // State: No scenes yet - show Generate Scenes
+            } else if hasScript {
+                // State: Script exists but no scenes yet - show Generate Scenes
                 Button {
                     sceneBreakdownMode = .generateFromScript(replaceExisting: true)
                     showingSceneBreakdown = true

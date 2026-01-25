@@ -61,12 +61,13 @@ class ProjectListViewModel {
         }
     }
 
+    @discardableResult
     func createProject(
         title: String,
         scriptIntent: ScriptIntent?,
         expectedDurationSeconds: Int?,
         toneMood: ScriptToneMood?
-    ) {
+    ) -> Project? {
         do {
             var project = try projectStore.createProject(title: title, script: nil)
             project.scriptIntent = scriptIntent
@@ -75,9 +76,11 @@ class ProjectListViewModel {
             try projectStore.updateProject(project)
             loadProjects()
             AppLogger.ui.info("Created project: \(title)")
+            return projectStore.getProject(by: project.id)
         } catch {
             errorMessage = "Failed to create project: \(error.localizedDescription)"
             AppLogger.ui.error("Failed to create project: \(error.localizedDescription)")
+            return nil
         }
     }
     
