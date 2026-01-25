@@ -199,6 +199,7 @@ struct ShootOverviewView: View {
                         .frame(width: 44, height: 36)
                         .contentShape(Rectangle())
                 }
+                .buttonStyle(.plain)
                 .disabled(isFirst)
                 
                 Button {
@@ -210,6 +211,7 @@ struct ShootOverviewView: View {
                         .frame(width: 44, height: 36)
                         .contentShape(Rectangle())
                 }
+                .buttonStyle(.plain)
                 .disabled(isLast)
             }
             

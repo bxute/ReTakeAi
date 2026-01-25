@@ -338,6 +338,7 @@ struct SceneBreakdownReviewView: View {
                         .frame(width: 44, height: 36)
                         .contentShape(Rectangle())
                 }
+                .buttonStyle(.plain)
                 .disabled(isFirst)
                 
                 Button {
@@ -349,6 +350,7 @@ struct SceneBreakdownReviewView: View {
                         .frame(width: 44, height: 36)
                         .contentShape(Rectangle())
                 }
+                .buttonStyle(.plain)
                 .disabled(isLast)
             }
             
