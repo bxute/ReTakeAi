@@ -5,14 +5,16 @@
 
 import SwiftUI
 
+private struct ShootDestination: Hashable {
+    let projectID: UUID
+}
+
 struct ProjectListView: View {
     @State private var viewModel = ProjectListViewModel()
     @State private var showingCreateSheet = false
     @State private var newProjectTitle = ""
     @FocusState private var isNewProjectTitleFocused: Bool
     @State private var emptyStateContent: EmptyStateContent.Content = EmptyStateContent.random()
-    @State private var resumeRecordingProject: Project?
-    @State private var resumeRecordingScene: VideoScene?
     @State private var isKeyboardVisible = false
     @State private var navigationPath = NavigationPath()
     
@@ -28,6 +30,9 @@ struct ProjectListView: View {
             .navigationDestination(for: Project.self) { project in
                 ProjectDetailView(project: project)
             }
+            .navigationDestination(for: ShootDestination.self) { dest in
+                ShootOverviewView(projectID: dest.projectID)
+            }
             .sheet(isPresented: $showingCreateSheet) {
                 createProjectSheet
             }
@@ -38,16 +43,6 @@ struct ProjectListView: View {
             } message: {
                 if let error = viewModel.errorMessage {
                     Text(error)
-                }
-            }
-            .fullScreenCover(item: $resumeRecordingScene, onDismiss: {
-                resumeRecordingProject = nil
-                viewModel.refresh()
-            }) { scene in
-                if let project = resumeRecordingProject {
-                    NavigationStack {
-                        RecordingView(project: project, scene: scene)
-                    }
                 }
             }
         }
@@ -298,11 +293,7 @@ struct ProjectListView: View {
     }
     
     private func startResumeRecording(for project: Project) {
-        let scenes = SceneStore.shared.getScenes(for: project)
-        guard let nextScene = scenes.first(where: { !$0.isRecorded }) ?? scenes.first else { return }
-        
-        resumeRecordingProject = ProjectStore.shared.getProject(by: project.id) ?? project
-        resumeRecordingScene = nextScene
+        navigationPath.append(ShootDestination(projectID: project.id))
     }
 }
 
