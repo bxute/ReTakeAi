@@ -4,6 +4,7 @@
 //
 
 import SwiftUI
+import AVFoundation
 
 struct PreviewScreen: View {
     let projectID: UUID
@@ -363,84 +364,165 @@ struct PreviewScreen: View {
                 .font(.caption)
                 .foregroundStyle(AppTheme.Colors.textSecondary)
 
-            // Show a thumbnail with crop overlay
+            // Get source video dimensions
+            let sourceIsPortrait = isSourceVideoPortrait
             let previewWidth = UIScreen.main.bounds.width - 32
-            let previewHeight = previewWidth * 9 / 16 // Assume 16:9 source
+            let previewHeight: CGFloat = sourceIsPortrait ? previewWidth * 16 / 9 : previewWidth * 9 / 16
 
             ZStack {
-                // Background thumbnail or placeholder
+                // Full thumbnail - no cropping, fill entire bounds
                 if let take = loadSelectedTakes()?.first {
-                    VideoThumbnailView(videoURL: take.fileURL, isPortrait: false, durationText: nil)
+                    AsyncThumbnailView(videoURL: take.fileURL)
                         .frame(width: previewWidth, height: previewHeight)
-                        .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
-                        .overlay(
-                            // Dimmed overlay
-                            RoundedRectangle(cornerRadius: 8, style: .continuous)
-                                .fill(Color.black.opacity(0.5))
-                        )
+                        .clipped()
                 } else {
-                    RoundedRectangle(cornerRadius: 8, style: .continuous)
+                    // Placeholder
+                    Rectangle()
                         .fill(AppTheme.Colors.surface)
                         .frame(width: previewWidth, height: previewHeight)
                         .overlay(
-                            Image(systemName: "video.fill")
-                                .font(.largeTitle)
-                                .foregroundStyle(AppTheme.Colors.textTertiary)
-                        )
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 8, style: .continuous)
-                                .fill(Color.black.opacity(0.3))
+                            VStack(spacing: 8) {
+                                Image(systemName: "video.fill")
+                                    .font(.system(size: 40))
+                                Text("No video")
+                                    .font(.caption)
+                            }
+                            .foregroundStyle(AppTheme.Colors.textTertiary)
                         )
                 }
 
-                // Crop area visualization
-                let cropSize = calculateCropSize(in: CGSize(width: previewWidth, height: previewHeight))
+                // Crop overlay - dims areas that will be cropped out
+                CropOverlayView(
+                    containerSize: CGSize(width: previewWidth, height: previewHeight),
+                    targetAspect: selectedAspect.aspectRatio
+                )
 
-                VStack(spacing: 4) {
-                    RoundedRectangle(cornerRadius: 4, style: .continuous)
-                        .stroke(AppTheme.Colors.cta, lineWidth: 2)
-                        .background(
-                            RoundedRectangle(cornerRadius: 4, style: .continuous)
-                                .fill(Color.white.opacity(0.1))
-                        )
-                        .frame(width: cropSize.width, height: cropSize.height)
-
-                    Text(selectedAspect.title)
-                        .font(.caption2.weight(.semibold))
-                        .foregroundStyle(.white)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 3)
-                        .background(AppTheme.Colors.cta, in: Capsule())
+                // Aspect ratio label
+                VStack {
+                    Spacer()
+                    HStack {
+                        Spacer()
+                        Text(selectedAspect.title)
+                            .font(.caption.weight(.bold))
+                            .foregroundStyle(.white)
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 5)
+                            .background(AppTheme.Colors.cta, in: Capsule())
+                            .padding(8)
+                    }
                 }
             }
             .frame(width: previewWidth, height: previewHeight)
-            .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+            .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
             .overlay(
-                RoundedRectangle(cornerRadius: 8, style: .continuous)
+                RoundedRectangle(cornerRadius: 10, style: .continuous)
                     .stroke(AppTheme.Colors.border, lineWidth: 1)
             )
         }
     }
 
-    private func calculateCropSize(in containerSize: CGSize) -> CGSize {
-        let targetAspect = selectedAspect.aspectRatio
-        let containerAspect = containerSize.width / containerSize.height
+    private var isSourceVideoPortrait: Bool {
+        if let take = loadSelectedTakes()?.first {
+            return take.resolution.height > take.resolution.width
+        }
+        return true // Default to portrait
+    }
+}
 
-        let maxWidth = containerSize.width * 0.7
-        let maxHeight = containerSize.height * 0.7
+// MARK: - Crop Overlay View
 
-        if targetAspect > containerAspect {
-            // Wider than container - constrain by width
-            let width = maxWidth
-            let height = width / targetAspect
-            return CGSize(width: width, height: height)
-        } else {
-            // Taller than container - constrain by height
-            let height = maxHeight
-            let width = height * targetAspect
-            return CGSize(width: width, height: height)
+private struct CropOverlayView: View {
+    let containerSize: CGSize
+    let targetAspect: CGFloat
+
+    var body: some View {
+        let cropRect = calculateCropRect()
+
+        Canvas { context, size in
+            // Fill entire area with semi-transparent black
+            let fullPath = Path(CGRect(origin: .zero, size: size))
+
+            // Create the crop area path (the visible region)
+            let cropPath = Path(roundedRect: cropRect, cornerRadius: 4)
+
+            // Subtract crop area from full area to get the dimmed region
+            var dimmedPath = fullPath
+            dimmedPath = dimmedPath.subtracting(cropPath)
+
+            // Draw the dimmed overlay
+            context.fill(dimmedPath, with: .color(.black.opacity(0.65)))
+
+            // Draw crop area border
+            context.stroke(cropPath, with: .color(AppTheme.Colors.cta), lineWidth: 2)
         }
     }
+
+    private func calculateCropRect() -> CGRect {
+        let containerAspect = containerSize.width / containerSize.height
+
+        let cropWidth: CGFloat
+        let cropHeight: CGFloat
+
+        if targetAspect > containerAspect {
+            // Target is wider - fit to width, crop height
+            cropWidth = containerSize.width
+            cropHeight = cropWidth / targetAspect
+        } else {
+            // Target is taller - fit to height, crop width
+            cropHeight = containerSize.height
+            cropWidth = cropHeight * targetAspect
+        }
+
+        let x = (containerSize.width - cropWidth) / 2
+        let y = (containerSize.height - cropHeight) / 2
+
+        return CGRect(x: x, y: y, width: cropWidth, height: cropHeight)
+    }
+}
+
+// MARK: - Async Thumbnail View
+
+private struct AsyncThumbnailView: View {
+    let videoURL: URL
+    @State private var thumbnail: UIImage?
+
+    var body: some View {
+        Group {
+            if let thumbnail {
+                Image(uiImage: thumbnail)
+                    .resizable()
+                    .scaledToFill()
+            } else {
+                Rectangle()
+                    .fill(AppTheme.Colors.surface)
+                    .overlay(ProgressView())
+            }
+        }
+        .task {
+            thumbnail = await generateThumbnail()
+        }
+    }
+
+    private func generateThumbnail() async -> UIImage? {
+        await withCheckedContinuation { continuation in
+            DispatchQueue.global(qos: .userInitiated).async {
+                let asset = AVAsset(url: videoURL)
+                let generator = AVAssetImageGenerator(asset: asset)
+                generator.appliesPreferredTrackTransform = true
+                generator.maximumSize = CGSize(width: 600, height: 600)
+
+                let time = CMTime(seconds: 0.5, preferredTimescale: 600)
+                do {
+                    let cgImage = try generator.copyCGImage(at: time, actualTime: nil)
+                    continuation.resume(returning: UIImage(cgImage: cgImage))
+                } catch {
+                    continuation.resume(returning: nil)
+                }
+            }
+        }
+    }
+}
+
 
     private var hasGeneratedPreviewForSelectedAspect: Bool {
         if let url = cachedPreviewURLs[selectedAspect] {
