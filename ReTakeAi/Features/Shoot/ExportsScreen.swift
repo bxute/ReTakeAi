@@ -236,15 +236,15 @@ struct ExportsScreen: View {
                 HStack(spacing: 4) {
                     Image(systemName: "trash")
                     Text("Delete Export")
-                    Spacer()
                 }
                 .font(.caption)
                 .foregroundStyle(AppTheme.Colors.textTertiary)
-                .padding(.top, 14)
-                .padding(.bottom, 10)
+                .padding(.horizontal, 6)
+                .padding(.vertical, 4)
                 .contentShape(Rectangle())
             }
             .buttonStyle(.borderless)
+            .padding(.top, 4)
         }
         .padding(16)
         .background(
