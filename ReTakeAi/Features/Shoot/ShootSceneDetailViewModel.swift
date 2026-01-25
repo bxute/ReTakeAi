@@ -54,6 +54,8 @@ final class ShootSceneDetailViewModel {
             try takeStore.deleteTake(take)
             // Scene metadata is migrated based on disk; reload to reflect takeIDs + preferred take.
             load()
+            // Notify other views (e.g., ShootOverviewView) to refresh
+            NotificationCenter.default.post(name: .sceneDidUpdate, object: nil)
         } catch {
             errorMessage = "Failed to delete take: \(error.localizedDescription)"
         }

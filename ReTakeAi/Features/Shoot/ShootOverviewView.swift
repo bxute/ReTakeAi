@@ -138,7 +138,7 @@ struct ShootOverviewView: View {
     private func sceneCard(for scene: VideoScene) -> some View {
         let takes = viewModel.getTakes(for: scene)
         let best = viewModel.bestTake(for: scene)
-        let isRecorded = scene.isRecorded
+        let isRecorded = viewModel.hasTakes(for: scene)
 
         return VStack(alignment: .leading, spacing: 10) {
             HStack(alignment: .top, spacing: 12) {

@@ -60,16 +60,21 @@ final class ShootOverviewViewModel {
     }
 
     var recordedScenesCount: Int {
-        scenes.filter { $0.isRecorded }.count
+        scenes.filter { hasTakes(for: $0) }.count
     }
 
     var isReadyToExport: Bool {
-        !scenes.isEmpty && scenes.allSatisfy { $0.isComplete }
+        !scenes.isEmpty && scenes.allSatisfy { hasTakes(for: $0) }
     }
 
     var nextSceneToRecord: VideoScene? {
-        // Prefer first scene with no takes yet.
-        scenes.first { !$0.isRecorded }
+        // Prefer first scene with no takes yet (check actual takes, not cached takeIDs).
+        scenes.sorted(by: { $0.orderIndex < $1.orderIndex }).first { !hasTakes(for: $0) }
+    }
+
+    /// Check if scene has actual takes in the store (not just cached takeIDs).
+    func hasTakes(for scene: VideoScene) -> Bool {
+        !(takes[scene.id] ?? []).isEmpty
     }
 
     func deleteExport(_ export: ExportedVideo) {
