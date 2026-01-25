@@ -27,21 +27,16 @@ struct ShootOverviewView: View {
                 .ignoresSafeArea()
 
             if isReorderMode {
-                // Reorder mode uses List for drag support
-                List {
-                    ForEach(reorderedScenes) { scene in
-                        reorderableSceneRow(for: scene)
-                            .listRowBackground(Color.clear)
-                            .listRowSeparator(.hidden)
-                            .listRowInsets(EdgeInsets(top: 6, leading: 16, bottom: 6, trailing: 16))
+                // Reorder mode with arrow buttons
+                ScrollView {
+                    LazyVStack(spacing: 12) {
+                        ForEach(Array(reorderedScenes.enumerated()), id: \.element.id) { index, scene in
+                            reorderableSceneRow(for: scene, at: index)
+                        }
                     }
-                    .onMove { from, to in
-                        reorderedScenes.move(fromOffsets: from, toOffset: to)
-                    }
+                    .padding(.horizontal)
+                    .padding(.vertical, 16)
                 }
-                .listStyle(.plain)
-                .environment(\.editMode, .constant(.active))
-                .scrollContentBackground(.hidden)
             } else {
                 ScrollView {
                     LazyVStack(alignment: .leading, spacing: 16) {
@@ -187,14 +182,34 @@ struct ShootOverviewView: View {
         }
     }
     
-    private func reorderableSceneRow(for scene: VideoScene) -> some View {
+    private func reorderableSceneRow(for scene: VideoScene, at index: Int) -> some View {
         let isRecorded = viewModel.hasTakes(for: scene)
+        let isFirst = index == 0
+        let isLast = index == reorderedScenes.count - 1
         
         return HStack(spacing: 12) {
-            // Drag handle
-            Image(systemName: "line.3.horizontal")
-                .font(.body)
-                .foregroundStyle(AppTheme.Colors.textTertiary)
+            // Move buttons
+            VStack(spacing: 4) {
+                Button {
+                    moveScene(at: index, direction: -1)
+                } label: {
+                    Image(systemName: "chevron.up")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(isFirst ? AppTheme.Colors.textTertiary.opacity(0.3) : AppTheme.Colors.textSecondary)
+                        .frame(width: 28, height: 24)
+                }
+                .disabled(isFirst)
+                
+                Button {
+                    moveScene(at: index, direction: 1)
+                } label: {
+                    Image(systemName: "chevron.down")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(isLast ? AppTheme.Colors.textTertiary.opacity(0.3) : AppTheme.Colors.textSecondary)
+                        .frame(width: 28, height: 24)
+                }
+                .disabled(isLast)
+            }
             
             // Status dot
             Circle()
@@ -203,7 +218,7 @@ struct ShootOverviewView: View {
             
             // Scene info
             VStack(alignment: .leading, spacing: 2) {
-                Text("Scene \(scene.orderIndex + 1)")
+                Text("Scene \(index + 1)")
                     .font(.subheadline.weight(.semibold))
                     .foregroundStyle(AppTheme.Colors.textPrimary)
                 
@@ -224,6 +239,15 @@ struct ShootOverviewView: View {
             RoundedRectangle(cornerRadius: 12, style: .continuous)
                 .stroke(AppTheme.Colors.border, lineWidth: 1)
         )
+    }
+    
+    private func moveScene(at index: Int, direction: Int) {
+        let newIndex = index + direction
+        guard newIndex >= 0 && newIndex < reorderedScenes.count else { return }
+        
+        withAnimation(.easeInOut(duration: 0.2)) {
+            reorderedScenes.swapAt(index, newIndex)
+        }
     }
     
     // MARK: - Reorder Actions
