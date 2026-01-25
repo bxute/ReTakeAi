@@ -375,9 +375,9 @@ struct ProjectDetailView: View {
                     showingSceneBreakdown = true
                 } label: {
                     HStack(spacing: 8) {
-                        Image(systemName: "square.stack")
+                        Image(systemName: "doc.text.magnifyingglass")
                             .font(.body.weight(.medium))
-                        Text("Review Scenes")
+                        Text("Review Script/Scenes")
                             .font(.headline)
                     }
                     .frame(maxWidth: .infinity)

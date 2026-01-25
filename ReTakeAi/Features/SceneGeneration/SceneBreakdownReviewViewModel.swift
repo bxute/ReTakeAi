@@ -184,6 +184,13 @@ final class SceneBreakdownReviewViewModel {
         promptUsed = fallback.promptUsed
         drafts = fallback.scenes
 #if DEBUG
+        AppLogger.ai.info("Scene breakdown: fallback produced drafts, auto-saving")
+#endif
+        let saved = await saveReplacingScenes()
+        if saved, let latest = projectStore.getProject(by: projectID) {
+            loadExisting(project: latest)
+        }
+#if DEBUG
         let count = self.drafts.count
         AppLogger.ai.info("Scene breakdown: fallback used (scenes=\(count))")
 #endif
