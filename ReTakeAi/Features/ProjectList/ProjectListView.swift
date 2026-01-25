@@ -339,7 +339,7 @@ private struct ProjectHomeRowView: View {
                             onExportsTap?()
                         } label: {
                             HStack(spacing: 4) {
-                                Text("Exports")
+                                Text("View Exports")
                                     .font(.caption2.weight(.medium))
                                 Image(systemName: "chevron.right")
                                     .font(.caption2.weight(.semibold))
