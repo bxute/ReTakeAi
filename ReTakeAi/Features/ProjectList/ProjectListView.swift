@@ -15,6 +15,8 @@ private struct ExportsDestination: Hashable {
 
 private struct SettingsDestination: Hashable {}
 
+private struct AudioProcessorTestDestination: Hashable {}
+
 struct ProjectListView: View {
     @State private var viewModel = ProjectListViewModel()
     @State private var showingCreateSheet = false
@@ -44,6 +46,9 @@ struct ProjectListView: View {
             }
             .navigationDestination(for: SettingsDestination.self) { _ in
                 SettingsView()
+            }
+            .navigationDestination(for: AudioProcessorTestDestination.self) { _ in
+                AudioProcessorTestView()
             }
             .sheet(isPresented: $showingCreateSheet) {
                 createProjectSheet
@@ -197,6 +202,12 @@ struct ProjectListView: View {
             Spacer(minLength: 0)
             
             Menu {
+                Button {
+                    navigationPath.append(AudioProcessorTestDestination())
+                } label: {
+                    Label("Audio Processor Test", systemImage: "waveform.circle")
+                }
+
                 Button {
                     navigationPath.append(SettingsDestination())
                 } label: {
