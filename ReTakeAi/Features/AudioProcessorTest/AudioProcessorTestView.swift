@@ -81,6 +81,22 @@ struct AudioProcessorTestView: View {
         } message: {
             Text(viewModel?.errorMessage ?? "Unknown error")
         }
+        .alert("Files Saved", isPresented: Binding(
+            get: { viewModel?.showSavedMessage ?? false },
+            set: { if viewModel != nil { viewModel!.showSavedMessage = $0 } }
+        )) {
+            Button("OK") { }
+        } message: {
+            Text(viewModel?.savedFilesMessage ?? "Files saved successfully")
+        }
+        .sheet(isPresented: Binding(
+            get: { viewModel?.showShareSheet ?? false },
+            set: { if viewModel != nil { viewModel!.showShareSheet = $0 } }
+        )) {
+            if let viewModel = viewModel {
+                AudioFilesShareSheet(items: viewModel.filesToShare)
+            }
+        }
     }
 
     @ViewBuilder
@@ -295,6 +311,27 @@ struct AudioProcessorTestView: View {
                     color: .green
                 )
             }
+
+            // Save Files Button
+            Button(action: {
+                viewModel.saveProcessedAudio()
+            }) {
+                HStack {
+                    Image(systemName: "square.and.arrow.up")
+                    Text("Export Files for Offline Comparison")
+                        .fontWeight(.semibold)
+                }
+                .frame(maxWidth: .infinity)
+                .padding()
+                .background(Color.green.opacity(0.2))
+                .foregroundColor(.green)
+                .cornerRadius(12)
+            }
+            .buttonStyle(.plain)
+
+            Text("Export to Files app, iCloud Drive, or save locally")
+                .font(.caption)
+                .foregroundColor(.secondary)
         }
     }
 
@@ -399,6 +436,21 @@ struct AudioPlayerCard: View {
         let minutes = Int(duration) / 60
         let seconds = Int(duration) % 60
         return String(format: "%d:%02d", minutes, seconds)
+    }
+}
+
+// MARK: - Audio Files Share Sheet
+
+struct AudioFilesShareSheet: UIViewControllerRepresentable {
+    let items: [Any]
+
+    func makeUIViewController(context: Context) -> UIActivityViewController {
+        let controller = UIActivityViewController(activityItems: items, applicationActivities: nil)
+        return controller
+    }
+
+    func updateUIViewController(_ uiViewController: UIActivityViewController, context: Context) {
+        // No update needed
     }
 }
 

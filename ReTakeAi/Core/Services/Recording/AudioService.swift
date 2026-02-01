@@ -7,21 +7,27 @@ import AVFoundation
 
 class AudioService {
     static let shared = AudioService()
-    
+
     private init() {}
-    
+
     func configureAudioSession() throws {
         let audioSession = AVAudioSession.sharedInstance()
-        
+
+        // Load audio recording mode preference
+        let preferences = TeleprompterPreferencesStore.load()
+        let mode: AVAudioSession.Mode = preferences.audioRecordingMode == .enhancedVoice
+            ? .videoChat      // Enhanced voice with noise reduction
+            : .videoRecording // Natural recording quality
+
         try audioSession.setCategory(
             .playAndRecord,
-            mode: .videoRecording,
+            mode: mode,
             options: [.defaultToSpeaker, .allowBluetooth]
         )
-        
+
         try audioSession.setActive(true)
-        
-        AppLogger.recording.info("Audio session configured")
+
+        AppLogger.recording.info("Audio session configured with mode: \(preferences.audioRecordingMode.displayName)")
     }
     
     func deactivateAudioSession() {

@@ -108,7 +108,17 @@ final class SettingsViewModel {
             save()
         }
     }
-    
+
+    // MARK: - Audio Recording Mode
+
+    var audioRecordingMode: AudioRecordingMode {
+        get { preferences.audioRecordingMode }
+        set {
+            preferences.audioRecordingMode = newValue
+            save()
+        }
+    }
+
     // MARK: - Persistence
     
     private func save() {

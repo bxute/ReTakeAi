@@ -73,9 +73,9 @@ enum TeleprompterTextColor: String, Codable, CaseIterable, Hashable, Identifiabl
     case cyan
     case green
     case orange
-    
+
     var id: String { rawValue }
-    
+
     var displayName: String {
         switch self {
         case .white: return "White"
@@ -85,7 +85,7 @@ enum TeleprompterTextColor: String, Codable, CaseIterable, Hashable, Identifiabl
         case .orange: return "Orange"
         }
     }
-    
+
     var hexValue: String {
         switch self {
         case .white: return "#FFFFFF"
@@ -93,6 +93,34 @@ enum TeleprompterTextColor: String, Codable, CaseIterable, Hashable, Identifiabl
         case .cyan: return "#00BCD4"
         case .green: return "#4CAF50"
         case .orange: return "#FF9800"
+        }
+    }
+}
+
+enum AudioRecordingMode: String, Codable, CaseIterable, Hashable, Identifiable {
+    case naturalRecording
+    case enhancedVoice
+
+    var id: String { rawValue }
+
+    var displayName: String {
+        switch self {
+        case .naturalRecording: return "Natural Recording"
+        case .enhancedVoice: return "Enhanced Voice"
+        }
+    }
+
+    var description: String {
+        switch self {
+        case .naturalRecording: return "Preserves natural audio quality"
+        case .enhancedVoice: return "Optimizes clarity with noise reduction"
+        }
+    }
+
+    var avAudioSessionMode: String {
+        switch self {
+        case .naturalRecording: return "videoRecording"
+        case .enhancedVoice: return "videoChat"
         }
     }
 }
@@ -108,6 +136,7 @@ struct TeleprompterPreferences: Codable, Hashable {
     var setupCountdown: SetupCountdownDuration
     var startBeepEnabled: Bool
     var autoStopEnabled: Bool
+    var audioRecordingMode: AudioRecordingMode
 
     init(
         scrollDirection: TeleprompterScrollDirection = .rightToLeft,
@@ -119,7 +148,8 @@ struct TeleprompterPreferences: Codable, Hashable {
         mirrorTextForFrontCamera: Bool = false,
         setupCountdown: SetupCountdownDuration = .s10,
         startBeepEnabled: Bool = true,
-        autoStopEnabled: Bool = true
+        autoStopEnabled: Bool = true,
+        audioRecordingMode: AudioRecordingMode = .naturalRecording
     ) {
         self.scrollDirection = scrollDirection
         self.defaultSpeed = defaultSpeed
@@ -131,6 +161,7 @@ struct TeleprompterPreferences: Codable, Hashable {
         self.setupCountdown = setupCountdown
         self.startBeepEnabled = startBeepEnabled
         self.autoStopEnabled = autoStopEnabled
+        self.audioRecordingMode = audioRecordingMode
     }
 }
 

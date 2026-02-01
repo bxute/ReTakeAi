@@ -18,9 +18,13 @@ struct SettingsView: View {
                 VStack(spacing: 24) {
                     // Live Preview (edge-to-edge)
                     previewSection
-                    
+
                     // Teleprompter Settings
                     teleprompterSection
+                        .padding(.horizontal, 16)
+
+                    // Audio Settings
+                    audioSection
                         .padding(.horizontal, 16)
                 }
                 .padding(.bottom, 32)
@@ -106,8 +110,32 @@ struct SettingsView: View {
         }
     }
     
+    // MARK: - Audio Section
+
+    private var audioSection: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            sectionHeader("Audio")
+
+            VStack(spacing: 0) {
+                // Audio Recording Mode
+                settingsRow(
+                    title: "Recording Mode",
+                    subtitle: viewModel.audioRecordingMode.description
+                ) {
+                    audioModePicker
+                }
+            }
+            .background(AppTheme.Colors.surface)
+            .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .stroke(AppTheme.Colors.border, lineWidth: 1)
+            )
+        }
+    }
+
     // MARK: - Pickers
-    
+
     private var speedPicker: some View {
         HStack(spacing: 8) {
             ForEach(TeleprompterSpeedPreset.allCases, id: \.self) { preset in
@@ -164,7 +192,20 @@ struct SettingsView: View {
             }
         }
     }
-    
+
+    private var audioModePicker: some View {
+        HStack(spacing: 8) {
+            ForEach(AudioRecordingMode.allCases, id: \.self) { mode in
+                chipButton(
+                    title: mode.displayName,
+                    isSelected: viewModel.audioRecordingMode == mode
+                ) {
+                    viewModel.audioRecordingMode = mode
+                }
+            }
+        }
+    }
+
     // MARK: - Helper Views
     
     private func sectionHeader(_ title: String) -> some View {

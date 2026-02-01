@@ -29,33 +29,74 @@ class AudioProcessorTestViewModel: NSObject {
     // MARK: - Processor Selection
 
     var enabledProcessors: [String: Bool] = [
-        "gate": true,
-        "noiseReduction": true,
-        "normalization": true,
-        "compression": true,
-        "deEsser": true,
-        "popRemoval": false,
-        "clickRemoval": false,
-        "eq": true,
-        "voiceEnhancement": false,
-        "reverbRemoval": false,
-        "loudnessNormalization": true
+        "hpf": true,                    // High-Pass Filter
+        "voiceBandPass": false,         // Voice Band-Pass
+        "spectralNoiseReduction": false,// Spectral Noise Reduction
+        "adaptiveGate": false,          // Adaptive Gate
+        "voiceEQ": false,               // Voice EQ
+        "multiBandCompressor": false,   // Multi-Band Compressor
+        "deEsser": false,               // De-Esser
+        "lufsNormalizer": false         // LUFS Normalizer
+    ]
+
+    var processorConfigs: [String: ProcessorConfig] = [
+        "hpf": ProcessorConfig([
+            "cutoffFrequency": 50.0,  // Default 60 Hz - safe for voice
+            "makeupGain": 3.0         // +3 dB makeup gain
+        ]),
+        "voiceBandPass": ProcessorConfig([
+            "lowCutoff": 85.0,
+            "highCutoff": 4000.0,
+            "order": 2
+        ]),
+        "spectralNoiseReduction": ProcessorConfig([
+            "noiseProfileDuration": 0.5,
+            "reductionAmount": 12.0,
+            "smoothingFactor": 0.7
+        ]),
+        "adaptiveGate": ProcessorConfig([
+            "threshold": -40.0,
+            "ratio": 10.0,
+            "attack": 5.0,
+            "release": 50.0,
+            "kneeWidth": 6.0
+        ]),
+        "voiceEQ": ProcessorConfig([
+            "preset": "clarity"
+        ]),
+        "multiBandCompressor": ProcessorConfig([
+            "lowThreshold": -20.0,
+            "lowRatio": 2.0,
+            "midThreshold": -15.0,
+            "midRatio": 3.0,
+            "highThreshold": -12.0,
+            "highRatio": 4.0,
+            "attack": 5.0,
+            "release": 100.0
+        ]),
+        "deEsser": ProcessorConfig([
+            "frequency": 7000.0,
+            "threshold": -15.0,
+            "ratio": 4.0,
+            "bandwidth": 4000.0
+        ]),
+        "lufsNormalizer": ProcessorConfig([
+            "targetLUFS": -16.0,
+            "truePeak": -1.0
+        ])
     ]
 
     // MARK: - Processor Info
 
     let processorInfo: [(id: String, name: String, description: String)] = [
-        ("gate", "Noise Gate", "Suppress audio below threshold"),
-        ("noiseReduction", "Noise Reduction", "Remove background noise"),
-        ("popRemoval", "Pop Removal", "Remove plosives (P, B sounds)"),
-        ("clickRemoval", "Click Removal", "Remove clicks and mouth noises"),
-        ("deEsser", "De-Esser", "Reduce harsh sibilance (S, T sounds)"),
-        ("eq", "Parametric EQ", "Shape frequency response"),
-        ("voiceEnhancement", "Voice Enhancement", "Optimize speech clarity"),
-        ("compression", "Compressor", "Control dynamic range"),
-        ("reverbRemoval", "Reverb Removal", "Reduce room reflections"),
-        ("normalization", "Normalization", "Basic volume normalization"),
-        ("loudnessNormalization", "LUFS Normalization", "Industry-standard loudness")
+        ("hpf", "High-Pass Filter", "Remove low-frequency rumble (60-100 Hz) with makeup gain"),
+        ("voiceBandPass", "Voice Band-Pass", "Isolate voice frequencies (85-4000 Hz)"),
+        ("spectralNoiseReduction", "Spectral Noise Reduction", "Remove constant background noise"),
+        ("adaptiveGate", "Adaptive Gate", "Suppress noise during speech pauses"),
+        ("voiceEQ", "Voice EQ", "Shape frequency for clarity (presets: clarity, warmth, broadcast, podcast)"),
+        ("multiBandCompressor", "Multi-Band Compressor", "Control dynamics across frequency bands"),
+        ("deEsser", "De-Esser", "Reduce harsh sibilance (S, T, Ch sounds)"),
+        ("lufsNormalizer", "LUFS Normalizer", "Normalize to broadcast standard loudness (-16 LUFS)")
     ]
 
     // MARK: - Audio Playback
@@ -74,6 +115,85 @@ class AudioProcessorTestViewModel: NSObject {
     var originalWaveform: [Float] = []
     var processedWaveform: [Float] = []
 
+    var savedFilesMessage: String?
+    var showSavedMessage = false
+    var savedDirectoryURL: URL?
+    var filesToShare: [URL] = []
+    var showShareSheet = false
+
+    // MARK: - Save to Files
+
+    func getDocumentsDirectory() -> URL {
+        let tempDir = FileManager.default.temporaryDirectory
+        return tempDir.appendingPathComponent("AudioProcessorTests", isDirectory: true)
+    }
+
+    func saveProcessedAudio() {
+        guard let originalURL = originalAudioURL,
+              let processedURL = processedAudioURL else {
+            showError(message: "No audio files to save")
+            return
+        }
+
+        do {
+            // Use temp directory for preparing files to share
+            let tempDir = FileManager.default.temporaryDirectory
+            let audioTestDir = tempDir.appendingPathComponent("AudioProcessorTests_\(UUID().uuidString)", isDirectory: true)
+
+            // Create directory
+            try FileManager.default.createDirectory(at: audioTestDir, withIntermediateDirectories: true)
+
+            // Generate timestamp for filenames
+            let timestamp = ISO8601DateFormatter().string(from: Date()).replacingOccurrences(of: ":", with: "-")
+
+            // Copy original
+            let originalDestURL = audioTestDir.appendingPathComponent("original_\(timestamp).\(originalURL.pathExtension)")
+            try FileManager.default.copyItem(at: originalURL, to: originalDestURL)
+
+            // Copy processed
+            let processedDestURL = audioTestDir.appendingPathComponent("processed_\(timestamp).\(processedURL.pathExtension)")
+            try FileManager.default.copyItem(at: processedURL, to: processedDestURL)
+
+            // Save processor configuration info
+            let configURL = audioTestDir.appendingPathComponent("config_\(timestamp).txt")
+            let configText = generateConfigText()
+            try configText.write(to: configURL, atomically: true, encoding: .utf8)
+
+            // Prepare files for sharing
+            filesToShare = [originalDestURL, processedDestURL, configURL]
+            showShareSheet = true
+
+            AppLogger.ui.info("Files prepared for sharing")
+
+        } catch {
+            showError(message: "Failed to prepare files: \(error.localizedDescription)")
+        }
+    }
+
+    private func generateConfigText() -> String {
+        var text = "Audio Processor Test Configuration\n"
+        text += "===================================\n\n"
+        text += "Date: \(Date())\n\n"
+        text += "Enabled Processors:\n"
+
+        for info in processorInfo {
+            if enabledProcessors[info.id] == true {
+                text += "- \(info.name)\n"
+                text += "  \(info.description)\n"
+
+                if let config = processorConfigs[info.id] {
+                    text += "  Config: \(config.parameters)\n"
+                }
+                text += "\n"
+            }
+        }
+
+        text += "\nOriginal Duration: \(String(format: "%.2f", originalDuration))s\n"
+        text += "Processed Duration: \(String(format: "%.2f", processedDuration))s\n"
+
+        return text
+    }
+
     // MARK: - Processing
 
     func processAudio() async {
@@ -87,34 +207,87 @@ class AudioProcessorTestViewModel: NSObject {
         errorMessage = nil
         defer { isProcessing = false }
 
+        // Start accessing security-scoped resource for files picked from Files app
+        let didStartAccessing = inputURL.startAccessingSecurityScopedResource()
+        defer {
+            if didStartAccessing {
+                inputURL.stopAccessingSecurityScopedResource()
+            }
+        }
+
         do {
             currentStage = "Processing audio..."
 
-            // TODO: Implement audio processing when audio engine is ready
-            // For now, just simulate processing
-            for i in 0...10 {
-                try await Task.sleep(nanoseconds: 500_000_000) // 0.5 seconds
-                processingProgress = Double(i) / 10.0
-                currentStage = "Processing... \(i * 10)%"
+            // Create output URLs
+            let tempDir = FileManager.default.temporaryDirectory
+            var currentURL = inputURL
+            var intermediateURLs: [URL] = []
+
+            // Define processing order
+            let processingOrder: [(id: String, processor: any AudioProcessorProtocol, name: String)] = [
+                ("hpf", HPFProcessor(), "High-Pass Filter"),
+                ("voiceBandPass", VoiceBandPassProcessor(), "Voice Band-Pass"),
+                ("spectralNoiseReduction", SpectralNoiseReductionProcessor(), "Spectral Noise Reduction"),
+                ("adaptiveGate", AdaptiveGateProcessor(), "Adaptive Gate"),
+                ("voiceEQ", VoiceEQProcessor(), "Voice EQ"),
+                ("multiBandCompressor", MultiBandCompressorProcessor(), "Multi-Band Compressor"),
+                ("deEsser", DeEsserProcessor(), "De-Esser"),
+                ("lufsNormalizer", LUFSNormalizerProcessor(), "LUFS Normalizer")
+            ]
+
+            // Count enabled processors for progress tracking
+            let enabledCount = processingOrder.filter { enabledProcessors[$0.id] == true }.count
+
+            if enabledCount == 0 {
+                // No processing, just copy
+                let processedURL = tempDir.appendingPathComponent("processed_\(UUID().uuidString).m4a")
+                try FileManager.default.copyItem(at: inputURL, to: processedURL)
+                processedAudioURL = processedURL
+                processingProgress = 1.0
+            } else {
+                // Apply each enabled processor in order
+                var processorIndex = 0
+                for (id, processor, name) in processingOrder {
+                    if enabledProcessors[id] == true {
+                        currentStage = "Applying \(name)..."
+                        processingProgress = Double(processorIndex) / Double(enabledCount)
+
+                        let outputURL = tempDir.appendingPathComponent("intermediate_\(UUID().uuidString).m4a")
+                        let config = processorConfigs[id] ?? processor.defaultConfig
+
+                        try await processor.process(inputURL: currentURL, outputURL: outputURL, config: config)
+
+                        // Clean up previous intermediate file (but not the original input)
+                        if currentURL != inputURL {
+                            try? FileManager.default.removeItem(at: currentURL)
+                        }
+
+                        currentURL = outputURL
+                        intermediateURLs.append(outputURL)
+                        processorIndex += 1
+                    }
+                }
+
+                processedAudioURL = currentURL
+                processingProgress = 1.0
+                currentStage = "Processing complete!"
             }
 
-            // For now, just copy the original as processed
-            let tempDir = FileManager.default.temporaryDirectory
-            let processedURL = tempDir.appendingPathComponent("processed_\(UUID().uuidString).m4a")
-
-            try FileManager.default.copyItem(at: inputURL, to: processedURL)
-
-            processedAudioURL = processedURL
-            originalAudioURL = inputURL
+            // Copy original to temp directory for playback (to avoid security-scoped access issues)
+            let originalCopyURL = tempDir.appendingPathComponent("original_\(UUID().uuidString).\(inputURL.pathExtension)")
+            try FileManager.default.copyItem(at: inputURL, to: originalCopyURL)
+            originalAudioURL = originalCopyURL
 
             // Load durations
-            originalDuration = try await loadDuration(url: inputURL)
-            processedDuration = try await loadDuration(url: processedURL)
+            originalDuration = try await loadDuration(url: originalCopyURL)
+            if let processedURL = processedAudioURL {
+                processedDuration = try await loadDuration(url: processedURL)
 
-            // Extract waveforms
-            currentStage = "Generating waveforms..."
-            originalWaveform = try await WaveformExtractor.extractSamples(from: inputURL, targetSampleCount: 500)
-            processedWaveform = try await WaveformExtractor.extractSamples(from: processedURL, targetSampleCount: 500)
+                // Extract waveforms
+                currentStage = "Generating waveforms..."
+                originalWaveform = try await WaveformExtractor.extractSamples(from: originalCopyURL, targetSampleCount: 500)
+                processedWaveform = try await WaveformExtractor.extractSamples(from: processedURL, targetSampleCount: 500)
+            }
 
             currentStage = "Complete!"
 
