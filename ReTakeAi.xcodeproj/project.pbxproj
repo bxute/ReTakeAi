@@ -7,41 +7,27 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4BC4D872959B4AC1AE82F079 /* AudioProcessorTestView.swift */; };
-		809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C141646927448D497119CC5 /* AudioProcessorTestViewModel.swift */; };
 		EF53DC882F12A53D0009C810 /* Secrets.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = EF53DC872F12A53D0009C810 /* Secrets.xcconfig */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
 		EF14E5512F066AEB002662ED /* PBXContainerItemProxy */ = {
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,isa = PBXContainerItemProxy;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,containerPortal = EF14E53B2F066AEA002662ED /* Project object */;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,proxyType = 1;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,remoteGlobalIDString = EF14E5422F066AEA002662ED;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,remoteInfo = ReTakeAi;
+			isa = PBXContainerItemProxy;
+			containerPortal = EF14E53B2F066AEA002662ED /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = EF14E5422F066AEA002662ED;
+			remoteInfo = ReTakeAi;
 		};
 		EF14E55B2F066AEB002662ED /* PBXContainerItemProxy */ = {
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,isa = PBXContainerItemProxy;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,containerPortal = EF14E53B2F066AEA002662ED /* Project object */;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,proxyType = 1;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,remoteGlobalIDString = EF14E5422F066AEA002662ED;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,remoteInfo = ReTakeAi;
+			isa = PBXContainerItemProxy;
+			containerPortal = EF14E53B2F066AEA002662ED /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = EF14E5422F066AEA002662ED;
+			remoteInfo = ReTakeAi;
 		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		4BC4D872959B4AC1AE82F079 /* AudioProcessorTestView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioProcessorTestView.swift; sourceTree = "<group>"; };
-		2C141646927448D497119CC5 /* AudioProcessorTestViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioProcessorTestViewModel.swift; sourceTree = "<group>"; };
 		EF14E5432F066AEA002662ED /* ReTakeAi.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ReTakeAi.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		EF14E5502F066AEB002662ED /* ReTakeAiTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ReTakeAiTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		EF14E55A2F066AEB002662ED /* ReTakeAiUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ReTakeAiUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -50,1035 +36,557 @@
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		EF14E5452F066AEA002662ED /* ReTakeAi */ = {
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,isa = PBXFileSystemSynchronizedRootGroup;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,path = ReTakeAi;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,sourceTree = "<group>";
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = ReTakeAi;
+			sourceTree = "<group>";
 		};
 		EF14E5532F066AEB002662ED /* ReTakeAiTests */ = {
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,isa = PBXFileSystemSynchronizedRootGroup;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,path = ReTakeAiTests;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,sourceTree = "<group>";
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = ReTakeAiTests;
+			sourceTree = "<group>";
 		};
 		EF14E55D2F066AEB002662ED /* ReTakeAiUITests */ = {
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,isa = PBXFileSystemSynchronizedRootGroup;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,path = ReTakeAiUITests;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,sourceTree = "<group>";
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = ReTakeAiUITests;
+			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		EF14E5402F066AEA002662ED /* Frameworks */ = {
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,isa = PBXFrameworksBuildPhase;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,buildActionMask = 2147483647;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,files = (
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,);
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,runOnlyForDeploymentPostprocessing = 0;
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
 		};
 		EF14E54D2F066AEB002662ED /* Frameworks */ = {
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,isa = PBXFrameworksBuildPhase;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,buildActionMask = 2147483647;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,files = (
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,);
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,runOnlyForDeploymentPostprocessing = 0;
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
 		};
 		EF14E5572F066AEB002662ED /* Frameworks */ = {
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,isa = PBXFrameworksBuildPhase;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,buildActionMask = 2147483647;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,files = (
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,);
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,runOnlyForDeploymentPostprocessing = 0;
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		C55C9281C0674152800AE104 /* AudioProcessorTest */ = {
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,isa = PBXGroup;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,children = (
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	4BC4D872959B4AC1AE82F079 /* AudioProcessorTestView.swift */,
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	2C141646927448D497119CC5 /* AudioProcessorTestViewModel.swift */,
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,);
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,path = AudioProcessorTest;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,sourceTree = "<group>";
-		};
 		EF14E53A2F066AEA002662ED = {
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,isa = PBXGroup;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,children = (
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	EF14E5452F066AEA002662ED /* ReTakeAi */,
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	EF14E5532F066AEB002662ED /* ReTakeAiTests */,
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	EF14E55D2F066AEB002662ED /* ReTakeAiUITests */,
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	EF14E5442F066AEA002662ED /* Products */,
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	EF53DC872F12A53D0009C810 /* Secrets.xcconfig */,
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,);
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,sourceTree = "<group>";
+			isa = PBXGroup;
+			children = (
+				EF14E5452F066AEA002662ED /* ReTakeAi */,
+				EF14E5532F066AEB002662ED /* ReTakeAiTests */,
+				EF14E55D2F066AEB002662ED /* ReTakeAiUITests */,
+				EF14E5442F066AEA002662ED /* Products */,
+				EF53DC872F12A53D0009C810 /* Secrets.xcconfig */,
+			);
+			sourceTree = "<group>";
 		};
 		EF14E5442F066AEA002662ED /* Products */ = {
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,isa = PBXGroup;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,children = (
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	EF14E5432F066AEA002662ED /* ReTakeAi.app */,
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	EF14E5502F066AEB002662ED /* ReTakeAiTests.xctest */,
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	EF14E55A2F066AEB002662ED /* ReTakeAiUITests.xctest */,
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,);
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,name = Products;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,sourceTree = "<group>";
+			isa = PBXGroup;
+			children = (
+				EF14E5432F066AEA002662ED /* ReTakeAi.app */,
+				EF14E5502F066AEB002662ED /* ReTakeAiTests.xctest */,
+				EF14E55A2F066AEB002662ED /* ReTakeAiUITests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
 		EF14E5422F066AEA002662ED /* ReTakeAi */ = {
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,isa = PBXNativeTarget;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,buildConfigurationList = EF14E5642F066AEB002662ED /* Build configuration list for PBXNativeTarget "ReTakeAi" */;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,buildPhases = (
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	EF14E53F2F066AEA002662ED /* Sources */,
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	EF14E5402F066AEA002662ED /* Frameworks */,
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	EF14E5412F066AEA002662ED /* Resources */,
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,);
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,buildRules = (
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,);
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,dependencies = (
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,);
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,fileSystemSynchronizedGroups = (
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	EF14E5452F066AEA002662ED /* ReTakeAi */,
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,);
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,name = ReTakeAi;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,packageProductDependencies = (
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,);
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,productName = ReTakeAi;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,productReference = EF14E5432F066AEA002662ED /* ReTakeAi.app */;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,productType = "com.apple.product-type.application";
+			isa = PBXNativeTarget;
+			buildConfigurationList = EF14E5642F066AEB002662ED /* Build configuration list for PBXNativeTarget "ReTakeAi" */;
+			buildPhases = (
+				EF14E53F2F066AEA002662ED /* Sources */,
+				EF14E5402F066AEA002662ED /* Frameworks */,
+				EF14E5412F066AEA002662ED /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				EF14E5452F066AEA002662ED /* ReTakeAi */,
+			);
+			name = ReTakeAi;
+			packageProductDependencies = (
+			);
+			productName = ReTakeAi;
+			productReference = EF14E5432F066AEA002662ED /* ReTakeAi.app */;
+			productType = "com.apple.product-type.application";
 		};
 		EF14E54F2F066AEB002662ED /* ReTakeAiTests */ = {
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,isa = PBXNativeTarget;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,buildConfigurationList = EF14E5672F066AEB002662ED /* Build configuration list for PBXNativeTarget "ReTakeAiTests" */;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,buildPhases = (
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	EF14E54C2F066AEB002662ED /* Sources */,
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	EF14E54D2F066AEB002662ED /* Frameworks */,
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	EF14E54E2F066AEB002662ED /* Resources */,
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,);
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,buildRules = (
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,);
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,dependencies = (
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	EF14E5522F066AEB002662ED /* PBXTargetDependency */,
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,);
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,fileSystemSynchronizedGroups = (
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	EF14E5532F066AEB002662ED /* ReTakeAiTests */,
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,);
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,name = ReTakeAiTests;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,packageProductDependencies = (
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,);
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,productName = ReTakeAiTests;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,productReference = EF14E5502F066AEB002662ED /* ReTakeAiTests.xctest */;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,productType = "com.apple.product-type.bundle.unit-test";
+			isa = PBXNativeTarget;
+			buildConfigurationList = EF14E5672F066AEB002662ED /* Build configuration list for PBXNativeTarget "ReTakeAiTests" */;
+			buildPhases = (
+				EF14E54C2F066AEB002662ED /* Sources */,
+				EF14E54D2F066AEB002662ED /* Frameworks */,
+				EF14E54E2F066AEB002662ED /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				EF14E5522F066AEB002662ED /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				EF14E5532F066AEB002662ED /* ReTakeAiTests */,
+			);
+			name = ReTakeAiTests;
+			packageProductDependencies = (
+			);
+			productName = ReTakeAiTests;
+			productReference = EF14E5502F066AEB002662ED /* ReTakeAiTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
 		};
 		EF14E5592F066AEB002662ED /* ReTakeAiUITests */ = {
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,isa = PBXNativeTarget;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,buildConfigurationList = EF14E56A2F066AEB002662ED /* Build configuration list for PBXNativeTarget "ReTakeAiUITests" */;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,buildPhases = (
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	EF14E5562F066AEB002662ED /* Sources */,
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	EF14E5572F066AEB002662ED /* Frameworks */,
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	EF14E5582F066AEB002662ED /* Resources */,
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,);
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,buildRules = (
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,);
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,dependencies = (
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	EF14E55C2F066AEB002662ED /* PBXTargetDependency */,
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,);
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,fileSystemSynchronizedGroups = (
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	EF14E55D2F066AEB002662ED /* ReTakeAiUITests */,
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,);
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,name = ReTakeAiUITests;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,packageProductDependencies = (
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,);
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,productName = ReTakeAiUITests;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,productReference = EF14E55A2F066AEB002662ED /* ReTakeAiUITests.xctest */;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,productType = "com.apple.product-type.bundle.ui-testing";
+			isa = PBXNativeTarget;
+			buildConfigurationList = EF14E56A2F066AEB002662ED /* Build configuration list for PBXNativeTarget "ReTakeAiUITests" */;
+			buildPhases = (
+				EF14E5562F066AEB002662ED /* Sources */,
+				EF14E5572F066AEB002662ED /* Frameworks */,
+				EF14E5582F066AEB002662ED /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				EF14E55C2F066AEB002662ED /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				EF14E55D2F066AEB002662ED /* ReTakeAiUITests */,
+			);
+			name = ReTakeAiUITests;
+			packageProductDependencies = (
+			);
+			productName = ReTakeAiUITests;
+			productReference = EF14E55A2F066AEB002662ED /* ReTakeAiUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
 		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
 		EF14E53B2F066AEA002662ED /* Project object */ = {
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,isa = PBXProject;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,attributes = {
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	BuildIndependentTargetsInParallel = 1;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	LastSwiftUpdateCheck = 1640;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	LastUpgradeCheck = 1640;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	TargetAttributes = {
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,		EF14E5422F066AEA002662ED = {
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,			CreatedOnToolsVersion = 16.4;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,		};
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,		EF14E54F2F066AEB002662ED = {
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,			CreatedOnToolsVersion = 16.4;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,			TestTargetID = EF14E5422F066AEA002662ED;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,		};
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,		EF14E5592F066AEB002662ED = {
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,			CreatedOnToolsVersion = 16.4;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,			TestTargetID = EF14E5422F066AEA002662ED;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,		};
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	};
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,};
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,buildConfigurationList = EF14E53E2F066AEA002662ED /* Build configuration list for PBXProject "ReTakeAi" */;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,developmentRegion = en;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,hasScannedForEncodings = 0;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,knownRegions = (
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	en,
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	Base,
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,);
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,mainGroup = EF14E53A2F066AEA002662ED;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,minimizedProjectReferenceProxies = 1;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,preferredProjectObjectVersion = 77;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,productRefGroup = EF14E5442F066AEA002662ED /* Products */;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,projectDirPath = "";
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,projectRoot = "";
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,targets = (
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	EF14E5422F066AEA002662ED /* ReTakeAi */,
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	EF14E54F2F066AEB002662ED /* ReTakeAiTests */,
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	EF14E5592F066AEB002662ED /* ReTakeAiUITests */,
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,);
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1640;
+				LastUpgradeCheck = 1640;
+				TargetAttributes = {
+					EF14E5422F066AEA002662ED = {
+						CreatedOnToolsVersion = 16.4;
+					};
+					EF14E54F2F066AEB002662ED = {
+						CreatedOnToolsVersion = 16.4;
+						TestTargetID = EF14E5422F066AEA002662ED;
+					};
+					EF14E5592F066AEB002662ED = {
+						CreatedOnToolsVersion = 16.4;
+						TestTargetID = EF14E5422F066AEA002662ED;
+					};
+				};
+			};
+			buildConfigurationList = EF14E53E2F066AEA002662ED /* Build configuration list for PBXProject "ReTakeAi" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = EF14E53A2F066AEA002662ED;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = EF14E5442F066AEA002662ED /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				EF14E5422F066AEA002662ED /* ReTakeAi */,
+				EF14E54F2F066AEB002662ED /* ReTakeAiTests */,
+				EF14E5592F066AEB002662ED /* ReTakeAiUITests */,
+			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
 		EF14E5412F066AEA002662ED /* Resources */ = {
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,isa = PBXResourcesBuildPhase;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,buildActionMask = 2147483647;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,files = (
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	EF53DC882F12A53D0009C810 /* Secrets.xcconfig in Resources */,
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,);
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,runOnlyForDeploymentPostprocessing = 0;
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				EF53DC882F12A53D0009C810 /* Secrets.xcconfig in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
 		};
 		EF14E54E2F066AEB002662ED /* Resources */ = {
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,isa = PBXResourcesBuildPhase;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,buildActionMask = 2147483647;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,files = (
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,);
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,runOnlyForDeploymentPostprocessing = 0;
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
 		};
 		EF14E5582F066AEB002662ED /* Resources */ = {
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,isa = PBXResourcesBuildPhase;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,buildActionMask = 2147483647;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,files = (
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,);
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,runOnlyForDeploymentPostprocessing = 0;
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		EF14E53F2F066AEA002662ED /* Sources */ = {
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,isa = PBXSourcesBuildPhase;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,buildActionMask = 2147483647;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,files = (
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,);
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,runOnlyForDeploymentPostprocessing = 0;
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
 		};
 		EF14E54C2F066AEB002662ED /* Sources */ = {
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,isa = PBXSourcesBuildPhase;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,buildActionMask = 2147483647;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,files = (
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,);
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,runOnlyForDeploymentPostprocessing = 0;
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
 		};
 		EF14E5562F066AEB002662ED /* Sources */ = {
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,isa = PBXSourcesBuildPhase;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,buildActionMask = 2147483647;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,files = (
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,);
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,runOnlyForDeploymentPostprocessing = 0;
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
 		EF14E5522F066AEB002662ED /* PBXTargetDependency */ = {
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,isa = PBXTargetDependency;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,target = EF14E5422F066AEA002662ED /* ReTakeAi */;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,targetProxy = EF14E5512F066AEB002662ED /* PBXContainerItemProxy */;
+			isa = PBXTargetDependency;
+			target = EF14E5422F066AEA002662ED /* ReTakeAi */;
+			targetProxy = EF14E5512F066AEB002662ED /* PBXContainerItemProxy */;
 		};
 		EF14E55C2F066AEB002662ED /* PBXTargetDependency */ = {
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,isa = PBXTargetDependency;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,target = EF14E5422F066AEA002662ED /* ReTakeAi */;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,targetProxy = EF14E55B2F066AEB002662ED /* PBXContainerItemProxy */;
+			isa = PBXTargetDependency;
+			target = EF14E5422F066AEA002662ED /* ReTakeAi */;
+			targetProxy = EF14E55B2F066AEB002662ED /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		EF14E5622F066AEB002662ED /* Debug */ = {
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,isa = XCBuildConfiguration;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,buildSettings = {
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	ALWAYS_SEARCH_USER_PATHS = NO;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	CLANG_ANALYZER_NONNULL = YES;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	CLANG_ENABLE_MODULES = YES;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	CLANG_ENABLE_OBJC_ARC = YES;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	CLANG_ENABLE_OBJC_WEAK = YES;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	CLANG_WARN_BOOL_CONVERSION = YES;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	CLANG_WARN_COMMA = YES;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	CLANG_WARN_CONSTANT_CONVERSION = YES;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	CLANG_WARN_EMPTY_BODY = YES;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	CLANG_WARN_ENUM_CONVERSION = YES;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	CLANG_WARN_INFINITE_RECURSION = YES;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	CLANG_WARN_INT_CONVERSION = YES;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	CLANG_WARN_STRICT_PROTOTYPES = YES;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	CLANG_WARN_SUSPICIOUS_MOVE = YES;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	CLANG_WARN_UNREACHABLE_CODE = YES;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	COPY_PHASE_STRIP = NO;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	DEBUG_INFORMATION_FORMAT = dwarf;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	DEVELOPMENT_TEAM = 87W839TD2D;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	ENABLE_STRICT_OBJC_MSGSEND = YES;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	ENABLE_TESTABILITY = YES;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	ENABLE_USER_SCRIPT_SANDBOXING = YES;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	GCC_C_LANGUAGE_STANDARD = gnu17;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	GCC_DYNAMIC_NO_PIC = NO;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	GCC_NO_COMMON_BLOCKS = YES;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	GCC_OPTIMIZATION_LEVEL = 0;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	GCC_PREPROCESSOR_DEFINITIONS = (
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,		"DEBUG=1",
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,		"$(inherited)",
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	);
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	GCC_WARN_UNDECLARED_SELECTOR = YES;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	GCC_WARN_UNUSED_FUNCTION = YES;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	GCC_WARN_UNUSED_VARIABLE = YES;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	INFOPLIST_KEY_OPENAI_API_KEY = "$(OPENAI_API_KEY)";
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	IPHONEOS_DEPLOYMENT_TARGET = 18.5;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	MTL_FAST_MATH = YES;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	ONLY_ACTIVE_ARCH = YES;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	SDKROOT = iphoneos;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	SWIFT_OPTIMIZATION_LEVEL = "-Onone";
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,};
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,name = Debug;
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = 87W839TD2D;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				INFOPLIST_KEY_OPENAI_API_KEY = "$(OPENAI_API_KEY)";
+				IPHONEOS_DEPLOYMENT_TARGET = 18.5;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
 		};
 		EF14E5632F066AEB002662ED /* Release */ = {
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,isa = XCBuildConfiguration;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,buildSettings = {
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	ALWAYS_SEARCH_USER_PATHS = NO;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	CLANG_ANALYZER_NONNULL = YES;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	CLANG_ENABLE_MODULES = YES;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	CLANG_ENABLE_OBJC_ARC = YES;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	CLANG_ENABLE_OBJC_WEAK = YES;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	CLANG_WARN_BOOL_CONVERSION = YES;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	CLANG_WARN_COMMA = YES;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	CLANG_WARN_CONSTANT_CONVERSION = YES;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	CLANG_WARN_EMPTY_BODY = YES;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	CLANG_WARN_ENUM_CONVERSION = YES;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	CLANG_WARN_INFINITE_RECURSION = YES;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	CLANG_WARN_INT_CONVERSION = YES;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	CLANG_WARN_STRICT_PROTOTYPES = YES;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	CLANG_WARN_SUSPICIOUS_MOVE = YES;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	CLANG_WARN_UNREACHABLE_CODE = YES;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	COPY_PHASE_STRIP = NO;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	DEVELOPMENT_TEAM = 87W839TD2D;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	ENABLE_NS_ASSERTIONS = NO;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	ENABLE_STRICT_OBJC_MSGSEND = YES;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	ENABLE_USER_SCRIPT_SANDBOXING = YES;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	GCC_C_LANGUAGE_STANDARD = gnu17;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	GCC_NO_COMMON_BLOCKS = YES;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	GCC_WARN_UNDECLARED_SELECTOR = YES;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	GCC_WARN_UNUSED_FUNCTION = YES;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	GCC_WARN_UNUSED_VARIABLE = YES;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	INFOPLIST_KEY_OPENAI_API_KEY = "$(OPENAI_API_KEY)";
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	IPHONEOS_DEPLOYMENT_TARGET = 18.5;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	MTL_ENABLE_DEBUG_INFO = NO;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	MTL_FAST_MATH = YES;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	SDKROOT = iphoneos;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	SWIFT_COMPILATION_MODE = wholemodule;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	VALIDATE_PRODUCT = YES;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,};
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,name = Release;
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = 87W839TD2D;
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				INFOPLIST_KEY_OPENAI_API_KEY = "$(OPENAI_API_KEY)";
+				IPHONEOS_DEPLOYMENT_TARGET = 18.5;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
 		};
 		EF14E5652F066AEB002662ED /* Debug */ = {
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,isa = XCBuildConfiguration;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,baseConfigurationReference = EF53DC872F12A53D0009C810 /* Secrets.xcconfig */;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,buildSettings = {
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	CODE_SIGN_STYLE = Automatic;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	CURRENT_PROJECT_VERSION = 1;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	DEVELOPMENT_TEAM = 87W839TD2D;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	ENABLE_PREVIEWS = YES;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	GENERATE_INFOPLIST_FILE = YES;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.business";
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	INFOPLIST_KEY_NSCameraUsageDescription = "We use the camera to record your scene takes.";
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	INFOPLIST_KEY_NSMicrophoneUsageDescription = "We use the microphone to record audio with your video takes";
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "We save exported videos to your photo library.";
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	INFOPLIST_KEY_OPENAI_API_KEY = "$(OPENAI_API_KEY)";
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	INFOPLIST_KEY_UILaunchScreen_Generation = YES;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	IPHONEOS_DEPLOYMENT_TARGET = 17.6;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	LD_RUNPATH_SEARCH_PATHS = (
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,		"$(inherited)",
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,		"@executable_path/Frameworks",
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	);
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	MARKETING_VERSION = 1.0;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	PRODUCT_BUNDLE_IDENTIFIER = com.bxute.ReTakeAi;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	PRODUCT_NAME = "$(TARGET_NAME)";
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	SUPPORTS_MACCATALYST = NO;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	SWIFT_EMIT_LOC_STRINGS = YES;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	SWIFT_VERSION = 5.0;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	TARGETED_DEVICE_FAMILY = "1,2";
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,};
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,name = Debug;
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = EF53DC872F12A53D0009C810 /* Secrets.xcconfig */;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 87W839TD2D;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.business";
+				INFOPLIST_KEY_NSCameraUsageDescription = "We use the camera to record your scene takes.";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "We use the microphone to record audio with your video takes";
+				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "We save exported videos to your photo library.";
+				INFOPLIST_KEY_OPENAI_API_KEY = "$(OPENAI_API_KEY)";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.6;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.bxute.ReTakeAi;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
 		};
 		EF14E5662F066AEB002662ED /* Release */ = {
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,isa = XCBuildConfiguration;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,baseConfigurationReference = EF53DC872F12A53D0009C810 /* Secrets.xcconfig */;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,buildSettings = {
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	CODE_SIGN_STYLE = Automatic;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	CURRENT_PROJECT_VERSION = 1;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	DEVELOPMENT_TEAM = 87W839TD2D;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	ENABLE_PREVIEWS = YES;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	GENERATE_INFOPLIST_FILE = YES;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.business";
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	INFOPLIST_KEY_NSCameraUsageDescription = "We use the camera to record your scene takes.";
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	INFOPLIST_KEY_NSMicrophoneUsageDescription = "We use the microphone to record audio with your video takes";
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "We save exported videos to your photo library.";
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	INFOPLIST_KEY_OPENAI_API_KEY = "$(OPENAI_API_KEY)";
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	INFOPLIST_KEY_UILaunchScreen_Generation = YES;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	IPHONEOS_DEPLOYMENT_TARGET = 17.6;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	LD_RUNPATH_SEARCH_PATHS = (
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,		"$(inherited)",
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,		"@executable_path/Frameworks",
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	);
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	MARKETING_VERSION = 1.0;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	PRODUCT_BUNDLE_IDENTIFIER = com.bxute.ReTakeAi;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	PRODUCT_NAME = "$(TARGET_NAME)";
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	SUPPORTS_MACCATALYST = NO;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	SWIFT_EMIT_LOC_STRINGS = YES;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	SWIFT_VERSION = 5.0;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	TARGETED_DEVICE_FAMILY = "1,2";
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,};
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,name = Release;
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = EF53DC872F12A53D0009C810 /* Secrets.xcconfig */;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 87W839TD2D;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.business";
+				INFOPLIST_KEY_NSCameraUsageDescription = "We use the camera to record your scene takes.";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "We use the microphone to record audio with your video takes";
+				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "We save exported videos to your photo library.";
+				INFOPLIST_KEY_OPENAI_API_KEY = "$(OPENAI_API_KEY)";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.6;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.bxute.ReTakeAi;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
 		};
 		EF14E5682F066AEB002662ED /* Debug */ = {
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,isa = XCBuildConfiguration;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,buildSettings = {
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	BUNDLE_LOADER = "$(TEST_HOST)";
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	CODE_SIGN_STYLE = Automatic;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	CURRENT_PROJECT_VERSION = 1;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	DEVELOPMENT_TEAM = 87W839TD2D;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	GENERATE_INFOPLIST_FILE = YES;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	IPHONEOS_DEPLOYMENT_TARGET = 18.5;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	MARKETING_VERSION = 1.0;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	PRODUCT_BUNDLE_IDENTIFIER = com.bxute.ReTakeAiTests;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	PRODUCT_NAME = "$(TARGET_NAME)";
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	SWIFT_EMIT_LOC_STRINGS = NO;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	SWIFT_VERSION = 5.0;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	TARGETED_DEVICE_FAMILY = "1,2";
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	TEST_HOST = "$(BUILT_PRODUCTS_DIR)/ReTakeAi.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/ReTakeAi";
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,};
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,name = Debug;
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 87W839TD2D;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.5;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.bxute.ReTakeAiTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/ReTakeAi.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/ReTakeAi";
+			};
+			name = Debug;
 		};
 		EF14E5692F066AEB002662ED /* Release */ = {
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,isa = XCBuildConfiguration;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,buildSettings = {
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	BUNDLE_LOADER = "$(TEST_HOST)";
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	CODE_SIGN_STYLE = Automatic;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	CURRENT_PROJECT_VERSION = 1;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	DEVELOPMENT_TEAM = 87W839TD2D;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	GENERATE_INFOPLIST_FILE = YES;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	IPHONEOS_DEPLOYMENT_TARGET = 18.5;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	MARKETING_VERSION = 1.0;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	PRODUCT_BUNDLE_IDENTIFIER = com.bxute.ReTakeAiTests;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	PRODUCT_NAME = "$(TARGET_NAME)";
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	SWIFT_EMIT_LOC_STRINGS = NO;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	SWIFT_VERSION = 5.0;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	TARGETED_DEVICE_FAMILY = "1,2";
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	TEST_HOST = "$(BUILT_PRODUCTS_DIR)/ReTakeAi.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/ReTakeAi";
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,};
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,name = Release;
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 87W839TD2D;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.5;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.bxute.ReTakeAiTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/ReTakeAi.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/ReTakeAi";
+			};
+			name = Release;
 		};
 		EF14E56B2F066AEB002662ED /* Debug */ = {
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,isa = XCBuildConfiguration;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,buildSettings = {
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	CODE_SIGN_STYLE = Automatic;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	CURRENT_PROJECT_VERSION = 1;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	DEVELOPMENT_TEAM = 87W839TD2D;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	GENERATE_INFOPLIST_FILE = YES;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	MARKETING_VERSION = 1.0;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	PRODUCT_BUNDLE_IDENTIFIER = com.bxute.ReTakeAiUITests;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	PRODUCT_NAME = "$(TARGET_NAME)";
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	SWIFT_EMIT_LOC_STRINGS = NO;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	SWIFT_VERSION = 5.0;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	TARGETED_DEVICE_FAMILY = "1,2";
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	TEST_TARGET_NAME = ReTakeAi;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,};
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,name = Debug;
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 87W839TD2D;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.bxute.ReTakeAiUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = ReTakeAi;
+			};
+			name = Debug;
 		};
 		EF14E56C2F066AEB002662ED /* Release */ = {
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,isa = XCBuildConfiguration;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,buildSettings = {
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	CODE_SIGN_STYLE = Automatic;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	CURRENT_PROJECT_VERSION = 1;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	DEVELOPMENT_TEAM = 87W839TD2D;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	GENERATE_INFOPLIST_FILE = YES;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	MARKETING_VERSION = 1.0;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	PRODUCT_BUNDLE_IDENTIFIER = com.bxute.ReTakeAiUITests;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	PRODUCT_NAME = "$(TARGET_NAME)";
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	SWIFT_EMIT_LOC_STRINGS = NO;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	SWIFT_VERSION = 5.0;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	TARGETED_DEVICE_FAMILY = "1,2";
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	TEST_TARGET_NAME = ReTakeAi;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,};
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,name = Release;
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 87W839TD2D;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.bxute.ReTakeAiUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = ReTakeAi;
+			};
+			name = Release;
 		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
 		EF14E53E2F066AEA002662ED /* Build configuration list for PBXProject "ReTakeAi" */ = {
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,isa = XCConfigurationList;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,buildConfigurations = (
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	EF14E5622F066AEB002662ED /* Debug */,
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	EF14E5632F066AEB002662ED /* Release */,
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,);
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,defaultConfigurationIsVisible = 0;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,defaultConfigurationName = Release;
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				EF14E5622F066AEB002662ED /* Debug */,
+				EF14E5632F066AEB002662ED /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		EF14E5642F066AEB002662ED /* Build configuration list for PBXNativeTarget "ReTakeAi" */ = {
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,isa = XCConfigurationList;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,buildConfigurations = (
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	EF14E5652F066AEB002662ED /* Debug */,
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	EF14E5662F066AEB002662ED /* Release */,
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,);
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,defaultConfigurationIsVisible = 0;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,defaultConfigurationName = Release;
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				EF14E5652F066AEB002662ED /* Debug */,
+				EF14E5662F066AEB002662ED /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		EF14E5672F066AEB002662ED /* Build configuration list for PBXNativeTarget "ReTakeAiTests" */ = {
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,isa = XCConfigurationList;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,buildConfigurations = (
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	EF14E5682F066AEB002662ED /* Debug */,
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	EF14E5692F066AEB002662ED /* Release */,
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,);
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,defaultConfigurationIsVisible = 0;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,defaultConfigurationName = Release;
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				EF14E5682F066AEB002662ED /* Debug */,
+				EF14E5692F066AEB002662ED /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		EF14E56A2F066AEB002662ED /* Build configuration list for PBXNativeTarget "ReTakeAiUITests" */ = {
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,isa = XCConfigurationList;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,buildConfigurations = (
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	EF14E56B2F066AEB002662ED /* Debug */,
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,	EF14E56C2F066AEB002662ED /* Release */,
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,);
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,defaultConfigurationIsVisible = 0;
-				029AC511BC3442D48FEE83CA /* AudioProcessorTestView.swift in Sources */,
-				809618225F2F41A3B0F1F64F /* AudioProcessorTestViewModel.swift in Sources */,defaultConfigurationName = Release;
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				EF14E56B2F066AEB002662ED /* Debug */,
+				EF14E56C2F066AEB002662ED /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};

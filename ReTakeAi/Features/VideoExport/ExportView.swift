@@ -65,6 +65,9 @@ struct ExportView: View {
             .background(Color(.systemGray6))
             .cornerRadius(12)
 
+            // Video Settings
+            videoSettingsSection
+
             // Audio Processing Settings
             audioProcessingSection
 
@@ -81,6 +84,45 @@ struct ExportView: View {
             .controlSize(.large)
             .disabled(!viewModel.canExport())
         }
+    }
+
+    private var videoSettingsSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Label("Scene Transitions", systemImage: "film.stack")
+                .font(.headline)
+
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Transition Style")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+
+                Picker("Transition Style", selection: $viewModel.selectedTransitionStyle) {
+                    ForEach(TransitionStyle.allCases) { style in
+                        HStack {
+                            Image(systemName: style.icon)
+                            Text(style.rawValue)
+                        }
+                        .tag(style)
+                    }
+                }
+                .pickerStyle(.menu)
+                .frame(maxWidth: .infinity, alignment: .leading)
+
+                // Show transition description
+                HStack(spacing: 8) {
+                    Image(systemName: "info.circle")
+                        .font(.caption)
+                        .foregroundColor(.blue)
+                    Text(viewModel.selectedTransitionStyle.description)
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+                .padding(.top, 4)
+            }
+        }
+        .padding()
+        .background(Color(.systemGray6))
+        .cornerRadius(12)
     }
 
     private var audioProcessingSection: some View {

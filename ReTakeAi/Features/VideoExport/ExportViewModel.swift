@@ -19,6 +19,9 @@ class ExportViewModel {
     var selectedAudioPreset: String = "Podcast Pro" // Default preset
     var audioProcessingEnabled: Bool = true
 
+    // Video settings
+    var selectedTransitionStyle: TransitionStyle = .hardCut
+
     let project: Project
 
     private let sceneStore = SceneStore.shared
@@ -113,7 +116,7 @@ class ExportViewModel {
                 processedTakes = selectedTakes
             }
 
-            // Step 2: Merge all processed scenes with crossfades
+            // Step 2: Merge all processed scenes with transitions
             exportingStage = "Merging scenes..."
             exportProgress = 0.7
 
@@ -121,15 +124,47 @@ class ExportViewModel {
             let fileName = "export_\(Date().timeIntervalSince1970).mov"
             let outputURL = exportDir.appendingPathComponent(fileName)
 
-            let mergedURL = try await videoMerger.mergeScenesWithCrossfade(
-                processedTakes,
-                outputURL: outputURL,
-                targetAspect: latestProject.videoAspect,
-                crossfadeDuration: 0.5
-            ) { progress in
-                Task { @MainActor in
-                    self.exportProgress = 0.7 + (progress * 0.3) // 30% for merging
-                    self.exportingStage = "Merging scenes... \(Int(progress * 100))%"
+            let mergedURL: URL
+            switch selectedTransitionStyle {
+            case .hardCut:
+                // No transitions - direct cuts
+                mergedURL = try await videoMerger.mergeScenes(
+                    processedTakes,
+                    outputURL: outputURL,
+                    targetAspect: latestProject.videoAspect
+                ) { progress in
+                    Task { @MainActor in
+                        self.exportProgress = 0.7 + (progress * 0.3)
+                        self.exportingStage = "Merging scenes... \(Int(progress * 100))%"
+                    }
+                }
+
+            case .crossFade:
+                // Cross fade transition
+                mergedURL = try await videoMerger.mergeScenesWithCrossfade(
+                    processedTakes,
+                    outputURL: outputURL,
+                    targetAspect: latestProject.videoAspect,
+                    crossfadeDuration: 0.5
+                ) { progress in
+                    Task { @MainActor in
+                        self.exportProgress = 0.7 + (progress * 0.3)
+                        self.exportingStage = "Merging scenes... \(Int(progress * 100))%"
+                    }
+                }
+
+            case .fadeInOut:
+                // Fade to black transition
+                mergedURL = try await videoMerger.mergeScenesWithFadeToBlack(
+                    processedTakes,
+                    outputURL: outputURL,
+                    targetAspect: latestProject.videoAspect,
+                    fadeDuration: 0.3
+                ) { progress in
+                    Task { @MainActor in
+                        self.exportProgress = 0.7 + (progress * 0.3)
+                        self.exportingStage = "Merging scenes... \(Int(progress * 100))%"
+                    }
                 }
             }
 
@@ -212,12 +247,44 @@ struct ExportInfo {
     let sceneCount: Int
     let totalDuration: TimeInterval
     let estimatedSize: Int64
-    
+
     var formattedDuration: String {
         totalDuration.formattedDuration
     }
-    
+
     var formattedSize: String {
         ByteCountFormatter.string(fromByteCount: estimatedSize, countStyle: .file)
+    }
+}
+
+// MARK: - Transition Style
+
+enum TransitionStyle: String, CaseIterable, Identifiable {
+    case hardCut = "Hard Cut"
+    case crossFade = "Cross Fade"
+    case fadeInOut = "Fade In/Out"
+
+    var id: String { rawValue }
+
+    var description: String {
+        switch self {
+        case .hardCut:
+            return "Direct cuts between scenes with no transition effect"
+        case .crossFade:
+            return "Smooth blend between scenes (audio and video fade simultaneously)"
+        case .fadeInOut:
+            return "Fade to black between scenes (fade out → black → fade in)"
+        }
+    }
+
+    var icon: String {
+        switch self {
+        case .hardCut:
+            return "scissors"
+        case .crossFade:
+            return "waveform.path"
+        case .fadeInOut:
+            return "circle.lefthalf.filled"
+        }
     }
 }
