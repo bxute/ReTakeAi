@@ -59,7 +59,9 @@ class DeadAirTrimmerProcessor: AudioProcessorProtocol {
         let frameCount = AVAudioFrameCount(audioFile.length)
 
         guard let buffer = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: frameCount) else {
-            throw AudioProcessorError.invalidBuffer
+            throw NSError(domain: "DeadAirTrimmerProcessor", code: -1, userInfo: [
+                NSLocalizedDescriptionKey: "Failed to create audio buffer"
+            ])
         }
 
         try audioFile.read(into: buffer)
