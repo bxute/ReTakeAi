@@ -244,13 +244,18 @@ actor VideoMerger {
         let compositionAudioTrack = composition.addMutableTrack(withMediaType: .audio, preferredTrackID: kCMPersistentTrackID_Invalid)
         
         AppLogger.processing.info("🔀 [Crossfade] Created composition tracks - video: \(compositionVideoTrack != nil), audio: \(compositionAudioTrack != nil)")
+        
+        // Create SINGLE audio mix params for the audio track - will collect all volume ramps
+        var audioMixParams: AVMutableAudioMixInputParameters?
+        if let compositionAudioTrack {
+            audioMixParams = AVMutableAudioMixInputParameters(track: compositionAudioTrack)
+        }
 
         let renderSize = targetAspect.exportRenderSize
         let targetAspectRatio = renderSize.width / max(renderSize.height, 1)
         AppLogger.processing.info("🔀 [Crossfade] Render size: \(renderSize.width)x\(renderSize.height), aspect ratio: \(targetAspectRatio)")
 
         var instructions: [AVMutableVideoCompositionInstruction] = []
-        var audioMixParameters: [AVMutableAudioMixInputParameters] = []
 
         var currentTime = CMTime.zero
         let crossfadeTime = CMTime(seconds: crossfadeDuration, preferredTimescale: 600)
@@ -333,23 +338,20 @@ actor VideoMerger {
                     throw error
                 }
 
-                if let compositionAudioTrack {
-                    let audioMixParams = AVMutableAudioMixInputParameters(track: compositionAudioTrack)
-
+                // Add volume ramps to the SINGLE audioMixParams
+                if let audioMixParams {
                     // Audio crossfade: fade out at end (except last scene)
                     if index < takes.count - 1 {
                         let fadeOutStart = CMTimeAdd(currentTime, CMTimeSubtract(duration, crossfadeTime))
                         audioMixParams.setVolumeRamp(fromStartVolume: 1.0, toEndVolume: 0.0, timeRange: CMTimeRange(start: fadeOutStart, duration: crossfadeTime))
-                        AppLogger.processing.info("🔀 [Crossfade]   Added audio fade out")
+                        AppLogger.processing.info("🔀 [Crossfade]   Added audio fade out at \(String(format: "%.2f", CMTimeGetSeconds(fadeOutStart)))s")
                     }
 
                     // Audio crossfade: fade in at start (except first scene)
                     if index > 0 {
                         audioMixParams.setVolumeRamp(fromStartVolume: 0.0, toEndVolume: 1.0, timeRange: CMTimeRange(start: currentTime, duration: crossfadeTime))
-                        AppLogger.processing.info("🔀 [Crossfade]   Added audio fade in")
+                        AppLogger.processing.info("🔀 [Crossfade]   Added audio fade in at \(String(format: "%.2f", CMTimeGetSeconds(currentTime)))s")
                     }
-
-                    audioMixParameters.append(audioMixParams)
                 }
             } else {
                 AppLogger.processing.warning("🔀 [Crossfade]   ⚠️ No audio track found!")
@@ -363,7 +365,7 @@ actor VideoMerger {
         }
 
         AppLogger.processing.info("🔀 [Crossfade] Total duration: \(String(format: "%.2f", CMTimeGetSeconds(currentTime)))s")
-        AppLogger.processing.info("🔀 [Crossfade] Instructions: \(instructions.count), Audio params: \(audioMixParameters.count)")
+        AppLogger.processing.info("🔀 [Crossfade] Instructions: \(instructions.count), Audio mix: \(audioMixParams != nil ? "yes" : "no")")
 
         guard let exportSession = AVAssetExportSession(asset: composition, presetName: AVAssetExportPresetHighestQuality) else {
             AppLogger.processing.error("🔀 [Crossfade] ✗ Cannot create export session")
@@ -380,12 +382,12 @@ actor VideoMerger {
             AppLogger.processing.info("🔀 [Crossfade] ✓ Set video composition with \(instructions.count) instructions")
         }
 
-        // Audio mix
-        if !audioMixParameters.isEmpty {
+        // Audio mix - use the single audioMixParams with all volume ramps
+        if let audioMixParams {
             let audioMix = AVMutableAudioMix()
-            audioMix.inputParameters = audioMixParameters
+            audioMix.inputParameters = [audioMixParams]
             exportSession.audioMix = audioMix
-            AppLogger.processing.info("🔀 [Crossfade] ✓ Set audio mix with \(audioMixParameters.count) parameters")
+            AppLogger.processing.info("🔀 [Crossfade] ✓ Set audio mix")
         }
 
         exportSession.outputURL = outputURL
@@ -430,7 +432,12 @@ actor VideoMerger {
         let targetAspectRatio = renderSize.width / max(renderSize.height, 1)
 
         var instructions: [AVMutableVideoCompositionInstruction] = []
-        var audioMixParameters: [AVMutableAudioMixInputParameters] = []
+        
+        // Create SINGLE audio mix params for the audio track
+        var audioMixParams: AVMutableAudioMixInputParameters?
+        if let compositionAudioTrack {
+            audioMixParams = AVMutableAudioMixInputParameters(track: compositionAudioTrack)
+        }
 
         var currentTime = CMTime.zero
         let fadeTime = CMTime(seconds: fadeDuration, preferredTimescale: 600)
@@ -482,7 +489,7 @@ actor VideoMerger {
                 }
             }
 
-            // Audio track with fade
+            // Audio track with fade - add ramps to SINGLE audioMixParams
             if let assetAudioTrack = try await asset.loadTracks(withMediaType: .audio).first {
                 try compositionAudioTrack?.insertTimeRange(
                     CMTimeRange(start: .zero, duration: duration),
@@ -490,9 +497,7 @@ actor VideoMerger {
                     at: currentTime
                 )
 
-                if let compositionAudioTrack {
-                    let audioMixParams = AVMutableAudioMixInputParameters(track: compositionAudioTrack)
-
+                if let audioMixParams {
                     // Fade in at start (except first scene)
                     if index > 0 {
                         audioMixParams.setVolumeRamp(fromStartVolume: 0.0, toEndVolume: 1.0, timeRange: CMTimeRange(start: currentTime, duration: fadeTime))
@@ -503,8 +508,6 @@ actor VideoMerger {
                         let fadeOutStart = CMTimeAdd(currentTime, CMTimeSubtract(duration, fadeTime))
                         audioMixParams.setVolumeRamp(fromStartVolume: 1.0, toEndVolume: 0.0, timeRange: CMTimeRange(start: fadeOutStart, duration: fadeTime))
                     }
-
-                    audioMixParameters.append(audioMixParams)
                 }
             }
 
@@ -527,10 +530,10 @@ actor VideoMerger {
             exportSession.videoComposition = videoComposition
         }
 
-        // Audio mix
-        if !audioMixParameters.isEmpty {
+        // Audio mix - use the single audioMixParams
+        if let audioMixParams {
             let audioMix = AVMutableAudioMix()
-            audioMix.inputParameters = audioMixParameters
+            audioMix.inputParameters = [audioMixParams]
             exportSession.audioMix = audioMix
         }
 

@@ -26,6 +26,7 @@ actor SceneAudioProcessor {
         audioPreset: [String: (enabled: Bool, config: ProcessorConfig)]
     ) async throws -> URL {
 
+        AppLogger.processing.info("🎧 [SceneAudio] ========================================")
         AppLogger.processing.info("🎧 [SceneAudio] Processing: \(inputVideoURL.lastPathComponent)")
         AppLogger.processing.info("🎧 [SceneAudio] Output: \(outputVideoURL.lastPathComponent)")
 
@@ -35,18 +36,31 @@ actor SceneAudioProcessor {
         AppLogger.processing.info("🎧 [SceneAudio] Input file: exists=\(inputExists), size=\(inputSize) bytes")
         
         // Check input tracks
+        AppLogger.processing.info("🎧 [SceneAudio] Loading input asset tracks...")
         let inputAsset = AVAsset(url: inputVideoURL)
-        let inputVideoTracks = try await inputAsset.loadTracks(withMediaType: .video)
-        let inputAudioTracks = try await inputAsset.loadTracks(withMediaType: .audio)
-        AppLogger.processing.info("🎧 [SceneAudio] Input tracks - video: \(inputVideoTracks.count), audio: \(inputAudioTracks.count)")
+        let inputVideoTracks: [AVAssetTrack]
+        let inputAudioTracks: [AVAssetTrack]
+        do {
+            inputVideoTracks = try await inputAsset.loadTracks(withMediaType: .video)
+            inputAudioTracks = try await inputAsset.loadTracks(withMediaType: .audio)
+            AppLogger.processing.info("🎧 [SceneAudio] Input tracks - video: \(inputVideoTracks.count), audio: \(inputAudioTracks.count)")
+        } catch {
+            AppLogger.processing.error("🎧 [SceneAudio] ✗ Failed to load input tracks: \(error)")
+            throw error
+        }
         
         // Step 1: Extract audio from video
         AppLogger.processing.info("🎧 [SceneAudio] Step 1: Extracting audio...")
-        let extractedAudioURL = try await extractAudio(from: inputVideoURL)
+        let extractedAudioURL: URL
+        do {
+            extractedAudioURL = try await extractAudio(from: inputVideoURL)
+            let extractedSize = (try? FileManager.default.attributesOfItem(atPath: extractedAudioURL.path)[.size] as? Int64) ?? 0
+            AppLogger.processing.info("🎧 [SceneAudio] Step 1 ✓ Extracted audio: \(extractedSize) bytes")
+        } catch {
+            AppLogger.processing.error("🎧 [SceneAudio] Step 1 ✗ Extract audio failed: \(error)")
+            throw error
+        }
         defer { try? FileManager.default.removeItem(at: extractedAudioURL) }
-        
-        let extractedSize = (try? FileManager.default.attributesOfItem(atPath: extractedAudioURL.path)[.size] as? Int64) ?? 0
-        AppLogger.processing.info("🎧 [SceneAudio] Step 1 ✓ Extracted audio: \(extractedSize) bytes")
 
         // Step 2: Apply Dead Air Trimmer (if enabled)
         var currentAudioURL = extractedAudioURL
@@ -58,18 +72,30 @@ actor SceneAudioProcessor {
             let trimmedAudioURL = FileManager.default.temporaryDirectory
                 .appendingPathComponent("trimmed_\(UUID().uuidString).m4a")
 
-            let processor = DeadAirTrimmerProcessor()
-            let keptRanges = try await processor.processWithRanges(
-                inputURL: currentAudioURL,
-                outputURL: trimmedAudioURL,
-                config: trimmerConfig.config
-            )
+            do {
+                let processor = DeadAirTrimmerProcessor()
+                let keptRanges = try await processor.processWithRanges(
+                    inputURL: currentAudioURL,
+                    outputURL: trimmedAudioURL,
+                    config: trimmerConfig.config
+                )
 
-            currentAudioURL = trimmedAudioURL
-            trimmedTimeRanges = keptRanges
+                currentAudioURL = trimmedAudioURL
+                trimmedTimeRanges = keptRanges
 
-            let trimmedDuration = keptRanges.reduce(0.0) { $0 + CMTimeGetSeconds($1.duration) }
-            AppLogger.processing.info("🎧 [SceneAudio] Step 2 ✓ Dead air trimmed → \(String(format: "%.2f", trimmedDuration))s, \(keptRanges.count) ranges")
+                let trimmedDuration = keptRanges.reduce(0.0) { $0 + CMTimeGetSeconds($1.duration) }
+                AppLogger.processing.info("🎧 [SceneAudio] Step 2 ✓ Dead air trimmed → \(String(format: "%.2f", trimmedDuration))s, \(keptRanges.count) ranges")
+                
+                // Log each range for debugging
+                for (i, range) in keptRanges.enumerated() {
+                    let start = CMTimeGetSeconds(range.start)
+                    let dur = CMTimeGetSeconds(range.duration)
+                    AppLogger.processing.info("🎧 [SceneAudio]   Range \(i): start=\(String(format: "%.2f", start))s, duration=\(String(format: "%.2f", dur))s")
+                }
+            } catch {
+                AppLogger.processing.error("🎧 [SceneAudio] Step 2 ✗ Dead Air Trimmer failed: \(error)")
+                throw error
+            }
         } else {
             AppLogger.processing.info("🎧 [SceneAudio] Step 2: Skipped (Dead Air Trimmer disabled)")
         }
@@ -81,21 +107,26 @@ actor SceneAudioProcessor {
             let attenuatedAudioURL = FileManager.default.temporaryDirectory
                 .appendingPathComponent("attenuated_\(UUID().uuidString).m4a")
 
-            let processor = SilenceAttenuatorProcessor()
-            try await processor.process(
-                inputURL: currentAudioURL,
-                outputURL: attenuatedAudioURL,
-                config: attenuatorConfig.config
-            )
+            do {
+                let processor = SilenceAttenuatorProcessor()
+                try await processor.process(
+                    inputURL: currentAudioURL,
+                    outputURL: attenuatedAudioURL,
+                    config: attenuatorConfig.config
+                )
 
-            // Clean up previous temp file if not original
-            if currentAudioURL != extractedAudioURL {
-                try? FileManager.default.removeItem(at: currentAudioURL)
+                // Clean up previous temp file if not original
+                if currentAudioURL != extractedAudioURL {
+                    try? FileManager.default.removeItem(at: currentAudioURL)
+                }
+
+                currentAudioURL = attenuatedAudioURL
+                let attenuatedSize = (try? FileManager.default.attributesOfItem(atPath: attenuatedAudioURL.path)[.size] as? Int64) ?? 0
+                AppLogger.processing.info("🎧 [SceneAudio] Step 3 ✓ Silence attenuated: \(attenuatedSize) bytes")
+            } catch {
+                AppLogger.processing.error("🎧 [SceneAudio] Step 3 ✗ Silence Attenuator failed: \(error)")
+                throw error
             }
-
-            currentAudioURL = attenuatedAudioURL
-            let attenuatedSize = (try? FileManager.default.attributesOfItem(atPath: attenuatedAudioURL.path)[.size] as? Int64) ?? 0
-            AppLogger.processing.info("🎧 [SceneAudio] Step 3 ✓ Silence attenuated: \(attenuatedSize) bytes")
         } else {
             AppLogger.processing.info("🎧 [SceneAudio] Step 3: Skipped (Silence Attenuator disabled)")
         }
@@ -103,19 +134,24 @@ actor SceneAudioProcessor {
         // Step 4: Trim video to match audio (if dead air was trimmed)
         var finalVideoURL = inputVideoURL
         if !trimmedTimeRanges.isEmpty {
-            AppLogger.processing.info("🎧 [SceneAudio] Step 4: Trimming video to match audio...")
+            AppLogger.processing.info("🎧 [SceneAudio] Step 4: Trimming video to match audio (\(trimmedTimeRanges.count) ranges)...")
             let trimmedVideoURL = FileManager.default.temporaryDirectory
                 .appendingPathComponent("trimmed_video_\(UUID().uuidString).mov")
 
-            try await trimVideo(
-                inputVideoURL: inputVideoURL,
-                outputVideoURL: trimmedVideoURL,
-                keptRanges: trimmedTimeRanges
-            )
+            do {
+                try await trimVideo(
+                    inputVideoURL: inputVideoURL,
+                    outputVideoURL: trimmedVideoURL,
+                    keptRanges: trimmedTimeRanges
+                )
 
-            finalVideoURL = trimmedVideoURL
-            let trimmedVideoSize = (try? FileManager.default.attributesOfItem(atPath: trimmedVideoURL.path)[.size] as? Int64) ?? 0
-            AppLogger.processing.info("🎧 [SceneAudio] Step 4 ✓ Video trimmed: \(trimmedVideoSize) bytes")
+                finalVideoURL = trimmedVideoURL
+                let trimmedVideoSize = (try? FileManager.default.attributesOfItem(atPath: trimmedVideoURL.path)[.size] as? Int64) ?? 0
+                AppLogger.processing.info("🎧 [SceneAudio] Step 4 ✓ Video trimmed: \(trimmedVideoSize) bytes")
+            } catch {
+                AppLogger.processing.error("🎧 [SceneAudio] Step 4 ✗ Video trim failed: \(error)")
+                throw error
+            }
         } else {
             AppLogger.processing.info("🎧 [SceneAudio] Step 4: Skipped (no trimming needed)")
         }
@@ -125,22 +161,27 @@ actor SceneAudioProcessor {
         AppLogger.processing.info("🎧 [SceneAudio]   Video source: \(finalVideoURL.lastPathComponent)")
         AppLogger.processing.info("🎧 [SceneAudio]   Audio source: \(currentAudioURL.lastPathComponent)")
         
-        try await muxAudioWithVideo(
-            videoURL: finalVideoURL,
-            audioURL: currentAudioURL,
-            outputURL: outputVideoURL
-        )
+        do {
+            try await muxAudioWithVideo(
+                videoURL: finalVideoURL,
+                audioURL: currentAudioURL,
+                outputURL: outputVideoURL
+            )
 
-        // Verify output
-        let outputExists = FileManager.default.fileExists(atPath: outputVideoURL.path)
-        let outputSize = (try? FileManager.default.attributesOfItem(atPath: outputVideoURL.path)[.size] as? Int64) ?? 0
-        AppLogger.processing.info("🎧 [SceneAudio] Step 5 ✓ Muxed: exists=\(outputExists), size=\(outputSize) bytes")
-        
-        // Check output tracks
-        let outputAsset = AVAsset(url: outputVideoURL)
-        let outputVideoTracks = try await outputAsset.loadTracks(withMediaType: .video)
-        let outputAudioTracks = try await outputAsset.loadTracks(withMediaType: .audio)
-        AppLogger.processing.info("🎧 [SceneAudio] Output tracks - video: \(outputVideoTracks.count), audio: \(outputAudioTracks.count)")
+            // Verify output
+            let outputExists = FileManager.default.fileExists(atPath: outputVideoURL.path)
+            let outputSize = (try? FileManager.default.attributesOfItem(atPath: outputVideoURL.path)[.size] as? Int64) ?? 0
+            AppLogger.processing.info("🎧 [SceneAudio] Step 5 ✓ Muxed: exists=\(outputExists), size=\(outputSize) bytes")
+            
+            // Check output tracks
+            let outputAsset = AVAsset(url: outputVideoURL)
+            let outputVideoTracks = try await outputAsset.loadTracks(withMediaType: .video)
+            let outputAudioTracks = try await outputAsset.loadTracks(withMediaType: .audio)
+            AppLogger.processing.info("🎧 [SceneAudio] Output tracks - video: \(outputVideoTracks.count), audio: \(outputAudioTracks.count)")
+        } catch {
+            AppLogger.processing.error("🎧 [SceneAudio] Step 5 ✗ Mux failed: \(error)")
+            throw error
+        }
 
         // Clean up temp files
         if currentAudioURL != extractedAudioURL {
@@ -239,9 +280,19 @@ actor SceneAudioProcessor {
         let videoComposition = AVMutableVideoComposition()
         let preferredTransform = try await videoTrack.load(.preferredTransform)
         let naturalSize = try await videoTrack.load(.naturalSize)
+        
+        // Calculate oriented size (accounts for rotation)
+        let orientedSize = orientedVideoSize(naturalSize: naturalSize, preferredTransform: preferredTransform)
+        
+        // Build transform that positions content correctly in the oriented render size
+        let transform = buildOrientedTransform(
+            naturalSize: naturalSize,
+            preferredTransform: preferredTransform,
+            renderSize: orientedSize
+        )
 
         let layerInstruction = AVMutableVideoCompositionLayerInstruction(assetTrack: compositionVideoTrack)
-        layerInstruction.setTransform(preferredTransform, at: .zero)
+        layerInstruction.setTransform(transform, at: .zero)
 
         let instruction = AVMutableVideoCompositionInstruction()
         instruction.timeRange = CMTimeRange(start: .zero, duration: currentTime)
@@ -249,7 +300,7 @@ actor SceneAudioProcessor {
 
         videoComposition.instructions = [instruction]
         videoComposition.frameDuration = CMTime(value: 1, timescale: 30)
-        videoComposition.renderSize = naturalSize
+        videoComposition.renderSize = orientedSize
 
         // Export trimmed video
         guard let exportSession = AVAssetExportSession(
@@ -271,6 +322,8 @@ actor SceneAudioProcessor {
     }
 
     /// Mux processed audio with video (replacing original audio)
+    /// Simple approach: Just combine tracks without video composition
+    /// The video track already has correct orientation from trimVideo
     private func muxAudioWithVideo(
         videoURL: URL,
         audioURL: URL,
@@ -300,6 +353,10 @@ actor SceneAudioProcessor {
             of: videoTrack,
             at: .zero
         )
+        
+        // Preserve the video's preferred transform
+        let preferredTransform = try await videoTrack.load(.preferredTransform)
+        compositionVideoTrack.preferredTransform = preferredTransform
 
         // Add audio track
         guard let compositionAudioTrack = composition.addMutableTrack(
@@ -323,23 +380,8 @@ actor SceneAudioProcessor {
             at: .zero
         )
 
-        // Create video composition to preserve transforms
-        let videoComposition = AVMutableVideoComposition()
-        let preferredTransform = try await videoTrack.load(.preferredTransform)
-        let naturalSize = try await videoTrack.load(.naturalSize)
-
-        let layerInstruction = AVMutableVideoCompositionLayerInstruction(assetTrack: compositionVideoTrack)
-        layerInstruction.setTransform(preferredTransform, at: .zero)
-
-        let instruction = AVMutableVideoCompositionInstruction()
-        instruction.timeRange = CMTimeRange(start: .zero, duration: finalDuration)
-        instruction.layerInstructions = [layerInstruction]
-
-        videoComposition.instructions = [instruction]
-        videoComposition.frameDuration = CMTime(value: 1, timescale: 30)
-        videoComposition.renderSize = naturalSize
-
-        // Export
+        // Export WITHOUT video composition - let AVFoundation handle transforms naturally
+        // The composition track's preferredTransform will be respected
         guard let exportSession = AVAssetExportSession(
             asset: composition,
             presetName: AVAssetExportPresetHighestQuality
@@ -349,13 +391,40 @@ actor SceneAudioProcessor {
 
         exportSession.outputURL = outputURL
         exportSession.outputFileType = .mov
-        exportSession.videoComposition = videoComposition
+        // NOTE: No videoComposition set - simpler and avoids double-transform issues
 
         await exportSession.export()
 
         if let error = exportSession.error {
             throw SceneAudioProcessorError.exportFailed(error)
         }
+    }
+    
+    // MARK: - Transform Helpers
+    
+    /// Calculate the oriented video size after applying preferredTransform
+    private func orientedVideoSize(naturalSize: CGSize, preferredTransform: CGAffineTransform) -> CGSize {
+        let rect = CGRect(origin: .zero, size: naturalSize).applying(preferredTransform)
+        return CGSize(width: abs(rect.width), height: abs(rect.height))
+    }
+    
+    /// Build a transform that correctly positions content in the oriented render size
+    private func buildOrientedTransform(
+        naturalSize: CGSize,
+        preferredTransform: CGAffineTransform,
+        renderSize: CGSize
+    ) -> CGAffineTransform {
+        // Calculate the transformed rect to find where content ends up
+        let transformedRect = CGRect(origin: .zero, size: naturalSize).applying(preferredTransform)
+        
+        // Start with the preferred transform (handles rotation)
+        var result = preferredTransform
+        
+        // Translate to move content to origin (0,0) - handles negative coordinates from rotation
+        let translateToOrigin = CGAffineTransform(translationX: -transformedRect.minX, y: -transformedRect.minY)
+        result = result.concatenating(translateToOrigin)
+        
+        return result
     }
 }
 
