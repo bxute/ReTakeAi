@@ -29,7 +29,8 @@ class AudioProcessorTestViewModel: NSObject {
     // MARK: - Processor Selection
 
     var enabledProcessors: [String: Bool] = [
-        "silenceAttenuator": true       // Silence Attenuator (Pure Gain)
+        "silenceAttenuator": true,      // Silence Attenuator (Pure Gain)
+        "deadAirTrimmer": true          // Dead Air Trimmer
     ]
 
     var processorConfigs: [String: ProcessorConfig] = [
@@ -39,13 +40,23 @@ class AudioProcessorTestViewModel: NSObject {
             "thresholdOffset": 8.0,   // +8 dB above noise floor
             "attackTime": 0.012,      // 12 ms
             "releaseTime": 0.200      // 200 ms
+        ]),
+        "deadAirTrimmer": ProcessorConfig([
+            "trimStart": true,
+            "trimEnd": true,
+            "trimMid": false,
+            "startBuffer": 0.25,
+            "endBuffer": 0.25,
+            "minDeadAirDuration": 1.0,
+            "maxMidPauseDuration": 1.5
         ])
     ]
 
     // MARK: - Processor Info
 
     let processorInfo: [(id: String, name: String, description: String)] = [
-        ("silenceAttenuator", "Silence Attenuator", "Pure gain-based silence reduction with adaptive threshold")
+        ("silenceAttenuator", "Silence Attenuator", "Pure gain-based silence reduction with adaptive threshold"),
+        ("deadAirTrimmer", "Dead Air Trimmer", "Detect and remove long silent pauses (start, end, mid)")
     ]
 
     // MARK: - Audio Playback
@@ -174,6 +185,7 @@ class AudioProcessorTestViewModel: NSObject {
 
             // Define processing order
             let processingOrder: [(id: String, processor: any AudioProcessorProtocol, name: String)] = [
+                ("deadAirTrimmer", DeadAirTrimmerProcessor(), "Dead Air Trimmer"),
                 ("silenceAttenuator", SilenceAttenuatorProcessor(), "Silence Attenuator")
             ]
 

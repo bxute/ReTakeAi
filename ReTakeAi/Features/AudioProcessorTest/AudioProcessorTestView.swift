@@ -14,6 +14,7 @@ struct AudioProcessorTestView: View {
     @State private var showPresetPicker = false
     @State private var loadError: String?
     @State private var showSilenceAttenuatorDebug = false
+    @State private var showDeadAirTrimmerDebug = false
 
     var body: some View {
         Group {
@@ -58,6 +59,10 @@ struct AudioProcessorTestView: View {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Menu {
                         // Debug screens
+                        Button(action: { showDeadAirTrimmerDebug = true }) {
+                            Label("Dead Air Trimmer Debug", systemImage: "scissors")
+                        }
+
                         Button(action: { showSilenceAttenuatorDebug = true }) {
                             Label("Silence Attenuator Debug", systemImage: "waveform.path")
                         }
@@ -76,6 +81,9 @@ struct AudioProcessorTestView: View {
                     }
                 }
             }
+        }
+        .sheet(isPresented: $showDeadAirTrimmerDebug) {
+            DeadAirTrimmerDebugView()
         }
         .sheet(isPresented: $showSilenceAttenuatorDebug) {
             SilenceAttenuatorDebugView()
