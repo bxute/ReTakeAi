@@ -13,6 +13,8 @@ struct AudioProcessorTestView: View {
     @State private var showFilePicker = false
     @State private var showPresetPicker = false
     @State private var loadError: String?
+    @State private var showSilenceAttenuatorDebug = false
+    @State private var showLUFSNormalizerDebug = false
 
     var body: some View {
         Group {
@@ -55,14 +57,36 @@ struct AudioProcessorTestView: View {
         .toolbar {
             if let viewModel = viewModel {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button(action: {
-                        viewModel.stopOriginal()
-                        viewModel.stopProcessed()
-                    }) {
-                        Image(systemName: "stop.fill")
+                    Menu {
+                        // Debug screens
+                        Button(action: { showSilenceAttenuatorDebug = true }) {
+                            Label("Silence Attenuator Debug", systemImage: "waveform.path")
+                        }
+
+                        Button(action: { showLUFSNormalizerDebug = true }) {
+                            Label("LUFS Normalizer Debug", systemImage: "waveform.and.magnifyingglass")
+                        }
+
+                        Divider()
+
+                        // Stop playback
+                        Button(action: {
+                            viewModel.stopOriginal()
+                            viewModel.stopProcessed()
+                        }) {
+                            Label("Stop Playback", systemImage: "stop.fill")
+                        }
+                    } label: {
+                        Image(systemName: "ellipsis.circle")
                     }
                 }
             }
+        }
+        .sheet(isPresented: $showSilenceAttenuatorDebug) {
+            SilenceAttenuatorDebugView()
+        }
+        .sheet(isPresented: $showLUFSNormalizerDebug) {
+            LUFSNormalizerDebugView()
         }
         .fileImporter(
             isPresented: $showFilePicker,
@@ -109,6 +133,11 @@ struct AudioProcessorTestView: View {
                 if viewModel.selectedAudioURL != nil {
                     // Processor Selection
                     processorSelectionSection(viewModel: viewModel)
+
+                    // RNNoise Controls (if enabled)
+                    if viewModel.enabledProcessors["rnnoise"] == true {
+                        rnnoiseControlsSection(viewModel: viewModel)
+                    }
 
                     // Quick Presets
                     presetSection(viewModel: viewModel)
@@ -186,6 +215,164 @@ struct AudioProcessorTestView: View {
                 }
             }
         }
+    }
+
+    // MARK: - RNNoise Controls Section
+
+    private func rnnoiseControlsSection(viewModel: AudioProcessorTestViewModel) -> some View {
+        VStack(alignment: .leading, spacing: 16) {
+            HStack {
+                Text("RNNoise Settings")
+                    .font(.headline)
+                Spacer()
+                Image(systemName: "waveform.circle.fill")
+                    .foregroundColor(.green)
+            }
+
+            // Strength Slider
+            VStack(alignment: .leading, spacing: 8) {
+                HStack {
+                    Text("Noise Reduction Strength")
+                        .font(.subheadline)
+                        .fontWeight(.medium)
+                    Spacer()
+                    Text("\(Int((viewModel.processorConfigs["rnnoise"]?["strength"] as? Float ?? 0.7) * 100))%")
+                        .font(.subheadline)
+                        .foregroundColor(.green)
+                        .fontWeight(.bold)
+                }
+
+                Slider(
+                    value: Binding(
+                        get: {
+                            Double(viewModel.processorConfigs["rnnoise"]?["strength"] as? Float ?? 0.7)
+                        },
+                        set: { newValue in
+                            if var config = viewModel.processorConfigs["rnnoise"] {
+                                config["strength"] = Float(newValue)
+                                viewModel.processorConfigs["rnnoise"] = config
+                            }
+                        }
+                    ),
+                    in: 0.3...1.0,
+                    step: 0.05
+                )
+                .tint(.green)
+
+                HStack {
+                    Text("30% (Light)")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    Spacer()
+                    Text("100% (Aggressive)")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+
+                // Quick presets
+                HStack(spacing: 8) {
+                    Button("Light (50%)") {
+                        if var config = viewModel.processorConfigs["rnnoise"] {
+                            config["strength"] = Float(0.5)
+                            config["voicePreserve"] = Float(0.9)
+                            viewModel.processorConfigs["rnnoise"] = config
+                        }
+                    }
+                    .font(.caption)
+                    .buttonStyle(.bordered)
+
+                    Button("Standard (70%)") {
+                        if var config = viewModel.processorConfigs["rnnoise"] {
+                            config["strength"] = Float(0.7)
+                            config["voicePreserve"] = Float(0.85)
+                            viewModel.processorConfigs["rnnoise"] = config
+                        }
+                    }
+                    .font(.caption)
+                    .buttonStyle(.bordered)
+
+                    Button("Aggressive (90%)") {
+                        if var config = viewModel.processorConfigs["rnnoise"] {
+                            config["strength"] = Float(0.9)
+                            config["voicePreserve"] = Float(0.7)
+                            viewModel.processorConfigs["rnnoise"] = config
+                        }
+                    }
+                    .font(.caption)
+                    .buttonStyle(.bordered)
+                }
+            }
+            .padding()
+            .background(Color.green.opacity(0.05))
+            .cornerRadius(12)
+
+            // Voice Preserve Slider
+            VStack(alignment: .leading, spacing: 8) {
+                HStack {
+                    Text("Voice Preservation")
+                        .font(.subheadline)
+                        .fontWeight(.medium)
+                    Spacer()
+                    Text("\(Int((viewModel.processorConfigs["rnnoise"]?["voicePreserve"] as? Float ?? 0.85) * 100))%")
+                        .font(.subheadline)
+                        .foregroundColor(.orange)
+                        .fontWeight(.bold)
+                }
+
+                Slider(
+                    value: Binding(
+                        get: {
+                            Double(viewModel.processorConfigs["rnnoise"]?["voicePreserve"] as? Float ?? 0.85)
+                        },
+                        set: { newValue in
+                            if var config = viewModel.processorConfigs["rnnoise"] {
+                                config["voicePreserve"] = Float(newValue)
+                                viewModel.processorConfigs["rnnoise"] = config
+                            }
+                        }
+                    ),
+                    in: 0.5...1.0,
+                    step: 0.05
+                )
+                .tint(.orange)
+
+                HStack {
+                    Text("More Noise Removal")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    Spacer()
+                    Text("Safer for Voice")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+
+                Text("Higher values preserve voice naturalness but may leave more background noise")
+                    .font(.caption2)
+                    .foregroundColor(.secondary)
+                    .padding(.top, 4)
+            }
+            .padding()
+            .background(Color.orange.opacity(0.05))
+            .cornerRadius(12)
+
+            // Info box
+            VStack(alignment: .leading, spacing: 8) {
+                HStack {
+                    Image(systemName: "info.circle.fill")
+                        .foregroundColor(.blue)
+                    Text("How It Works")
+                        .font(.caption)
+                        .fontWeight(.medium)
+                }
+                Text("• Frame-based processing @ 16 kHz\n• Spectral noise suppression\n• Voice-adaptive gating\n• Preserves speech clarity")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
+            .padding()
+            .background(Color.blue.opacity(0.1))
+            .cornerRadius(8)
+        }
+        .padding(.vertical, 8)
     }
 
     // MARK: - Preset Section

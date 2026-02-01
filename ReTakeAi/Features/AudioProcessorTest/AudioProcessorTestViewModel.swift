@@ -29,73 +29,28 @@ class AudioProcessorTestViewModel: NSObject {
     // MARK: - Processor Selection
 
     var enabledProcessors: [String: Bool] = [
-        "hpf": true,                    // High-Pass Filter
-        "voiceBandPass": false,         // Voice Band-Pass
-        "spectralNoiseReduction": false,// Spectral Noise Reduction
-        "adaptiveGate": false,          // Adaptive Gate
-        "voiceEQ": false,               // Voice EQ
-        "multiBandCompressor": false,   // Multi-Band Compressor
-        "deEsser": false,               // De-Esser
-        "lufsNormalizer": false         // LUFS Normalizer
+        "silenceAttenuator": true,      // Silence Attenuator (Pure Gain)
+        "lufsNormalizer": true          // LUFS Normalizer
     ]
 
     var processorConfigs: [String: ProcessorConfig] = [
-        "hpf": ProcessorConfig([
-            "cutoffFrequency": 50.0,  // Default 60 Hz - safe for voice
-            "makeupGain": 3.0         // +3 dB makeup gain
-        ]),
-        "voiceBandPass": ProcessorConfig([
-            "lowCutoff": 85.0,
-            "highCutoff": 4000.0,
-            "order": 2
-        ]),
-        "spectralNoiseReduction": ProcessorConfig([
-            "noiseProfileDuration": 0.5,
-            "reductionAmount": 12.0,
-            "smoothingFactor": 0.7
-        ]),
-        "adaptiveGate": ProcessorConfig([
-            "threshold": -40.0,
-            "ratio": 10.0,
-            "attack": 5.0,
-            "release": 50.0,
-            "kneeWidth": 6.0
-        ]),
-        "voiceEQ": ProcessorConfig([
-            "preset": "clarity"
-        ]),
-        "multiBandCompressor": ProcessorConfig([
-            "lowThreshold": -20.0,
-            "lowRatio": 2.0,
-            "midThreshold": -15.0,
-            "midRatio": 3.0,
-            "highThreshold": -12.0,
-            "highRatio": 4.0,
-            "attack": 5.0,
-            "release": 100.0
-        ]),
-        "deEsser": ProcessorConfig([
-            "frequency": 7000.0,
-            "threshold": -15.0,
-            "ratio": 4.0,
-            "bandwidth": 4000.0
+        "silenceAttenuator": ProcessorConfig([
+            "frameSize": 0.020,       // 20 ms frames
+            "attenuation": -5.0,      // -5 dB for silence
+            "thresholdOffset": 8.0,   // +8 dB above noise floor
+            "attackTime": 0.012,      // 12 ms
+            "releaseTime": 0.200      // 200 ms
         ]),
         "lufsNormalizer": ProcessorConfig([
-            "targetLUFS": -16.0,
-            "truePeak": -1.0
+            "targetLUFS": -16.0,      // EBU R128 broadcast standard
+            "truePeak": -1.0          // dBTP (prevent clipping)
         ])
     ]
 
     // MARK: - Processor Info
 
     let processorInfo: [(id: String, name: String, description: String)] = [
-        ("hpf", "High-Pass Filter", "Remove low-frequency rumble (60-100 Hz) with makeup gain"),
-        ("voiceBandPass", "Voice Band-Pass", "Isolate voice frequencies (85-4000 Hz)"),
-        ("spectralNoiseReduction", "Spectral Noise Reduction", "Remove constant background noise"),
-        ("adaptiveGate", "Adaptive Gate", "Suppress noise during speech pauses"),
-        ("voiceEQ", "Voice EQ", "Shape frequency for clarity (presets: clarity, warmth, broadcast, podcast)"),
-        ("multiBandCompressor", "Multi-Band Compressor", "Control dynamics across frequency bands"),
-        ("deEsser", "De-Esser", "Reduce harsh sibilance (S, T, Ch sounds)"),
+        ("silenceAttenuator", "Silence Attenuator", "Pure gain-based silence reduction with adaptive threshold"),
         ("lufsNormalizer", "LUFS Normalizer", "Normalize to broadcast standard loudness (-16 LUFS)")
     ]
 
@@ -225,13 +180,7 @@ class AudioProcessorTestViewModel: NSObject {
 
             // Define processing order
             let processingOrder: [(id: String, processor: any AudioProcessorProtocol, name: String)] = [
-                ("hpf", HPFProcessor(), "High-Pass Filter"),
-                ("voiceBandPass", VoiceBandPassProcessor(), "Voice Band-Pass"),
-                ("spectralNoiseReduction", SpectralNoiseReductionProcessor(), "Spectral Noise Reduction"),
-                ("adaptiveGate", AdaptiveGateProcessor(), "Adaptive Gate"),
-                ("voiceEQ", VoiceEQProcessor(), "Voice EQ"),
-                ("multiBandCompressor", MultiBandCompressorProcessor(), "Multi-Band Compressor"),
-                ("deEsser", DeEsserProcessor(), "De-Esser"),
+                ("silenceAttenuator", SilenceAttenuatorProcessor(), "Silence Attenuator"),
                 ("lufsNormalizer", LUFSNormalizerProcessor(), "LUFS Normalizer")
             ]
 

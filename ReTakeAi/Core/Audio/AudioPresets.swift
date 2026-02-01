@@ -21,19 +21,19 @@ struct AudioPresets {
     /// Gentle HPF at 60 Hz - minimal filtering, preserves all voice (recommended for male voices)
     static let hpfGentle = ProcessorConfig([
         "cutoffFrequency": 60.0,
-        "makeupGain": 3.0  // +3 dB makeup gain
+        "resonance": 0.5  // Very gentle roll-off
     ])
 
-    /// Standard HPF at 80 Hz - removes rumble while preserving voice
+    /// Standard HPF at 70 Hz - safe for all voices, removes rumble
     static let hpfStandard = ProcessorConfig([
-        "cutoffFrequency": 80.0,
-        "makeupGain": 4.5  // +4.5 dB makeup gain
+        "cutoffFrequency": 70.0,
+        "resonance": 0.707  // Butterworth (maximally flat)
     ])
 
-    /// Aggressive HPF at 100 Hz - for very noisy environments (may affect bass voice)
+    /// Aggressive HPF at 100 Hz - for very noisy environments (may thin male voices)
     static let hpfAggressive = ProcessorConfig([
         "cutoffFrequency": 100.0,
-        "makeupGain": 6.0  // +6 dB makeup gain
+        "resonance": 1.0  // Moderate steepness
     ])
 
     // MARK: - Voice Band-Pass Presets
