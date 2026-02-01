@@ -225,21 +225,29 @@ actor VideoMerger {
         crossfadeDuration: Double = 0.5,
         progress: (@Sendable (Double) -> Void)? = nil
     ) async throws -> URL {
+        AppLogger.processing.info("🔀 [Crossfade] Starting merge with \(takes.count) takes")
+        AppLogger.processing.info("🔀 [Crossfade] Target aspect: \(targetAspect.rawValue), crossfade: \(crossfadeDuration)s")
+        
         guard !takes.isEmpty else {
+            AppLogger.processing.error("🔀 [Crossfade] ✗ No takes provided")
             throw VideoMergerError.noTakes
         }
 
         // For single take, no crossfade needed
         if takes.count == 1 {
+            AppLogger.processing.info("🔀 [Crossfade] Single take - delegating to simple merge")
             return try await mergeScenes(takes, outputURL: outputURL, targetAspect: targetAspect, progress: progress)
         }
 
         let composition = AVMutableComposition()
         let compositionVideoTrack = composition.addMutableTrack(withMediaType: .video, preferredTrackID: kCMPersistentTrackID_Invalid)
         let compositionAudioTrack = composition.addMutableTrack(withMediaType: .audio, preferredTrackID: kCMPersistentTrackID_Invalid)
+        
+        AppLogger.processing.info("🔀 [Crossfade] Created composition tracks - video: \(compositionVideoTrack != nil), audio: \(compositionAudioTrack != nil)")
 
         let renderSize = targetAspect.exportRenderSize
         let targetAspectRatio = renderSize.width / max(renderSize.height, 1)
+        AppLogger.processing.info("🔀 [Crossfade] Render size: \(renderSize.width)x\(renderSize.height), aspect ratio: \(targetAspectRatio)")
 
         var instructions: [AVMutableVideoCompositionInstruction] = []
         var audioMixParameters: [AVMutableAudioMixInputParameters] = []
@@ -248,20 +256,37 @@ actor VideoMerger {
         let crossfadeTime = CMTime(seconds: crossfadeDuration, preferredTimescale: 600)
 
         for (index, take) in takes.enumerated() {
+            AppLogger.processing.info("🔀 [Crossfade] Processing take \(index + 1)/\(takes.count): \(take.fileURL.lastPathComponent)")
+            
             let asset = AVAsset(url: take.fileURL)
             let duration = try await asset.load(.duration)
+            let durationSeconds = CMTimeGetSeconds(duration)
+            AppLogger.processing.info("🔀 [Crossfade]   Duration: \(String(format: "%.2f", durationSeconds))s")
+            
+            // Check asset tracks
+            let videoTracks = try await asset.loadTracks(withMediaType: .video)
+            let audioTracks = try await asset.loadTracks(withMediaType: .audio)
+            AppLogger.processing.info("🔀 [Crossfade]   Asset tracks - video: \(videoTracks.count), audio: \(audioTracks.count)")
 
             // Video track
-            if let assetVideoTrack = try await asset.loadTracks(withMediaType: .video).first {
-                try compositionVideoTrack?.insertTimeRange(
-                    CMTimeRange(start: .zero, duration: duration),
-                    of: assetVideoTrack,
-                    at: currentTime
-                )
+            if let assetVideoTrack = videoTracks.first {
+                let naturalSize = try await assetVideoTrack.load(.naturalSize)
+                let preferredTransform = try await assetVideoTrack.load(.preferredTransform)
+                AppLogger.processing.info("🔀 [Crossfade]   Video natural size: \(naturalSize.width)x\(naturalSize.height)")
+                
+                do {
+                    try compositionVideoTrack?.insertTimeRange(
+                        CMTimeRange(start: .zero, duration: duration),
+                        of: assetVideoTrack,
+                        at: currentTime
+                    )
+                    AppLogger.processing.info("🔀 [Crossfade]   ✓ Inserted video at \(String(format: "%.2f", CMTimeGetSeconds(currentTime)))s")
+                } catch {
+                    AppLogger.processing.error("🔀 [Crossfade]   ✗ Failed to insert video: \(error)")
+                    throw error
+                }
 
                 if let compositionVideoTrack {
-                    let preferredTransform = try await assetVideoTrack.load(.preferredTransform)
-                    let naturalSize = try await assetVideoTrack.load(.naturalSize)
                     let oriented = VideoMerger.orientedSize(naturalSize: naturalSize, preferredTransform: preferredTransform)
                     let sourceAspectRatio = oriented.width / max(oriented.height, 1)
                     let mode = VideoMerger.layoutMode(sourceAspectRatio: sourceAspectRatio, targetAspectRatio: targetAspectRatio)
@@ -271,6 +296,7 @@ actor VideoMerger {
                         renderSize: renderSize,
                         mode: mode
                     )
+                    AppLogger.processing.info("🔀 [Crossfade]   Oriented: \(oriented.width)x\(oriented.height), mode: \(mode == .aspectFill ? "fill" : "fit")")
 
                     let layerInstruction = AVMutableVideoCompositionLayerInstruction(assetTrack: compositionVideoTrack)
                     layerInstruction.setTransform(transform, at: currentTime)
@@ -279,6 +305,7 @@ actor VideoMerger {
                     if index < takes.count - 1 {
                         let fadeOutStart = CMTimeAdd(currentTime, CMTimeSubtract(duration, crossfadeTime))
                         layerInstruction.setOpacityRamp(fromStartOpacity: 1.0, toEndOpacity: 0.0, timeRange: CMTimeRange(start: fadeOutStart, duration: crossfadeTime))
+                        AppLogger.processing.info("🔀 [Crossfade]   Added fade out at \(String(format: "%.2f", CMTimeGetSeconds(fadeOutStart)))s")
                     }
 
                     let instruction = AVMutableVideoCompositionInstruction()
@@ -286,16 +313,25 @@ actor VideoMerger {
                     instruction.layerInstructions = [layerInstruction]
 
                     instructions.append(instruction)
+                    AppLogger.processing.info("🔀 [Crossfade]   ✓ Created video instruction for range [\(String(format: "%.2f", CMTimeGetSeconds(currentTime))) - \(String(format: "%.2f", CMTimeGetSeconds(CMTimeAdd(currentTime, duration))))]")
                 }
+            } else {
+                AppLogger.processing.warning("🔀 [Crossfade]   ⚠️ No video track found!")
             }
 
             // Audio track with crossfade
-            if let assetAudioTrack = try await asset.loadTracks(withMediaType: .audio).first {
-                try compositionAudioTrack?.insertTimeRange(
-                    CMTimeRange(start: .zero, duration: duration),
-                    of: assetAudioTrack,
-                    at: currentTime
-                )
+            if let assetAudioTrack = audioTracks.first {
+                do {
+                    try compositionAudioTrack?.insertTimeRange(
+                        CMTimeRange(start: .zero, duration: duration),
+                        of: assetAudioTrack,
+                        at: currentTime
+                    )
+                    AppLogger.processing.info("🔀 [Crossfade]   ✓ Inserted audio at \(String(format: "%.2f", CMTimeGetSeconds(currentTime)))s")
+                } catch {
+                    AppLogger.processing.error("🔀 [Crossfade]   ✗ Failed to insert audio: \(error)")
+                    throw error
+                }
 
                 if let compositionAudioTrack {
                     let audioMixParams = AVMutableAudioMixInputParameters(track: compositionAudioTrack)
@@ -304,24 +340,33 @@ actor VideoMerger {
                     if index < takes.count - 1 {
                         let fadeOutStart = CMTimeAdd(currentTime, CMTimeSubtract(duration, crossfadeTime))
                         audioMixParams.setVolumeRamp(fromStartVolume: 1.0, toEndVolume: 0.0, timeRange: CMTimeRange(start: fadeOutStart, duration: crossfadeTime))
+                        AppLogger.processing.info("🔀 [Crossfade]   Added audio fade out")
                     }
 
                     // Audio crossfade: fade in at start (except first scene)
                     if index > 0 {
                         audioMixParams.setVolumeRamp(fromStartVolume: 0.0, toEndVolume: 1.0, timeRange: CMTimeRange(start: currentTime, duration: crossfadeTime))
+                        AppLogger.processing.info("🔀 [Crossfade]   Added audio fade in")
                     }
 
                     audioMixParameters.append(audioMixParams)
                 }
+            } else {
+                AppLogger.processing.warning("🔀 [Crossfade]   ⚠️ No audio track found!")
             }
 
             currentTime = CMTimeAdd(currentTime, duration)
+            AppLogger.processing.info("🔀 [Crossfade]   Current timeline position: \(String(format: "%.2f", CMTimeGetSeconds(currentTime)))s")
 
             let progressValue = Double(index + 1) / Double(takes.count)
             progress?(progressValue)
         }
 
+        AppLogger.processing.info("🔀 [Crossfade] Total duration: \(String(format: "%.2f", CMTimeGetSeconds(currentTime)))s")
+        AppLogger.processing.info("🔀 [Crossfade] Instructions: \(instructions.count), Audio params: \(audioMixParameters.count)")
+
         guard let exportSession = AVAssetExportSession(asset: composition, presetName: AVAssetExportPresetHighestQuality) else {
+            AppLogger.processing.error("🔀 [Crossfade] ✗ Cannot create export session")
             throw VideoMergerError.cannotCreateExportSession
         }
 
@@ -332,6 +377,7 @@ actor VideoMerger {
             videoComposition.frameDuration = CMTime(value: 1, timescale: 30)
             videoComposition.renderSize = renderSize
             exportSession.videoComposition = videoComposition
+            AppLogger.processing.info("🔀 [Crossfade] ✓ Set video composition with \(instructions.count) instructions")
         }
 
         // Audio mix
@@ -339,19 +385,23 @@ actor VideoMerger {
             let audioMix = AVMutableAudioMix()
             audioMix.inputParameters = audioMixParameters
             exportSession.audioMix = audioMix
+            AppLogger.processing.info("🔀 [Crossfade] ✓ Set audio mix with \(audioMixParameters.count) parameters")
         }
 
         exportSession.outputURL = outputURL
         exportSession.outputFileType = .mov
         exportSession.shouldOptimizeForNetworkUse = true
 
+        AppLogger.processing.info("🔀 [Crossfade] Starting export...")
         await exportSession.export()
 
         if let error = exportSession.error {
+            AppLogger.processing.error("🔀 [Crossfade] ✗ Export failed: \(error)")
             throw VideoMergerError.exportFailed(error)
         }
 
-        AppLogger.processing.info("Successfully merged \(takes.count) takes with crossfades")
+        let fileSize = (try? FileManager.default.attributesOfItem(atPath: outputURL.path)[.size] as? Int64) ?? 0
+        AppLogger.processing.info("🔀 [Crossfade] ✓ Export complete! Size: \(fileSize) bytes")
         return outputURL
     }
 

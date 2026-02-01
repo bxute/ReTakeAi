@@ -956,10 +956,16 @@ extension PreviewScreen {
         guard !isGenerating && !isExporting else { return }
         guard let takes = loadSelectedTakes() else { return }
 
+        AppLogger.processing.info("🎬 [Preview] Starting preview generation")
+        AppLogger.processing.info("🎬 [Preview] Takes count: \(takes.count)")
+        AppLogger.processing.info("🎬 [Preview] Audio processing: \(audioProcessingEnabled ? "ON (\(selectedAudioPreset))" : "OFF")")
+        AppLogger.processing.info("🎬 [Preview] Transition: \(selectedTransitionStyle.rawValue)")
+        AppLogger.processing.info("🎬 [Preview] Aspect: \(selectedAspect.rawValue)")
+
         if !force,
            let cached = cachedPreviewURLs[selectedAspect],
            FileManager.default.fileExists(atPath: cached.path) {
-            // Don't auto-play, just use cached
+            AppLogger.processing.info("🎬 [Preview] Using cached preview")
             lastMergedURL = cached
             return
         }
@@ -982,10 +988,15 @@ extension PreviewScreen {
             var tempURLsToCleanup: [URL] = []
             
             if audioProcessingEnabled {
+                AppLogger.processing.info("🎬 [Preview] Step 1: Processing audio for \(takes.count) takes")
                 let audioPreset = getAudioPresetConfig()
                 let sceneAudioProcessor = SceneAudioProcessor.shared
                 
                 for (index, take) in takes.enumerated() {
+                    AppLogger.processing.info("🎬 [Preview] Processing take \(index + 1)/\(takes.count)")
+                    AppLogger.processing.info("🎬 [Preview]   Input: \(take.fileURL.lastPathComponent)")
+                    AppLogger.processing.info("🎬 [Preview]   Duration: \(take.duration)s, Resolution: \(take.resolution.displayString)")
+                    
                     let processedVideoURL = FileManager.default.temporaryDirectory
                         .appendingPathComponent("preview_processed_\(index)_\(UUID().uuidString).mov")
                     
@@ -996,21 +1007,34 @@ extension PreviewScreen {
                             audioPreset: audioPreset
                         )
                         
+                        // Verify processed file
+                        let fileExists = FileManager.default.fileExists(atPath: processedURL.path)
+                        let fileSize = (try? FileManager.default.attributesOfItem(atPath: processedURL.path)[.size] as? Int64) ?? 0
+                        AppLogger.processing.info("🎬 [Preview]   ✓ Processed: exists=\(fileExists), size=\(fileSize) bytes")
+                        
                         var processedTake = take
                         processedTake.fileURL = processedURL
                         processedTakes.append(processedTake)
                         tempURLsToCleanup.append(processedURL)
                     } catch {
-                        // Fallback to original if processing fails
-                        AppLogger.processing.warning("Audio processing failed for take \(index): \(error). Using original.")
+                        AppLogger.processing.error("🎬 [Preview]   ✗ Audio processing failed: \(error)")
                         processedTakes.append(take)
                     }
                 }
+                AppLogger.processing.info("🎬 [Preview] Step 1 complete: \(processedTakes.count) takes ready")
             } else {
+                AppLogger.processing.info("🎬 [Preview] Step 1: Skipped (audio processing disabled)")
                 processedTakes = takes
             }
             
+            // Log processed takes info
+            for (index, take) in processedTakes.enumerated() {
+                let fileExists = FileManager.default.fileExists(atPath: take.fileURL.path)
+                AppLogger.processing.info("🎬 [Preview] Take \(index + 1) for merge: \(take.fileURL.lastPathComponent), exists=\(fileExists)")
+            }
+            
             // Step 2: Merge with selected transition style
+            AppLogger.processing.info("🎬 [Preview] Step 2: Merging with \(selectedTransitionStyle.rawValue)")
             let merged: URL
             switch selectedTransitionStyle {
             case .hardCut:
@@ -1038,18 +1062,24 @@ extension PreviewScreen {
                 )
             }
             
+            // Verify merged file
+            let mergedExists = FileManager.default.fileExists(atPath: merged.path)
+            let mergedSize = (try? FileManager.default.attributesOfItem(atPath: merged.path)[.size] as? Int64) ?? 0
+            AppLogger.processing.info("🎬 [Preview] Step 2 complete: exists=\(mergedExists), size=\(mergedSize) bytes")
+            
             // Cleanup temp processed files
+            AppLogger.processing.info("🎬 [Preview] Cleaning up \(tempURLsToCleanup.count) temp files")
             for tempURL in tempURLsToCleanup {
                 try? FileManager.default.removeItem(at: tempURL)
             }
 
             cachedPreviewURLs[selectedAspect] = merged
-            cachedPreviewIDs[selectedAspect] = UUID()  // New unique ID for this preview
+            cachedPreviewIDs[selectedAspect] = UUID()
             lastMergedURL = merged
             lastGeneratedAspect = selectedAspect
-            // Don't auto-play - user will tap "Play Preview"
+            AppLogger.processing.info("🎬 [Preview] ✓ Preview generation complete!")
         } catch {
-            // no-op for now
+            AppLogger.processing.error("🎬 [Preview] ✗ Preview generation failed: \(error)")
         }
     }
     

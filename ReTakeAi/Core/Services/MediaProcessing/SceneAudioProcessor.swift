@@ -26,13 +26,27 @@ actor SceneAudioProcessor {
         audioPreset: [String: (enabled: Bool, config: ProcessorConfig)]
     ) async throws -> URL {
 
-        AppLogger.processing.info("🎬 Processing scene audio: \(inputVideoURL.lastPathComponent)")
+        AppLogger.processing.info("🎧 [SceneAudio] Processing: \(inputVideoURL.lastPathComponent)")
+        AppLogger.processing.info("🎧 [SceneAudio] Output: \(outputVideoURL.lastPathComponent)")
 
+        // Verify input file
+        let inputExists = FileManager.default.fileExists(atPath: inputVideoURL.path)
+        let inputSize = (try? FileManager.default.attributesOfItem(atPath: inputVideoURL.path)[.size] as? Int64) ?? 0
+        AppLogger.processing.info("🎧 [SceneAudio] Input file: exists=\(inputExists), size=\(inputSize) bytes")
+        
+        // Check input tracks
+        let inputAsset = AVAsset(url: inputVideoURL)
+        let inputVideoTracks = try await inputAsset.loadTracks(withMediaType: .video)
+        let inputAudioTracks = try await inputAsset.loadTracks(withMediaType: .audio)
+        AppLogger.processing.info("🎧 [SceneAudio] Input tracks - video: \(inputVideoTracks.count), audio: \(inputAudioTracks.count)")
+        
         // Step 1: Extract audio from video
+        AppLogger.processing.info("🎧 [SceneAudio] Step 1: Extracting audio...")
         let extractedAudioURL = try await extractAudio(from: inputVideoURL)
         defer { try? FileManager.default.removeItem(at: extractedAudioURL) }
-
-        AppLogger.processing.info("  ✓ Extracted audio")
+        
+        let extractedSize = (try? FileManager.default.attributesOfItem(atPath: extractedAudioURL.path)[.size] as? Int64) ?? 0
+        AppLogger.processing.info("🎧 [SceneAudio] Step 1 ✓ Extracted audio: \(extractedSize) bytes")
 
         // Step 2: Apply Dead Air Trimmer (if enabled)
         var currentAudioURL = extractedAudioURL
@@ -40,6 +54,7 @@ actor SceneAudioProcessor {
 
         if let trimmerConfig = audioPreset["deadAirTrimmer"],
            trimmerConfig.enabled {
+            AppLogger.processing.info("🎧 [SceneAudio] Step 2: Applying Dead Air Trimmer...")
             let trimmedAudioURL = FileManager.default.temporaryDirectory
                 .appendingPathComponent("trimmed_\(UUID().uuidString).m4a")
 
@@ -54,12 +69,15 @@ actor SceneAudioProcessor {
             trimmedTimeRanges = keptRanges
 
             let trimmedDuration = keptRanges.reduce(0.0) { $0 + CMTimeGetSeconds($1.duration) }
-            AppLogger.processing.info("  ✓ Dead air trimmed → \(String(format: "%.2f", trimmedDuration))s")
+            AppLogger.processing.info("🎧 [SceneAudio] Step 2 ✓ Dead air trimmed → \(String(format: "%.2f", trimmedDuration))s, \(keptRanges.count) ranges")
+        } else {
+            AppLogger.processing.info("🎧 [SceneAudio] Step 2: Skipped (Dead Air Trimmer disabled)")
         }
 
         // Step 3: Apply Silence Attenuator (if enabled)
         if let attenuatorConfig = audioPreset["silenceAttenuator"],
            attenuatorConfig.enabled {
+            AppLogger.processing.info("🎧 [SceneAudio] Step 3: Applying Silence Attenuator...")
             let attenuatedAudioURL = FileManager.default.temporaryDirectory
                 .appendingPathComponent("attenuated_\(UUID().uuidString).m4a")
 
@@ -76,13 +94,16 @@ actor SceneAudioProcessor {
             }
 
             currentAudioURL = attenuatedAudioURL
-
-            AppLogger.processing.info("  ✓ Silence attenuated")
+            let attenuatedSize = (try? FileManager.default.attributesOfItem(atPath: attenuatedAudioURL.path)[.size] as? Int64) ?? 0
+            AppLogger.processing.info("🎧 [SceneAudio] Step 3 ✓ Silence attenuated: \(attenuatedSize) bytes")
+        } else {
+            AppLogger.processing.info("🎧 [SceneAudio] Step 3: Skipped (Silence Attenuator disabled)")
         }
 
         // Step 4: Trim video to match audio (if dead air was trimmed)
         var finalVideoURL = inputVideoURL
         if !trimmedTimeRanges.isEmpty {
+            AppLogger.processing.info("🎧 [SceneAudio] Step 4: Trimming video to match audio...")
             let trimmedVideoURL = FileManager.default.temporaryDirectory
                 .appendingPathComponent("trimmed_video_\(UUID().uuidString).mov")
 
@@ -93,16 +114,33 @@ actor SceneAudioProcessor {
             )
 
             finalVideoURL = trimmedVideoURL
-
-            AppLogger.processing.info("  ✓ Video trimmed to match audio")
+            let trimmedVideoSize = (try? FileManager.default.attributesOfItem(atPath: trimmedVideoURL.path)[.size] as? Int64) ?? 0
+            AppLogger.processing.info("🎧 [SceneAudio] Step 4 ✓ Video trimmed: \(trimmedVideoSize) bytes")
+        } else {
+            AppLogger.processing.info("🎧 [SceneAudio] Step 4: Skipped (no trimming needed)")
         }
 
         // Step 5: Mux processed audio with video
+        AppLogger.processing.info("🎧 [SceneAudio] Step 5: Muxing audio with video...")
+        AppLogger.processing.info("🎧 [SceneAudio]   Video source: \(finalVideoURL.lastPathComponent)")
+        AppLogger.processing.info("🎧 [SceneAudio]   Audio source: \(currentAudioURL.lastPathComponent)")
+        
         try await muxAudioWithVideo(
             videoURL: finalVideoURL,
             audioURL: currentAudioURL,
             outputURL: outputVideoURL
         )
+
+        // Verify output
+        let outputExists = FileManager.default.fileExists(atPath: outputVideoURL.path)
+        let outputSize = (try? FileManager.default.attributesOfItem(atPath: outputVideoURL.path)[.size] as? Int64) ?? 0
+        AppLogger.processing.info("🎧 [SceneAudio] Step 5 ✓ Muxed: exists=\(outputExists), size=\(outputSize) bytes")
+        
+        // Check output tracks
+        let outputAsset = AVAsset(url: outputVideoURL)
+        let outputVideoTracks = try await outputAsset.loadTracks(withMediaType: .video)
+        let outputAudioTracks = try await outputAsset.loadTracks(withMediaType: .audio)
+        AppLogger.processing.info("🎧 [SceneAudio] Output tracks - video: \(outputVideoTracks.count), audio: \(outputAudioTracks.count)")
 
         // Clean up temp files
         if currentAudioURL != extractedAudioURL {
@@ -112,7 +150,7 @@ actor SceneAudioProcessor {
             try? FileManager.default.removeItem(at: finalVideoURL)
         }
 
-        AppLogger.processing.info("  ✓ Muxed audio + video → \(outputVideoURL.lastPathComponent)")
+        AppLogger.processing.info("🎧 [SceneAudio] ✓ Scene processing complete!")
 
         return outputVideoURL
     }
