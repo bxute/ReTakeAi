@@ -29,8 +29,7 @@ class AudioProcessorTestViewModel: NSObject {
     // MARK: - Processor Selection
 
     var enabledProcessors: [String: Bool] = [
-        "silenceAttenuator": true,      // Silence Attenuator (Pure Gain)
-        "lufsNormalizer": true          // LUFS Normalizer
+        "silenceAttenuator": true       // Silence Attenuator (Pure Gain)
     ]
 
     var processorConfigs: [String: ProcessorConfig] = [
@@ -40,18 +39,13 @@ class AudioProcessorTestViewModel: NSObject {
             "thresholdOffset": 8.0,   // +8 dB above noise floor
             "attackTime": 0.012,      // 12 ms
             "releaseTime": 0.200      // 200 ms
-        ]),
-        "lufsNormalizer": ProcessorConfig([
-            "targetLUFS": -16.0,      // EBU R128 broadcast standard
-            "truePeak": -1.0          // dBTP (prevent clipping)
         ])
     ]
 
     // MARK: - Processor Info
 
     let processorInfo: [(id: String, name: String, description: String)] = [
-        ("silenceAttenuator", "Silence Attenuator", "Pure gain-based silence reduction with adaptive threshold"),
-        ("lufsNormalizer", "LUFS Normalizer", "Normalize to broadcast standard loudness (-16 LUFS)")
+        ("silenceAttenuator", "Silence Attenuator", "Pure gain-based silence reduction with adaptive threshold")
     ]
 
     // MARK: - Audio Playback
@@ -180,8 +174,7 @@ class AudioProcessorTestViewModel: NSObject {
 
             // Define processing order
             let processingOrder: [(id: String, processor: any AudioProcessorProtocol, name: String)] = [
-                ("silenceAttenuator", SilenceAttenuatorProcessor(), "Silence Attenuator"),
-                ("lufsNormalizer", LUFSNormalizerProcessor(), "LUFS Normalizer")
+                ("silenceAttenuator", SilenceAttenuatorProcessor(), "Silence Attenuator")
             ]
 
             // Count enabled processors for progress tracking

@@ -32,8 +32,7 @@ struct ComparisonCard: View {
 
             // Waveform
             if !waveform.isEmpty {
-                WaveformView(samples: waveform, color: color
-                             , label: "Waveform")
+                WaveformView(samples: waveform, color: color, label: "Waveform")
                     .frame(height: 80)
             }
 

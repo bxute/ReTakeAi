@@ -14,7 +14,6 @@ struct AudioProcessorTestView: View {
     @State private var showPresetPicker = false
     @State private var loadError: String?
     @State private var showSilenceAttenuatorDebug = false
-    @State private var showLUFSNormalizerDebug = false
 
     var body: some View {
         Group {
@@ -63,10 +62,6 @@ struct AudioProcessorTestView: View {
                             Label("Silence Attenuator Debug", systemImage: "waveform.path")
                         }
 
-                        Button(action: { showLUFSNormalizerDebug = true }) {
-                            Label("LUFS Normalizer Debug", systemImage: "waveform.and.magnifyingglass")
-                        }
-
                         Divider()
 
                         // Stop playback
@@ -84,9 +79,6 @@ struct AudioProcessorTestView: View {
         }
         .sheet(isPresented: $showSilenceAttenuatorDebug) {
             SilenceAttenuatorDebugView()
-        }
-        .sheet(isPresented: $showLUFSNormalizerDebug) {
-            LUFSNormalizerDebugView()
         }
         .fileImporter(
             isPresented: $showFilePicker,
