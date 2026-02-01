@@ -20,7 +20,7 @@ class ExportViewModel {
     var audioProcessingEnabled: Bool = true
 
     // Video settings
-    var selectedTransitionStyle: TransitionStyle = .hardCut
+    var selectedTransitionStyle: TransitionStyle = .crossFade
 
     let project: Project
 

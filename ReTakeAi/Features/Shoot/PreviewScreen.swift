@@ -22,6 +22,15 @@ struct PreviewScreen: View {
     @State private var showingExports = false
     @State private var isAspectSectionExpanded = false
     @State private var lastGeneratedAspect: VideoAspect?
+    
+    // Audio Enhancement
+    @State private var audioProcessingEnabled = true
+    @State private var selectedAudioPreset = "Podcast Pro"
+    @State private var isAudioSectionExpanded = false
+    
+    // Video Settings
+    @State private var selectedTransitionStyle: TransitionStyle = .crossFade
+    @State private var isVideoSettingsSectionExpanded = false
 
     @Environment(\.dismiss) private var dismiss
 
@@ -39,6 +48,10 @@ struct PreviewScreen: View {
                     informationSection
 
                     aspectSelectionSection
+                    
+                    videoSettingsSection
+                    
+                    audioEnhancementSection
                 }
                 .padding(.horizontal)
                 .padding(.vertical, 16)
@@ -467,6 +480,259 @@ struct PreviewScreen: View {
             )
         }
     }
+    
+    // MARK: - Video Settings Section
+    
+    private var videoSettingsSection: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            // Section note
+            Text("Control how scenes blend together")
+                .font(.caption)
+                .foregroundStyle(AppTheme.Colors.textSecondary)
+            
+            // Bordered container with all content
+            VStack(spacing: 0) {
+                // Header - tap to expand/collapse
+                Button {
+                    withAnimation(.easeInOut(duration: 0.2)) {
+                        isVideoSettingsSectionExpanded.toggle()
+                    }
+                } label: {
+                    HStack {
+                        Image(systemName: "film")
+                            .foregroundStyle(AppTheme.Colors.cta)
+                        
+                        Text("Scene Transitions")
+                            .font(.subheadline.weight(.semibold))
+                            .foregroundStyle(AppTheme.Colors.textPrimary)
+                        
+                        Spacer()
+                        
+                        Text(selectedTransitionStyle.rawValue)
+                            .font(.subheadline)
+                            .foregroundStyle(AppTheme.Colors.cta)
+                        
+                        Image(systemName: isVideoSettingsSectionExpanded ? "chevron.up" : "chevron.down")
+                            .font(.caption.weight(.semibold))
+                            .foregroundStyle(AppTheme.Colors.textSecondary)
+                    }
+                    .padding(14)
+                }
+                .buttonStyle(.plain)
+                
+                // Expanded content
+                if isVideoSettingsSectionExpanded {
+                    // Divider
+                    Rectangle()
+                        .fill(AppTheme.Colors.border)
+                        .frame(height: 1)
+                    
+                    VStack(alignment: .leading, spacing: 14) {
+                        Text("Transition Style")
+                            .font(.caption)
+                            .foregroundStyle(AppTheme.Colors.textSecondary)
+                        
+                        // Transition style buttons
+                        VStack(spacing: 8) {
+                            ForEach(TransitionStyle.allCases) { style in
+                                Button {
+                                    selectedTransitionStyle = style
+                                } label: {
+                                    HStack(spacing: 12) {
+                                        Image(systemName: style.icon)
+                                            .font(.body)
+                                            .frame(width: 24)
+                                            .foregroundStyle(
+                                                selectedTransitionStyle == style
+                                                    ? AppTheme.Colors.textPrimary
+                                                    : AppTheme.Colors.textSecondary
+                                            )
+                                        
+                                        VStack(alignment: .leading, spacing: 2) {
+                                            Text(style.rawValue)
+                                                .font(.subheadline.weight(.medium))
+                                                .foregroundStyle(
+                                                    selectedTransitionStyle == style
+                                                        ? AppTheme.Colors.textPrimary
+                                                        : AppTheme.Colors.textSecondary
+                                                )
+                                            
+                                            Text(style.description)
+                                                .font(.caption2)
+                                                .foregroundStyle(AppTheme.Colors.textTertiary)
+                                                .lineLimit(2)
+                                        }
+                                        
+                                        Spacer()
+                                        
+                                        if selectedTransitionStyle == style {
+                                            Image(systemName: "checkmark.circle.fill")
+                                                .foregroundStyle(AppTheme.Colors.cta)
+                                        }
+                                    }
+                                    .padding(12)
+                                    .background(
+                                        selectedTransitionStyle == style
+                                            ? AppTheme.Colors.cta.opacity(0.15)
+                                            : AppTheme.Colors.background,
+                                        in: RoundedRectangle(cornerRadius: 10, style: .continuous)
+                                    )
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 10, style: .continuous)
+                                            .stroke(
+                                                selectedTransitionStyle == style
+                                                    ? AppTheme.Colors.cta
+                                                    : AppTheme.Colors.border,
+                                                lineWidth: 1
+                                            )
+                                    )
+                                }
+                                .buttonStyle(.plain)
+                            }
+                        }
+                    }
+                    .padding(14)
+                }
+            }
+            .background(
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .fill(AppTheme.Colors.surface)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .stroke(AppTheme.Colors.border, lineWidth: 1)
+            )
+        }
+    }
+    
+    // MARK: - Audio Enhancement Section
+    
+    private var audioEnhancementSection: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            // Section note
+            Text("Enhance your audio quality")
+                .font(.caption)
+                .foregroundStyle(AppTheme.Colors.textSecondary)
+            
+            // Bordered container with all content
+            VStack(spacing: 0) {
+                // Header - tap to expand/collapse
+                Button {
+                    withAnimation(.easeInOut(duration: 0.2)) {
+                        isAudioSectionExpanded.toggle()
+                    }
+                } label: {
+                    HStack {
+                        Image(systemName: "waveform")
+                            .foregroundStyle(audioProcessingEnabled ? AppTheme.Colors.cta : AppTheme.Colors.textSecondary)
+                        
+                        Text("Audio Enhancement")
+                            .font(.subheadline.weight(.semibold))
+                            .foregroundStyle(AppTheme.Colors.textPrimary)
+                        
+                        Spacer()
+                        
+                        Text(audioProcessingEnabled ? selectedAudioPreset : "Off")
+                            .font(.subheadline)
+                            .foregroundStyle(audioProcessingEnabled ? AppTheme.Colors.cta : AppTheme.Colors.textSecondary)
+                        
+                        Image(systemName: isAudioSectionExpanded ? "chevron.up" : "chevron.down")
+                            .font(.caption.weight(.semibold))
+                            .foregroundStyle(AppTheme.Colors.textSecondary)
+                    }
+                    .padding(14)
+                }
+                .buttonStyle(.plain)
+                
+                // Expanded content
+                if isAudioSectionExpanded {
+                    // Divider
+                    Rectangle()
+                        .fill(AppTheme.Colors.border)
+                        .frame(height: 1)
+                    
+                    VStack(alignment: .leading, spacing: 14) {
+                        // Enable/Disable toggle
+                        HStack {
+                            Text("Enable Audio Processing")
+                                .font(.subheadline)
+                                .foregroundStyle(AppTheme.Colors.textPrimary)
+                            
+                            Spacer()
+                            
+                            Toggle("", isOn: $audioProcessingEnabled)
+                                .labelsHidden()
+                                .tint(AppTheme.Colors.cta)
+                        }
+                        
+                        if audioProcessingEnabled {
+                            // Preset picker
+                            VStack(alignment: .leading, spacing: 8) {
+                                Text("Processing Preset")
+                                    .font(.caption)
+                                    .foregroundStyle(AppTheme.Colors.textSecondary)
+                                
+                                // Preset buttons
+                                LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 8) {
+                                    ForEach(AudioPresets.allPresets.map { $0.name }, id: \.self) { presetName in
+                                        Button {
+                                            selectedAudioPreset = presetName
+                                        } label: {
+                                            Text(presetName)
+                                                .font(.caption.weight(.medium))
+                                                .frame(maxWidth: .infinity)
+                                                .padding(.vertical, 10)
+                                                .background(
+                                                    selectedAudioPreset == presetName
+                                                        ? AppTheme.Colors.cta
+                                                        : AppTheme.Colors.background,
+                                                    in: RoundedRectangle(cornerRadius: 8, style: .continuous)
+                                                )
+                                                .foregroundStyle(
+                                                    selectedAudioPreset == presetName
+                                                        ? AppTheme.Colors.textPrimary
+                                                        : AppTheme.Colors.textSecondary
+                                                )
+                                        }
+                                        .buttonStyle(.plain)
+                                        .overlay(
+                                            RoundedRectangle(cornerRadius: 8, style: .continuous)
+                                                .stroke(
+                                                    selectedAudioPreset == presetName
+                                                        ? Color.clear
+                                                        : AppTheme.Colors.border,
+                                                    lineWidth: 1
+                                                )
+                                        )
+                                    }
+                                }
+                                
+                                // Preset description
+                                HStack(alignment: .top, spacing: 6) {
+                                    Image(systemName: "info.circle")
+                                        .font(.caption2)
+                                        .foregroundStyle(AppTheme.Colors.cta)
+                                    Text(AudioPresets.description(for: selectedAudioPreset))
+                                        .font(.caption)
+                                        .foregroundStyle(AppTheme.Colors.textTertiary)
+                                }
+                                .padding(.top, 4)
+                            }
+                        }
+                    }
+                    .padding(14)
+                }
+            }
+            .background(
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .fill(AppTheme.Colors.surface)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .stroke(AppTheme.Colors.border, lineWidth: 1)
+            )
+        }
+    }
 
     // MARK: - Crop Preview
 
@@ -707,15 +973,75 @@ extension PreviewScreen {
             let previewDir = caches.appendingPathComponent("Previews", isDirectory: true)
             try? FileManager.default.createDirectory(at: previewDir, withIntermediateDirectories: true)
             
-            let url = previewDir.appendingPathComponent("preview_\(projectID.uuidString)_\(selectedAspect.rawValue).mov")
+            let audioSuffix = audioProcessingEnabled ? selectedAudioPreset.replacingOccurrences(of: " ", with: "_") : "noaudio"
+            let url = previewDir.appendingPathComponent("preview_\(projectID.uuidString)_\(selectedAspect.rawValue)_\(selectedTransitionStyle.rawValue)_\(audioSuffix).mov")
             try? FileManager.default.removeItem(at: url)
 
-            let merged = try await VideoMerger.shared.mergeScenes(
-                takes,
-                outputURL: url,
-                targetAspect: selectedAspect,
-                progress: nil
-            )
+            // Step 1: Process audio for each take (if enabled)
+            var processedTakes: [Take] = []
+            var tempURLsToCleanup: [URL] = []
+            
+            if audioProcessingEnabled {
+                let audioPreset = getAudioPresetConfig()
+                let sceneAudioProcessor = SceneAudioProcessor.shared
+                
+                for (index, take) in takes.enumerated() {
+                    let processedVideoURL = FileManager.default.temporaryDirectory
+                        .appendingPathComponent("preview_processed_\(index)_\(UUID().uuidString).mov")
+                    
+                    do {
+                        let processedURL = try await sceneAudioProcessor.processScene(
+                            inputVideoURL: take.fileURL,
+                            outputVideoURL: processedVideoURL,
+                            audioPreset: audioPreset
+                        )
+                        
+                        var processedTake = take
+                        processedTake.fileURL = processedURL
+                        processedTakes.append(processedTake)
+                        tempURLsToCleanup.append(processedURL)
+                    } catch {
+                        // Fallback to original if processing fails
+                        AppLogger.processing.warning("Audio processing failed for take \(index): \(error). Using original.")
+                        processedTakes.append(take)
+                    }
+                }
+            } else {
+                processedTakes = takes
+            }
+            
+            // Step 2: Merge with selected transition style
+            let merged: URL
+            switch selectedTransitionStyle {
+            case .hardCut:
+                merged = try await VideoMerger.shared.mergeScenes(
+                    processedTakes,
+                    outputURL: url,
+                    targetAspect: selectedAspect,
+                    progress: nil
+                )
+            case .crossFade:
+                merged = try await VideoMerger.shared.mergeScenesWithCrossfade(
+                    processedTakes,
+                    outputURL: url,
+                    targetAspect: selectedAspect,
+                    crossfadeDuration: 0.5,
+                    progress: nil
+                )
+            case .fadeInOut:
+                merged = try await VideoMerger.shared.mergeScenesWithFadeToBlack(
+                    processedTakes,
+                    outputURL: url,
+                    targetAspect: selectedAspect,
+                    fadeDuration: 0.3,
+                    progress: nil
+                )
+            }
+            
+            // Cleanup temp processed files
+            for tempURL in tempURLsToCleanup {
+                try? FileManager.default.removeItem(at: tempURL)
+            }
 
             cachedPreviewURLs[selectedAspect] = merged
             cachedPreviewIDs[selectedAspect] = UUID()  // New unique ID for this preview
@@ -725,6 +1051,14 @@ extension PreviewScreen {
         } catch {
             // no-op for now
         }
+    }
+    
+    /// Get audio preset configuration based on selected preset name
+    private func getAudioPresetConfig() -> [String: (enabled: Bool, config: ProcessorConfig)] {
+        guard let preset = AudioPresets.allPresets.first(where: { $0.name == selectedAudioPreset }) else {
+            return AudioPresets.podcastPro // Default fallback
+        }
+        return preset.preset
     }
 
     private func exportVideo() async {
