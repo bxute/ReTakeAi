@@ -40,6 +40,96 @@ class DeadAirTrimmerProcessor: AudioProcessorProtocol {
         ])
     }
 
+    /// Process audio and return kept time ranges (for video trimming synchronization)
+    func processWithRanges(inputURL: URL, outputURL: URL, config: ProcessorConfig) async throws -> [CMTimeRange] {
+        // Extract config
+        let trimStart = config["trimStart"] as? Bool ?? true
+        let trimEnd = config["trimEnd"] as? Bool ?? true
+        let trimMid = config["trimMid"] as? Bool ?? false
+        let startBuffer = config["startBuffer"] as? Double ?? 0.25
+        let endBuffer = config["endBuffer"] as? Double ?? 0.25
+        let minDeadAirDuration = config["minDeadAirDuration"] as? Double ?? 1.0
+        let maxMidPauseDuration = config["maxMidPauseDuration"] as? Double ?? 1.5
+        let minSustainedVoiceDuration = config["minSustainedVoiceDuration"] as? Double ?? 0.1
+        let frameSize = config["frameSize"] as? Double ?? 0.020
+
+        // Load and analyze audio
+        let audioFile = try AVAudioFile(forReading: inputURL)
+        let format = audioFile.processingFormat
+        let frameCount = AVAudioFrameCount(audioFile.length)
+
+        guard let buffer = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: frameCount) else {
+            throw AudioProcessorError.invalidBuffer
+        }
+
+        try audioFile.read(into: buffer)
+
+        let sampleRate = format.sampleRate
+        let totalDuration = Double(buffer.frameLength) / sampleRate
+
+        // Calculate adaptive threshold
+        let adaptiveThreshold = calculateAdaptiveThreshold(
+            buffer: buffer,
+            sampleRate: sampleRate,
+            frameSize: frameSize
+        )
+
+        // Analyze regions
+        let regions = try analyzeAudioRegions(
+            buffer: buffer,
+            sampleRate: sampleRate,
+            frameSize: frameSize,
+            voiceThresholdDB: adaptiveThreshold,
+            minDeadAirDuration: minDeadAirDuration
+        )
+
+        // Calculate trim regions
+        let trimRegions = calculateTrimRegions(
+            regions: regions,
+            totalDuration: totalDuration,
+            trimStart: trimStart,
+            trimEnd: trimEnd,
+            trimMid: trimMid,
+            startBuffer: startBuffer,
+            endBuffer: endBuffer,
+            maxMidPauseDuration: maxMidPauseDuration,
+            minSustainedVoiceDuration: minSustainedVoiceDuration
+        )
+
+        // Calculate kept regions (inverse of trim regions)
+        var keepRegions: [(start: Double, end: Double)] = []
+        var currentTime: Double = 0
+
+        for trim in trimRegions {
+            if currentTime < trim.startTime {
+                keepRegions.append((currentTime, trim.startTime))
+            }
+            currentTime = trim.endTime
+        }
+
+        if currentTime < totalDuration {
+            keepRegions.append((currentTime, totalDuration))
+        }
+
+        // Convert to CMTimeRange array
+        let keptRanges = keepRegions.map { region in
+            CMTimeRange(
+                start: CMTime(seconds: region.start, preferredTimescale: 600),
+                duration: CMTime(seconds: region.end - region.start, preferredTimescale: 600)
+            )
+        }
+
+        // Apply trims to audio
+        _ = try await applyTrims(
+            inputURL: inputURL,
+            outputURL: outputURL,
+            trimRegions: trimRegions,
+            sampleRate: sampleRate
+        )
+
+        return keptRanges
+    }
+
     func process(inputURL: URL, outputURL: URL, config: ProcessorConfig) async throws {
         let trimStart = config["trimStart"] as? Bool ?? true
         let trimEnd = config["trimEnd"] as? Bool ?? true

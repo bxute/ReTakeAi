@@ -49,13 +49,13 @@ struct ExportView: View {
             Image(systemName: "film.stack")
                 .font(.system(size: 72))
                 .foregroundColor(.blue)
-            
+
             Text("Ready to Export")
                 .font(.title2)
                 .fontWeight(.semibold)
-            
+
             let info = viewModel.getExportInfo()
-            
+
             VStack(alignment: .leading, spacing: 12) {
                 InfoRow(label: "Scenes", value: "\(info.sceneCount)")
                 InfoRow(label: "Duration", value: info.formattedDuration)
@@ -64,7 +64,10 @@ struct ExportView: View {
             .padding()
             .background(Color(.systemGray6))
             .cornerRadius(12)
-            
+
+            // Audio Processing Settings
+            audioProcessingSection
+
             Button {
                 Task {
                     await viewModel.exportVideo()
@@ -79,16 +82,54 @@ struct ExportView: View {
             .disabled(!viewModel.canExport())
         }
     }
+
+    private var audioProcessingSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Label("Audio Enhancement", systemImage: "waveform")
+                    .font(.headline)
+                Spacer()
+                Toggle("", isOn: $viewModel.audioProcessingEnabled)
+                    .labelsHidden()
+            }
+
+            if viewModel.audioProcessingEnabled {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Processing Preset")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+
+                    Picker("Audio Preset", selection: $viewModel.selectedAudioPreset) {
+                        ForEach(viewModel.availablePresets, id: \.self) { presetName in
+                            Text(presetName).tag(presetName)
+                        }
+                    }
+                    .pickerStyle(.menu)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+
+                    // Show preset description
+                    Text(AudioPresets.description(for: viewModel.selectedAudioPreset))
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                        .padding(.top, 4)
+                }
+                .padding(.top, 8)
+            }
+        }
+        .padding()
+        .background(Color(.systemGray6))
+        .cornerRadius(12)
+    }
     
     private var exportingView: some View {
         VStack(spacing: 20) {
             ProgressView(value: viewModel.exportProgress)
                 .progressViewStyle(.linear)
-            
-            Text("Exporting... \(Int(viewModel.exportProgress * 100))%")
+
+            Text(viewModel.exportingStage.isEmpty ? "Exporting..." : viewModel.exportingStage)
                 .font(.headline)
-            
-            Text("This may take a few moments")
+
+            Text("\(Int(viewModel.exportProgress * 100))% complete")
                 .font(.subheadline)
                 .foregroundColor(.secondary)
         }
