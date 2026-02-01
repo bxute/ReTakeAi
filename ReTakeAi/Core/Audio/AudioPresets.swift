@@ -7,235 +7,178 @@
 
 import Foundation
 
-/// Collection of audio processing presets
+/// Collection of audio processing presets for Dead Air Trimmer + Silence Attenuator
 struct AudioPresets {
 
-    // MARK: - HPF Presets
+    // MARK: - Combined Presets (Dead Air Trimmer + Silence Attenuator)
 
-    // Voice Frequency Reference:
-    // - Male fundamentals: 85-180 Hz
-    // - Female fundamentals: 165-255 Hz
-    // - Rumble/AC hum: 20-60 Hz
-    // Safe cutoff: 60-80 Hz (removes rumble, preserves all voice)
-
-    /// Gentle HPF at 60 Hz - minimal filtering, preserves all voice (recommended for male voices)
-    static let hpfGentle = ProcessorConfig([
-        "cutoffFrequency": 60.0,
-        "resonance": 0.5  // Very gentle roll-off
-    ])
-
-    /// Standard HPF at 70 Hz - safe for all voices, removes rumble
-    static let hpfStandard = ProcessorConfig([
-        "cutoffFrequency": 70.0,
-        "resonance": 0.707  // Butterworth (maximally flat)
-    ])
-
-    /// Aggressive HPF at 100 Hz - for very noisy environments (may thin male voices)
-    static let hpfAggressive = ProcessorConfig([
-        "cutoffFrequency": 100.0,
-        "resonance": 1.0  // Moderate steepness
-    ])
-
-    // MARK: - Voice Band-Pass Presets
-
-    /// Wide voice range - preserves natural sound with breath
-    static let voiceBandPassWide = ProcessorConfig([
-        "lowCutoff": 70.0,
-        "highCutoff": 5000.0,
-        "order": 2
-    ])
-
-    /// Standard voice range - focused on voice fundamentals and harmonics
-    static let voiceBandPassStandard = ProcessorConfig([
-        "lowCutoff": 85.0,
-        "highCutoff": 4000.0,
-        "order": 2
-    ])
-
-    /// Narrow voice range - aggressive isolation, may sound muffled
-    static let voiceBandPassNarrow = ProcessorConfig([
-        "lowCutoff": 100.0,
-        "highCutoff": 3500.0,
-        "order": 2
-    ])
-
-    // MARK: - Voice EQ Presets
-
-    /// Clarity preset - boost presence, reduce mud
-    static let voiceEQClarity = ProcessorConfig([
-        "preset": "clarity"
-    ])
-
-    /// Warmth preset - boost low-mids for warmth
-    static let voiceEQWarmth = ProcessorConfig([
-        "preset": "warmth"
-    ])
-
-    /// Broadcast preset - professional broadcast sound
-    static let voiceEQBroadcast = ProcessorConfig([
-        "preset": "broadcast"
-    ])
-
-    /// Podcast preset - balanced podcast sound
-    static let voiceEQPodcast = ProcessorConfig([
-        "preset": "podcast"
-    ])
-
-    // MARK: - Complete Voice Enhancement Presets
-
-    /// Voice Clarity preset - complete enhancement pipeline for clear, prominent vocals
-    static let vocalClarity: [String: (enabled: Bool, config: ProcessorConfig)] = [
-        "hpf": (true, hpfGentle),                           // Remove rumble
-        "voiceBandPass": (true, voiceBandPassStandard),     // Isolate voice range
-        "spectralNoiseReduction": (true, ProcessorConfig([
-            "noiseProfileDuration": 0.5,
-            "reductionAmount": 12.0,
-            "smoothingFactor": 0.7
+    /// Natural Voice - Gentle trimming with subtle silence reduction
+    /// Best for: Conversational videos, interviews, casual content
+    /// Characteristics: Preserves natural pauses, minimal processing
+    static let naturalVoice: [String: (enabled: Bool, config: ProcessorConfig)] = [
+        "deadAirTrimmer": (true, ProcessorConfig([
+            "trimStart": true,
+            "trimEnd": true,
+            "trimMid": false,
+            "startBuffer": 0.5,              // Keep 0.5s before voice (natural)
+            "endBuffer": 0.5,                // Keep 0.5s after voice
+            "minDeadAirDuration": 2.0,       // Only remove pauses > 2s
+            "maxMidPauseDuration": 2.0,      // Not used (trimMid disabled)
+            "minSustainedVoiceDuration": 0.05 // Catch almost all voice
         ])),
-        "adaptiveGate": (true, ProcessorConfig([
-            "threshold": -40.0,
-            "ratio": 10.0,
-            "attack": 5.0,
-            "release": 50.0,
-            "kneeWidth": 6.0
-        ])),
-        "voiceEQ": (true, voiceEQClarity),
-        "multiBandCompressor": (true, ProcessorConfig([
-            "lowThreshold": -20.0,
-            "lowRatio": 2.0,
-            "midThreshold": -15.0,
-            "midRatio": 3.0,
-            "highThreshold": -12.0,
-            "highRatio": 4.0,
-            "attack": 5.0,
-            "release": 100.0
-        ])),
-        "deEsser": (true, ProcessorConfig([
-            "frequency": 7000.0,
-            "threshold": -15.0,
-            "ratio": 4.0,
-            "bandwidth": 4000.0
-        ])),
-        "lufsNormalizer": (true, ProcessorConfig([
-            "targetLUFS": -16.0,
-            "truePeak": -1.0
+        "silenceAttenuator": (true, ProcessorConfig([
+            "frameSize": 0.020,
+            "attenuation": -3.0,             // Gentle -3 dB reduction
+            "thresholdOffset": 6.0,          // Conservative (less aggressive)
+            "attackTime": 0.015,             // Slow attack (15ms)
+            "releaseTime": 0.250             // Slow release (250ms)
         ]))
     ]
 
-    /// Warm Vocals preset - warmer, more natural sound
-    static let vocalWarmth: [String: (enabled: Bool, config: ProcessorConfig)] = [
-        "hpf": (true, hpfGentle),
-        "voiceBandPass": (true, voiceBandPassWide),
-        "spectralNoiseReduction": (true, ProcessorConfig([
-            "noiseProfileDuration": 0.5,
-            "reductionAmount": 10.0,
-            "smoothingFactor": 0.8
+    /// Podcast Pro - Balanced for spoken word content
+    /// Best for: Podcasts, tutorials, educational content
+    /// Characteristics: Clean pauses, clear voice, professional sound
+    static let podcastPro: [String: (enabled: Bool, config: ProcessorConfig)] = [
+        "deadAirTrimmer": (true, ProcessorConfig([
+            "trimStart": true,
+            "trimEnd": true,
+            "trimMid": false,
+            "startBuffer": 0.25,             // Standard 0.25s buffer
+            "endBuffer": 0.25,
+            "minDeadAirDuration": 1.0,       // Remove pauses > 1s
+            "maxMidPauseDuration": 1.5,
+            "minSustainedVoiceDuration": 0.1 // Standard voice detection
         ])),
-        "adaptiveGate": (true, ProcessorConfig([
-            "threshold": -45.0,
-            "ratio": 8.0,
-            "attack": 10.0,
-            "release": 100.0,
-            "kneeWidth": 8.0
-        ])),
-        "voiceEQ": (true, voiceEQWarmth),
-        "multiBandCompressor": (true, ProcessorConfig([
-            "lowThreshold": -18.0,
-            "lowRatio": 2.0,
-            "midThreshold": -15.0,
-            "midRatio": 2.5,
-            "highThreshold": -12.0,
-            "highRatio": 3.0,
-            "attack": 10.0,
-            "release": 150.0
-        ])),
-        "deEsser": (true, ProcessorConfig([
-            "frequency": 7000.0,
-            "threshold": -18.0,
-            "ratio": 3.0,
-            "bandwidth": 3500.0
-        ])),
-        "lufsNormalizer": (true, ProcessorConfig([
-            "targetLUFS": -18.0,
-            "truePeak": -1.0
+        "silenceAttenuator": (true, ProcessorConfig([
+            "frameSize": 0.020,
+            "attenuation": -5.0,             // Standard -5 dB reduction
+            "thresholdOffset": 8.0,          // Balanced threshold
+            "attackTime": 0.012,             // Standard attack (12ms)
+            "releaseTime": 0.200             // Standard release (200ms)
         ]))
     ]
 
-    /// Broadcast Voice preset - professional broadcast quality
-    static let vocalBroadcast: [String: (enabled: Bool, config: ProcessorConfig)] = [
-        "hpf": (true, hpfStandard),
-        "voiceBandPass": (true, voiceBandPassStandard),
-        "spectralNoiseReduction": (true, ProcessorConfig([
-            "noiseProfileDuration": 0.5,
-            "reductionAmount": 15.0,
-            "smoothingFactor": 0.6
+    /// Quick Edit - Aggressive trimming for fast-paced content
+    /// Best for: Social media, vlogs, fast cuts, energetic content
+    /// Characteristics: Tight timing, removes all excess air, punchy
+    static let quickEdit: [String: (enabled: Bool, config: ProcessorConfig)] = [
+        "deadAirTrimmer": (true, ProcessorConfig([
+            "trimStart": true,
+            "trimEnd": true,
+            "trimMid": true,                 // Also trim mid-scene pauses
+            "startBuffer": 0.1,              // Minimal buffer (0.1s)
+            "endBuffer": 0.1,
+            "minDeadAirDuration": 0.5,       // Remove pauses > 0.5s
+            "maxMidPauseDuration": 1.0,      // Compress mid pauses to 1s
+            "minSustainedVoiceDuration": 0.15 // Stricter voice detection
         ])),
-        "adaptiveGate": (true, ProcessorConfig([
-            "threshold": -35.0,
-            "ratio": 12.0,
-            "attack": 3.0,
-            "release": 40.0,
-            "kneeWidth": 4.0
-        ])),
-        "voiceEQ": (true, voiceEQBroadcast),
-        "multiBandCompressor": (true, ProcessorConfig([
-            "lowThreshold": -22.0,
-            "lowRatio": 3.0,
-            "midThreshold": -15.0,
-            "midRatio": 4.0,
-            "highThreshold": -10.0,
-            "highRatio": 5.0,
-            "attack": 3.0,
-            "release": 80.0
-        ])),
-        "deEsser": (true, ProcessorConfig([
-            "frequency": 7000.0,
-            "threshold": -12.0,
-            "ratio": 5.0,
-            "bandwidth": 4000.0
-        ])),
-        "lufsNormalizer": (true, ProcessorConfig([
-            "targetLUFS": -16.0,
-            "truePeak": -1.0
+        "silenceAttenuator": (true, ProcessorConfig([
+            "frameSize": 0.020,
+            "attenuation": -6.0,             // Aggressive -6 dB reduction
+            "thresholdOffset": 10.0,         // Higher threshold (more aggressive)
+            "attackTime": 0.010,             // Fast attack (10ms)
+            "releaseTime": 0.150             // Fast release (150ms)
         ]))
     ]
 
-    /// Podcast Voice preset - balanced podcast sound
-    static let vocalPodcast: [String: (enabled: Bool, config: ProcessorConfig)] = [
-        "hpf": (true, hpfGentle),
-        "voiceBandPass": (true, voiceBandPassStandard),
-        "spectralNoiseReduction": (true, ProcessorConfig([
-            "noiseProfileDuration": 0.5,
-            "reductionAmount": 12.0,
-            "smoothingFactor": 0.75
+    /// Studio Clean - Maximum cleanup for professional sound
+    /// Best for: Professional videos, voiceovers, announcements
+    /// Characteristics: Pristine silence, tight edits, broadcast quality
+    static let studioClean: [String: (enabled: Bool, config: ProcessorConfig)] = [
+        "deadAirTrimmer": (true, ProcessorConfig([
+            "trimStart": true,
+            "trimEnd": true,
+            "trimMid": true,
+            "startBuffer": 0.15,             // Tight but safe buffer
+            "endBuffer": 0.15,
+            "minDeadAirDuration": 0.7,       // Remove pauses > 0.7s
+            "maxMidPauseDuration": 1.2,      // Compress mid pauses to 1.2s
+            "minSustainedVoiceDuration": 0.2 // Very strict (only clear speech)
         ])),
-        "adaptiveGate": (true, ProcessorConfig([
-            "threshold": -42.0,
-            "ratio": 8.0,
-            "attack": 8.0,
-            "release": 80.0,
-            "kneeWidth": 6.0
-        ])),
-        "voiceEQ": (true, voiceEQPodcast),
-        "multiBandCompressor": (true, ProcessorConfig([
-            "lowThreshold": -20.0,
-            "lowRatio": 2.5,
-            "midThreshold": -16.0,
-            "midRatio": 3.0,
-            "highThreshold": -12.0,
-            "highRatio": 3.5,
-            "attack": 8.0,
-            "release": 120.0
-        ])),
-        "deEsser": (true, ProcessorConfig([
-            "frequency": 7000.0,
-            "threshold": -16.0,
-            "ratio": 3.5,
-            "bandwidth": 3800.0
-        ])),
-        "lufsNormalizer": (true, ProcessorConfig([
-            "targetLUFS": -19.0,
-            "truePeak": -1.0
+        "silenceAttenuator": (true, ProcessorConfig([
+            "frameSize": 0.020,
+            "attenuation": -8.0,             // Maximum -8 dB reduction
+            "thresholdOffset": 12.0,         // Very high threshold
+            "attackTime": 0.008,             // Very fast attack (8ms)
+            "releaseTime": 0.180             // Moderately fast release (180ms)
         ]))
     ]
+
+    /// Minimal Touch - Very light processing for clean recordings
+    /// Best for: Studio recordings, professional mic setups, low-noise environments
+    /// Characteristics: Preserves all natural pauses, barely touches the audio
+    static let minimalTouch: [String: (enabled: Bool, config: ProcessorConfig)] = [
+        "deadAirTrimmer": (true, ProcessorConfig([
+            "trimStart": true,
+            "trimEnd": true,
+            "trimMid": false,                // Never trim mid-scene pauses
+            "startBuffer": 1.0,              // Keep full 1.0s before voice
+            "endBuffer": 1.0,                // Keep full 1.0s after voice
+            "minDeadAirDuration": 3.0,       // Only remove pauses > 3s (very long)
+            "maxMidPauseDuration": 2.0,      // Not used (trimMid disabled)
+            "minSustainedVoiceDuration": 0.03 // Catch almost everything (30ms)
+        ])),
+        "silenceAttenuator": (true, ProcessorConfig([
+            "frameSize": 0.020,
+            "attenuation": -2.0,             // Minimal -2 dB reduction
+            "thresholdOffset": 4.0,          // Very conservative threshold
+            "attackTime": 0.020,             // Very slow attack (20ms)
+            "releaseTime": 0.300             // Very slow release (300ms)
+        ]))
+    ]
+
+    /// Ultra Aggressive - Maximum cleanup for noisy/problematic audio
+    /// Best for: Noisy environments, distant mic, lots of background noise
+    /// Characteristics: Removes everything possible, very tight timing
+    static let ultraAggressive: [String: (enabled: Bool, config: ProcessorConfig)] = [
+        "deadAirTrimmer": (true, ProcessorConfig([
+            "trimStart": true,
+            "trimEnd": true,
+            "trimMid": true,                 // Trim all long pauses
+            "startBuffer": 0.05,             // Absolute minimum buffer (50ms)
+            "endBuffer": 0.05,               // Absolute minimum buffer (50ms)
+            "minDeadAirDuration": 0.3,       // Remove pauses > 0.3s (very sensitive)
+            "maxMidPauseDuration": 0.8,      // Compress mid pauses to 0.8s
+            "minSustainedVoiceDuration": 0.25 // Very strict (250ms minimum)
+        ])),
+        "silenceAttenuator": (true, ProcessorConfig([
+            "frameSize": 0.020,
+            "attenuation": -12.0,            // Extreme -12 dB reduction
+            "thresholdOffset": 15.0,         // Very aggressive threshold
+            "attackTime": 0.005,             // Ultra-fast attack (5ms)
+            "releaseTime": 0.100             // Ultra-fast release (100ms)
+        ]))
+    ]
+
+    // MARK: - Preset Helpers
+
+    /// Get list of all available preset names
+    static let allPresets: [(name: String, preset: [String: (enabled: Bool, config: ProcessorConfig)])] = [
+        ("Minimal Touch", minimalTouch),
+        ("Natural Voice", naturalVoice),
+        ("Podcast Pro", podcastPro),
+        ("Quick Edit", quickEdit),
+        ("Studio Clean", studioClean),
+        ("Ultra Aggressive", ultraAggressive)
+    ]
+
+    /// Get preset description
+    static func description(for presetName: String) -> String {
+        switch presetName {
+        case "Minimal Touch":
+            return "Very light processing for clean recordings. Preserves natural pauses and audio character."
+        case "Natural Voice":
+            return "Gentle trimming with subtle silence reduction. Best for conversational videos and interviews."
+        case "Podcast Pro":
+            return "Balanced for spoken word content. Clean pauses and professional sound."
+        case "Quick Edit":
+            return "Aggressive trimming for fast-paced content. Perfect for social media and vlogs."
+        case "Studio Clean":
+            return "Maximum cleanup for professional sound. Pristine silence and broadcast quality."
+        case "Ultra Aggressive":
+            return "Extreme cleanup for noisy environments. Removes everything possible with very tight timing."
+        default:
+            return "Custom preset"
+        }
+    }
 }
