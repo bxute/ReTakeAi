@@ -35,6 +35,7 @@ class DeadAirTrimmerProcessor: AudioProcessorProtocol {
             "endBuffer": 0.25,              // Seconds to keep at end
             "minDeadAirDuration": 1.0,      // Seconds (silence > this = dead air)
             "maxMidPauseDuration": 1.5,     // Max pause length in mid-scene
+            "minSustainedVoiceDuration": 0.1, // Seconds (voice must be sustained to count)
             "frameSize": 0.020              // 20 ms analysis frames (voiceThreshold now adaptive)
         ])
     }
@@ -47,6 +48,7 @@ class DeadAirTrimmerProcessor: AudioProcessorProtocol {
         let endBuffer = config["endBuffer"] as? Double ?? 0.25
         let minDeadAirDuration = config["minDeadAirDuration"] as? Double ?? 1.0
         let maxMidPauseDuration = config["maxMidPauseDuration"] as? Double ?? 1.5
+        let minSustainedVoiceDuration = config["minSustainedVoiceDuration"] as? Double ?? 0.1
         let frameSize = config["frameSize"] as? Double ?? 0.020
 
         AppLogger.mediaProcessing.info("✂️ Dead Air Trimmer: Starting")
@@ -105,7 +107,8 @@ class DeadAirTrimmerProcessor: AudioProcessorProtocol {
             trimMid: trimMid,
             startBuffer: startBuffer,
             endBuffer: endBuffer,
-            maxMidPauseDuration: maxMidPauseDuration
+            maxMidPauseDuration: maxMidPauseDuration,
+            minSustainedVoiceDuration: minSustainedVoiceDuration
         )
 
         if trimRegions.isEmpty {
@@ -345,16 +348,23 @@ class DeadAirTrimmerProcessor: AudioProcessorProtocol {
         trimMid: Bool,
         startBuffer: Double,
         endBuffer: Double,
-        maxMidPauseDuration: Double
+        maxMidPauseDuration: Double,
+        minSustainedVoiceDuration: Double
     ) -> [TrimRegion] {
 
         var trims: [TrimRegion] = []
 
         guard !regions.isEmpty else { return trims }
 
-        // Find first and last voice regions
-        let firstVoiceIndex = regions.firstIndex { $0.type == .voice }
-        let lastVoiceIndex = regions.lastIndex { $0.type == .voice }
+        // Find first and last SUSTAINED voice regions (ignore brief sounds)
+        let firstVoiceIndex = regions.firstIndex { region in
+            region.type == .voice &&
+            (region.endTime - region.startTime) >= minSustainedVoiceDuration
+        }
+        let lastVoiceIndex = regions.lastIndex { region in
+            region.type == .voice &&
+            (region.endTime - region.startTime) >= minSustainedVoiceDuration
+        }
 
         // Trim start dead air
         if trimStart, let firstVoice = firstVoiceIndex {

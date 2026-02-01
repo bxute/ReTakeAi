@@ -211,6 +211,41 @@ struct DeadAirTrimmerDebugView: View {
                 .background(Color.red.opacity(0.05))
                 .cornerRadius(12)
 
+                // Sustained Voice Detection
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack {
+                        Text("Min Sustained Voice")
+                            .font(.subheadline)
+                            .fontWeight(.medium)
+                        Spacer()
+                        Text(String(format: "%.2fs", viewModel.minSustainedVoiceDuration))
+                            .font(.subheadline)
+                            .foregroundColor(.green)
+                            .fontWeight(.bold)
+                    }
+
+                    Slider(value: $viewModel.minSustainedVoiceDuration, in: 0.0...0.3, step: 0.05)
+                        .tint(.green)
+
+                    HStack {
+                        Text("0.0s (Catch all)")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                        Spacer()
+                        Text("0.3s (Very strict)")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+
+                    Text("Voice must be this long to count (ignores breath, clicks)")
+                        .font(.caption2)
+                        .foregroundColor(.secondary)
+                        .padding(.top, 4)
+                }
+                .padding()
+                .background(Color.green.opacity(0.05))
+                .cornerRadius(12)
+
                 // Mid-Scene Settings
                 if viewModel.trimMid {
                     VStack(alignment: .leading, spacing: 8) {
@@ -252,6 +287,7 @@ struct DeadAirTrimmerDebugView: View {
                             viewModel.startBuffer = 0.5
                             viewModel.endBuffer = 0.5
                             viewModel.minDeadAirDuration = 2.0
+                            viewModel.minSustainedVoiceDuration = 0.05
                         }
                         .font(.caption)
                         .buttonStyle(.bordered)
@@ -263,6 +299,7 @@ struct DeadAirTrimmerDebugView: View {
                             viewModel.startBuffer = 0.25
                             viewModel.endBuffer = 0.25
                             viewModel.minDeadAirDuration = 1.0
+                            viewModel.minSustainedVoiceDuration = 0.1
                         }
                         .font(.caption)
                         .buttonStyle(.bordered)
@@ -275,6 +312,7 @@ struct DeadAirTrimmerDebugView: View {
                             viewModel.endBuffer = 0.1
                             viewModel.minDeadAirDuration = 0.5
                             viewModel.maxMidPauseDuration = 1.0
+                            viewModel.minSustainedVoiceDuration = 0.2
                         }
                         .font(.caption)
                         .buttonStyle(.bordered)

@@ -36,6 +36,7 @@ class DeadAirTrimmerDebugViewModel: NSObject {
     var endBuffer: Double = 0.25
     var minDeadAirDuration: Double = 1.0
     var maxMidPauseDuration: Double = 1.5
+    var minSustainedVoiceDuration: Double = 0.1
 
     // MARK: - Audio Playback
 
@@ -111,7 +112,8 @@ class DeadAirTrimmerDebugViewModel: NSObject {
                     "startBuffer": startBuffer,
                     "endBuffer": endBuffer,
                     "minDeadAirDuration": minDeadAirDuration,
-                    "maxMidPauseDuration": maxMidPauseDuration
+                    "maxMidPauseDuration": maxMidPauseDuration,
+                    "minSustainedVoiceDuration": minSustainedVoiceDuration
                 ])
 
                 try await processor.process(inputURL: originalCopyURL, outputURL: trimmedURL, config: config)

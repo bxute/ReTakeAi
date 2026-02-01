@@ -48,7 +48,8 @@ class AudioProcessorTestViewModel: NSObject {
             "startBuffer": 0.25,
             "endBuffer": 0.25,
             "minDeadAirDuration": 1.0,
-            "maxMidPauseDuration": 1.5
+            "maxMidPauseDuration": 1.5,
+            "minSustainedVoiceDuration": 0.1
         ])
     ]
 
